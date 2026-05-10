@@ -21,7 +21,7 @@ export default defineComponent({
     const todos = ref<Todo[]>([
       {
         id: 1,
-        content: 'ct1'
+        content: 'hippo'
       },
       {
         id: 2,
