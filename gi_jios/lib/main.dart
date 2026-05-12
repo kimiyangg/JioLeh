@@ -19,17 +19,31 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  MapboxMap? mapboxMap;
+  MapboxMap? map;
 
-  Future<void> _zoomIn() async {
-    if (mapboxMap == null) return;
+  Future<void> zoomIn() async {
+    if (map == null) return;
 
-    final cameraState = await mapboxMap!.getCameraState();
-    final newZoom = cameraState.zoom + 1;
+    final camera = await map!.getCameraState();
 
-    await mapboxMap!.flyTo(
+    await map!.flyTo(
       CameraOptions(
-        zoom: newZoom,
+        zoom: camera.zoom + 1,
+      ),
+      MapAnimationOptions(
+        duration: 500,
+      ),
+    );
+  }
+
+  Future<void> zoomOut() async {
+    if (map == null) return;
+
+    final camera = await map!.getCameraState();
+
+    await map!.flyTo(
+      CameraOptions(
+        zoom: camera.zoom - 1,
       ),
       MapAnimationOptions(
         duration: 500,
@@ -39,35 +53,46 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final CameraOptions camera = CameraOptions(
-      center: Point(coordinates: Position(-98.0, 39.5)),
-      zoom: 2,
-      bearing: 0,
-      pitch: 0,
-    );
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Stack(
           children: [
             MapWidget(
-              cameraOptions: camera,
+              viewport: CameraViewportState(
+                center: Point(
+                  coordinates: Position(-98.0, 39.5),
+                ),
+                zoom: 2,
+                bearing: 0,
+                pitch: 0,
+              ),
               styleUri: "mapbox://styles/kimiyang/cmp11y75m000b01s7fr3615v9",
-              onMapCreated: (MapboxMap controller) {
-                mapboxMap = controller;
-              },
-              onStyleLoadedListener: (StyleLoadedEventData data) {
-                debugPrint("Map style loaded successfully");
+              onMapCreated: (controller) {
+                map = controller;
               },
             ),
 
             Positioned(
               right: 16,
               bottom: 32,
-              child: FloatingActionButton(
-                onPressed: _zoomIn,
-                child: const Icon(Icons.add),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton(
+                    heroTag: "zoomIn",
+                    onPressed: zoomIn,
+                    child: const Icon(Icons.add),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  FloatingActionButton(
+                    heroTag: "zoomOut",
+                    onPressed: zoomOut,
+                    child: const Icon(Icons.remove),
+                  ),
+                ],
               ),
             ),
           ],
