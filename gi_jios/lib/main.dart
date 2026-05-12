@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   MapboxOptions.setAccessToken(
-    "YOUR_MAPBOX_ACCESS_TOKEN",
+    "pk.eyJ1Ijoia2ltaXlhbmciLCJhIjoiY21wMGxhbHFpMWlzdjJ4b2ZzcWo3cjY5ZCJ9.kLYgUejkShnMvdT-K3NaWw",
+  );
+
+  await Supabase.initialize(
+    url: 'https://ijexhwqmzrmybznblvow.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqZXhod3FtenJteWJ6bmJsdm93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NjM3OTgsImV4cCI6MjA5NDEzOTc5OH0.q2RzIn8TXJGm4ghq-T5JK3g_-k7vNANn1J_WANKwuzY',
   );
 
   runApp(const MyApp());
@@ -21,14 +27,31 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   MapboxMap? map;
+  final supabase = Supabase.instance.client;
 
   geo.Position? userPosition;
   bool isLoadingLocation = true;
 
+  List<Map<String, dynamic>> pinnedLocations = [];
+
   @override
   void initState() {
     super.initState();
+    setupBackend();
     getUserLocation();
+  }
+
+  Future<void> setupBackend() async {
+    await signInIfNeeded();
+    await loadPinnedLocations();
+  }
+
+  Future<void> signInIfNeeded() async {
+    final currentUser = supabase.auth.currentUser;
+
+    if (currentUser == null) {
+      await supabase.auth.signInAnonymously();
+    }
   }
 
   Future<void> getUserLocation() async {
@@ -104,6 +127,44 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Future<void> savePinnedLocation({
+    required double latitude,
+    required double longitude,
+    required String name,
+    required String emoji,
+  }) async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      await signInIfNeeded();
+    }
+
+    await supabase.from('pinned_locations').insert({
+      'user_id': supabase.auth.currentUser!.id,
+      'name': name,
+      'emoji': emoji,
+      'latitude': latitude,
+      'longitude': longitude,
+    });
+  }
+
+  Future<void> loadPinnedLocations() async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      await signInIfNeeded();
+    }
+
+    final data = await supabase
+        .from('pinned_locations')
+        .select()
+        .order('created_at', ascending: false);
+
+    setState(() {
+      pinnedLocations = List<Map<String, dynamic>>.from(data);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoadingLocation) {
@@ -168,6 +229,23 @@ class _MyAppState extends State<MyApp> {
                     heroTag: "zoomOut",
                     onPressed: zoomOut,
                     child: const Icon(Icons.remove),
+                  ),
+
+                  const SizedBox(height: 12),
+                  
+                  FloatingActionButton(
+                    heroTag: "addPin",
+                    onPressed: () async {
+                      await savePinnedLocation(
+                        latitude: 1.2966,
+                        longitude: 103.7764,
+                        name: "NUS",
+                        emoji: "🏫",
+                      );
+
+                      await loadPinnedLocations();
+                    },
+                    child: const Icon(Icons.place),
                   ),
                 ],
               ),
