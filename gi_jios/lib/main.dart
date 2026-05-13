@@ -3,16 +3,59 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+const String mapboxAccessToken = String.fromEnvironment(
+  'MAPBOX_ACCESS_TOKEN',
+);
+
+const String supabaseUrl = String.fromEnvironment(
+  'SUPABASE_URL',
+);
+
+const String supabaseAnonKey = String.fromEnvironment(
+  'SUPABASE_ANON_KEY',
+);
+
+const String mapboxStyleUri = String.fromEnvironment(
+  'MAPBOX_STYLE_URI',
+);
+
+void validateEnvironment() {
+  final missingValues = <String>[];
+
+  if (mapboxAccessToken.isEmpty) {
+    missingValues.add('MAPBOX_ACCESS_TOKEN');
+  }
+
+  if (supabaseUrl.isEmpty) {
+    missingValues.add('SUPABASE_URL');
+  }
+
+  if (supabaseAnonKey.isEmpty) {
+    missingValues.add('SUPABASE_ANON_KEY');
+  }
+
+  if (mapboxStyleUri.isEmpty) {
+    missingValues.add('MAPBOX_STYLE_URI');
+  }
+
+  if (missingValues.isNotEmpty) {
+    throw StateError(
+      'Missing dart-define values: ${missingValues.join(', ')}',
+    );
+  }
+}
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  MapboxOptions.setAccessToken(
-    "pk.eyJ1Ijoia2ltaXlhbmciLCJhIjoiY21wMGxhbHFpMWlzdjJ4b2ZzcWo3cjY5ZCJ9.kLYgUejkShnMvdT-K3NaWw",
-  );
+  validateEnvironment();
+
+  MapboxOptions.setAccessToken(mapboxAccessToken);
 
   await Supabase.initialize(
-    url: 'https://ijexhwqmzrmybznblvow.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqZXhod3FtenJteWJ6bmJsdm93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NjM3OTgsImV4cCI6MjA5NDEzOTc5OH0.q2RzIn8TXJGm4ghq-T5JK3g_-k7vNANn1J_WANKwuzY',
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
   );
 
   runApp(const MyApp());
