@@ -5,6 +5,18 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+/*
+For this example to work, you need to provide the following dart-define values:
+- MAPBOX_ACCESS_TOKEN: Your Mapbox access token.
+- SUPABASE_URL: Your Supabase project URL.
+- SUPABASE_ANON_KEY: Your Supabase anon key.
+- MAPBOX_STYLE_URI: The Mapbox style URI you want to use (e.g., "mapbox://styles/mapbox/streets-v11").
+You can provide these values when running the app using the --dart-define flag:
+*/
+
 const String mapboxAccessToken = String.fromEnvironment(
   'MAPBOX_ACCESS_TOKEN',
 );
@@ -20,6 +32,7 @@ const String supabaseAnonKey = String.fromEnvironment(
 const String mapboxStyleUri = String.fromEnvironment(
   'MAPBOX_STYLE_URI',
 );
+
 
 void validateEnvironment() {
   final missingValues = [];
@@ -74,6 +87,12 @@ class _MyAppState extends State<MyApp> {
   CircleAnnotationManager? circleAnnotationManager;
 
   final supabase = Supabase.instance.client;
+
+  String currentLocationName = 'Finding your location...';
+  bool isLoadingLocationName = false;
+
+DateTime? lastReverseGeocodeTime;
+geo.Position? lastReverseGeocodedPosition;
 
   geo.Position? userPosition;
   StreamSubscription<geo.Position>? positionStreamSubscription;
@@ -156,8 +175,10 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         userPosition = initialPosition;
         isLoadingLocation = false;
+        
       });
 
+      await updateCurrentLocationName(initialPosition, force: true);
       await enableMapboxLocationComponent();
       await moveCameraToPosition(initialPosition, zoom: 15);
 
@@ -174,6 +195,8 @@ class _MyAppState extends State<MyApp> {
         setState(() {
           userPosition = position;
         });
+
+        await updateCurrentLocationName(position);
 
         if (followCurrentPosition) {
           await moveCameraToPosition(position);
@@ -365,6 +388,115 @@ class _MyAppState extends State<MyApp> {
     await moveCameraToPosition(userPosition!, zoom: 15);
   }
 
+  Future<String> getLocationNameFromCoordinates({
+    required double latitude,
+    required double longitude,
+  }) async {
+    final uri = Uri.https(
+      'api.mapbox.com',
+      '/search/geocode/v6/reverse',
+      {
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+        'language': 'en',
+        'access_token': mapboxAccessToken,
+      },
+    );
+
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get location name: ${response.body}');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final features = data['features'] as List<dynamic>?;
+
+    if (features == null || features.isEmpty) {
+      return 'Unknown location';
+    }
+
+    final firstFeature = features.first as Map<String, dynamic>;
+    final properties = firstFeature['properties'] as Map<String, dynamic>? ?? {};
+    final context = properties['context'] as Map<String, dynamic>? ?? {};
+
+    final name = properties['name'] as String?;
+
+    final neighborhood = context['neighborhood']?['name'] as String?;
+    final locality = context['locality']?['name'] as String?;
+    final district = context['district']?['name'] as String?;
+    final place = context['place']?['name'] as String?;
+    final region = context['region']?['name'] as String?;
+    final country = context['country']?['name'] as String?;
+
+    final area = neighborhood ??
+        locality ??
+        district ??
+        place ??
+        region ??
+        name;
+
+    if (area != null && country != null && area != country) {
+      return '$area, $country';
+    }
+
+    return area ?? country ?? 'Unknown location';
+  }
+
+  Future<void> updateCurrentLocationName(
+    geo.Position position, {
+    bool force = false,
+  }) async {
+    if (isLoadingLocationName) return;
+
+    final now = DateTime.now();
+
+    final recentlyUpdated = lastReverseGeocodeTime != null &&
+        now.difference(lastReverseGeocodeTime!).inSeconds < 20;
+
+    final hasNotMovedMuch = lastReverseGeocodedPosition != null &&
+        geo.Geolocator.distanceBetween(
+              lastReverseGeocodedPosition!.latitude,
+              lastReverseGeocodedPosition!.longitude,
+              position.latitude,
+              position.longitude,
+            ) <
+            50;
+
+    if (!force && recentlyUpdated && hasNotMovedMuch) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoadingLocationName = true;
+    });
+
+    try {
+      final locationName = await getLocationNameFromCoordinates(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        currentLocationName = locationName;
+        lastReverseGeocodeTime = now;
+        lastReverseGeocodedPosition = position;
+        isLoadingLocationName = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        currentLocationName = 'Unable to detect current area';
+        isLoadingLocationName = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoadingLocation) {
@@ -396,7 +528,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 zoom: 15,
                 bearing: 0,
-                pitch: 0,
+                pitch: 60,
               ),
               styleUri: mapboxStyleUri,
               onMapCreated: (controller) async {
@@ -418,6 +550,52 @@ class _MyAppState extends State<MyApp> {
                   );
                 }
               },
+            ),
+            Positioned(
+              left: 20,
+              right: 20,
+              top: 16,
+              child: SafeArea(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Color.fromARGB(255, 10, 250, 186),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          isLoadingLocationName
+                              ? 'Finding your current area...'
+                              : currentLocationName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             Positioned(
