@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -20,7 +22,7 @@ const String mapboxStyleUri = String.fromEnvironment(
 );
 
 void validateEnvironment() {
-  final missingValues = <String>[];
+  final missingValues = [];
 
   if (mapboxAccessToken.isEmpty) {
     missingValues.add('MAPBOX_ACCESS_TOKEN');
@@ -44,7 +46,6 @@ void validateEnvironment() {
     );
   }
 }
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,10 +71,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   MapboxMap? map;
+  CircleAnnotationManager? circleAnnotationManager;
+
   final supabase = Supabase.instance.client;
 
   geo.Position? userPosition;
+  StreamSubscription<geo.Position>? positionStreamSubscription;
+
   bool isLoadingLocation = true;
+  bool followCurrentPosition = true;
 
   List<Map<String, dynamic>> pinnedLocations = [];
 
@@ -81,7 +87,13 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     setupBackend();
-    getUserLocation();
+    startLocationTracking();
+  }
+
+  @override
+  void dispose() {
+    positionStreamSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> setupBackend() async {
@@ -97,47 +109,117 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<void> getUserLocation() async {
+  Future<bool> ensureLocationPermission() async {
+    final serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+      return false;
+    }
+
+    geo.LocationPermission permission =
+        await geo.Geolocator.checkPermission();
+
+    if (permission == geo.LocationPermission.denied) {
+      permission = await geo.Geolocator.requestPermission();
+    }
+
+    if (permission == geo.LocationPermission.denied ||
+        permission == geo.LocationPermission.deniedForever) {
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> startLocationTracking() async {
     try {
-      bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
+      final hasPermission = await ensureLocationPermission();
 
-      if (!serviceEnabled) {
+      if (!hasPermission) {
+        if (!mounted) return;
+
         setState(() {
           isLoadingLocation = false;
         });
+
         return;
       }
 
-      geo.LocationPermission permission =
-          await geo.Geolocator.checkPermission();
-
-      if (permission == geo.LocationPermission.denied) {
-        permission = await geo.Geolocator.requestPermission();
-      }
-
-      if (permission == geo.LocationPermission.denied ||
-          permission == geo.LocationPermission.deniedForever) {
-        setState(() {
-          isLoadingLocation = false;
-        });
-        return;
-      }
-
-      final position = await geo.Geolocator.getCurrentPosition(
+      final initialPosition = await geo.Geolocator.getCurrentPosition(
         locationSettings: const geo.LocationSettings(
           accuracy: geo.LocationAccuracy.high,
         ),
       );
 
+      if (!mounted) return;
+
       setState(() {
-        userPosition = position;
+        userPosition = initialPosition;
         isLoadingLocation = false;
       });
+
+      await enableMapboxLocationComponent();
+      await moveCameraToPosition(initialPosition, zoom: 15);
+
+      positionStreamSubscription?.cancel();
+
+      positionStreamSubscription = geo.Geolocator.getPositionStream(
+        locationSettings: const geo.LocationSettings(
+          accuracy: geo.LocationAccuracy.high,
+          distanceFilter: 2,
+        ),
+      ).listen((position) async {
+        if (!mounted) return;
+
+        setState(() {
+          userPosition = position;
+        });
+
+        if (followCurrentPosition) {
+          await moveCameraToPosition(position);
+        }
+      });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         isLoadingLocation = false;
       });
     }
+  }
+
+  Future<void> enableMapboxLocationComponent() async {
+    if (map == null) return;
+
+    await map!.location.updateSettings(
+      LocationComponentSettings(
+        enabled: true,
+      ),
+    );
+  }
+
+  Future<void> moveCameraToPosition(
+    geo.Position position, {
+    double? zoom,
+  }) async {
+    if (map == null) return;
+
+    final camera = await map!.getCameraState();
+
+    await map!.flyTo(
+      CameraOptions(
+        center: Point(
+          coordinates: Position(
+            position.longitude,
+            position.latitude,
+          ),
+        ),
+        zoom: zoom ?? camera.zoom,
+      ),
+      MapAnimationOptions(
+        duration: 500,
+      ),
+    );
   }
 
   Future<void> zoomIn() async {
@@ -203,9 +285,84 @@ class _MyAppState extends State<MyApp> {
         .select()
         .order('created_at', ascending: false);
 
+    if (!mounted) return;
+
     setState(() {
       pinnedLocations = List<Map<String, dynamic>>.from(data);
     });
+
+    await renderPinnedLocations();
+  }
+
+  Future<void> renderPinnedLocations() async {
+    if (map == null) return;
+
+    circleAnnotationManager ??=
+        await map!.annotations.createCircleAnnotationManager();
+
+    await circleAnnotationManager!.deleteAll();
+
+    for (final location in pinnedLocations) {
+      final double latitude = (location['latitude'] as num).toDouble();
+      final double longitude = (location['longitude'] as num).toDouble();
+
+      await circleAnnotationManager!.create(
+        CircleAnnotationOptions(
+          geometry: Point(
+            coordinates: Position(
+              longitude,
+              latitude,
+            ),
+          ),
+          circleRadius: 9.0,
+          circleColor: Colors.red.value,
+          circleStrokeWidth: 2.0,
+          circleStrokeColor: Colors.white.value,
+        ),
+      );
+    }
+  }
+
+  Future<void> addCurrentPositionPin() async {
+    try {
+      final hasPermission = await ensureLocationPermission();
+
+      if (!hasPermission) return;
+
+      final freshPosition = await geo.Geolocator.getCurrentPosition(
+        locationSettings: const geo.LocationSettings(
+          accuracy: geo.LocationAccuracy.high,
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        userPosition = freshPosition;
+      });
+
+      await savePinnedLocation(
+        latitude: freshPosition.latitude,
+        longitude: freshPosition.longitude,
+        name: "Current Position",
+        emoji: "📍",
+      );
+
+      await loadPinnedLocations();
+      await moveCameraToPosition(freshPosition);
+    } catch (e) {
+      return;
+    }
+  }
+
+  Future<void> recenterToCurrentPosition() async {
+    if (userPosition == null) return;
+
+    setState(() {
+      followCurrentPosition = true;
+    });
+
+    await moveCameraToPosition(userPosition!, zoom: 15);
   }
 
   @override
@@ -232,23 +389,32 @@ class _MyAppState extends State<MyApp> {
             MapWidget(
               viewport: CameraViewportState(
                 center: Point(
-                  coordinates: Position(longitude, latitude),
+                  coordinates: Position(
+                    longitude,
+                    latitude,
+                  ),
                 ),
                 zoom: 15,
                 bearing: 0,
                 pitch: 0,
               ),
-              styleUri: "mapbox://styles/kimiyang/cmp11y75m000b01s7fr3615v9",
+              styleUri: mapboxStyleUri,
               onMapCreated: (controller) async {
                 map = controller;
 
                 await map!.scaleBar.updateSettings(
-                  ScaleBarSettings(enabled: false),
+                  ScaleBarSettings(
+                    enabled: false,
+                  ),
                 );
 
+                await enableMapboxLocationComponent();
+                await renderPinnedLocations();
+
                 if (userPosition != null) {
-                  await map!.location.updateSettings(
-                    LocationComponentSettings(enabled: true),
+                  await moveCameraToPosition(
+                    userPosition!,
+                    zoom: 15,
                   );
                 }
               },
@@ -275,19 +441,18 @@ class _MyAppState extends State<MyApp> {
                   ),
 
                   const SizedBox(height: 12),
-                  
+
+                  FloatingActionButton(
+                    heroTag: "recenter",
+                    onPressed: recenterToCurrentPosition,
+                    child: const Icon(Icons.my_location),
+                  ),
+
+                  const SizedBox(height: 12),
+
                   FloatingActionButton(
                     heroTag: "addPin",
-                    onPressed: () async {
-                      await savePinnedLocation(
-                        latitude: 1.2966,
-                        longitude: 103.7764,
-                        name: "NUS",
-                        emoji: "🏫",
-                      );
-
-                      await loadPinnedLocations();
-                    },
+                    onPressed: addCurrentPositionPin,
                     child: const Icon(Icons.place),
                   ),
                 ],
