@@ -1,0 +1,62 @@
+name: Build Validation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Build Android
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./gi_jios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: |
+          flutter build apk --debug \
+            --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"
+
+  ios:
+    name: Build iOS
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: ./gi_jios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        run: |
+          flutter build ios --debug --no-codesign \
+            --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"

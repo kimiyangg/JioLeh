@@ -36,13 +36,17 @@ refactor(map): extract marker builder to separate widget
 
 ---
 
-## Pull Request Workflow
+## Full Workflow — Branch → PR → Deploy
 
-PRs into `main` trigger both `android-ci.yml` and `ios-ci.yml`:
-- `flutter analyze`
-- `flutter test`
-- iOS build (no codesign)
-- Android APK build (debug)
+### Step 1 — Create a branch
+
+Branch off `main` using the naming convention:
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feat/your-feature-name
+```
 
 **Branch naming:**
 ```
@@ -52,6 +56,33 @@ chore/<short-description>
 refactor/<short-description>
 ```
 
+---
+
+### Step 2 — Commit your changes
+
+Commit frequently with clear messages following the commit style above:
+
+```bash
+git add .
+git commit -m "feat(map): add real-time pin clustering"
+```
+
+Push your branch to remote:
+
+```bash
+git push origin feat/your-feature-name
+```
+
+---
+
+### Step 3 — Open a Pull Request into `main` → Stage 1 CI
+
+Opening a PR triggers **`pr-check.yml`** (fast validation only, target: <10 min):
+- `flutter analyze`
+- `flutter test`
+
+No builds are run at this stage. CI must be green before merging.
+
 **PR checklist before opening:**
 1. Branch is up to date with `main`
 2. `flutter analyze` passes locally
@@ -59,27 +90,39 @@ refactor/<short-description>
 4. PR title follows commit convention: `feat(map): add offline cache`
 5. Description explains **what** and **why**, not just what changed
 
-CI must be green before merging. Do not merge with failing checks.
+---
+
+### Step 4 — Merge into `main` → Stage 2 CI
+
+Squash and merge (preferred) or merge commit. Delete the branch after merging.
+
+Merging to `main` triggers **`build-validation.yml`** (full build check):
+- Android APK build (debug, no upload)
+- iOS build (no codesign, no upload)
+
+This confirms the app builds cleanly on both platforms before a release is cut. Can also be triggered manually via `workflow_dispatch`.
 
 ---
 
-## Deploying — Version Tag Push
+### Step 5 — Tag a version to deploy → Stage 3 CI
 
-After merging to `main`, cut a version tag to trigger the release build:
+After the build validation passes, cut a version tag to trigger the release:
 
 ```bash
-# 1. Make sure you're on main and up to date
 git checkout main
 git pull origin main
 
-# 2. Tag using semantic versioning
 git tag v1.2.0
-
-# 3. Push the tag — this triggers android-ci + ios-ci
 git push origin v1.2.0
 ```
 
-**Semantic versioning rules:**
+This triggers **`android-ci.yml`** and **`ios-ci.yml`** (release builds):
+- Android: builds APK → uploads as artifact `android-debug-apk-v1.2.0`
+- iOS: builds (no codesign) — TestFlight upload available once signing is configured
+
+No tests are re-run at this stage — code was already validated in Stage 1.
+
+**Semantic versioning:**
 
 ```
 v<MAJOR>.<MINOR>.<PATCH>
@@ -97,17 +140,26 @@ v1.1.1   — fixed crash on pin tap
 v2.0.0   — rewrote auth flow
 ```
 
-**What the tag push triggers:**
-- Android: builds debug APK → uploads as artifact `android-debug-apk`
-- iOS: builds debug (no codesign) — full TestFlight upload is available in the workflow once signing is configured
+---
+
+## CI/CD Stage Summary
+
+| Stage | Trigger | Workflow | What runs |
+|---|---|---|---|
+| 1 — PR Check | PR opened/updated → `main` | `pr-check.yml` | analyze + test only |
+| 2 — Build Validation | Merge to `main` or manual | `build-validation.yml` | Android + iOS builds, no upload |
+| 3 — Release | Tag push `v*.*.*` | `android-ci.yml` + `ios-ci.yml` | Build + upload artifacts |
+
+Each stage is isolated. No stage duplicates another's responsibility.
 
 ---
 
 ## Quick Reference
 
 ```
-everyday work   →  commit to feature branch
-open PR         →  triggers analyze + test + build (both platforms)
-merge to main   →  no CI trigger (safe landing zone)
-git tag v*.*.*  →  triggers full build + artifact upload
+1. git checkout -b feat/...          →  create branch
+2. git commit + git push             →  commit work
+3. open PR into main                 →  Stage 1: analyze + test
+4. merge PR                          →  Stage 2: full build validation
+5. git tag v*.*.* + push tag         →  Stage 3: release build + artifact upload
 ```
