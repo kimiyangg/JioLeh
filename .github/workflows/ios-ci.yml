@@ -1,0 +1,98 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ios:
+    name: Build iOS
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: ./gi_jios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      # PR: 只驗證能否成功編譯，不需要簽章
+      - name: Build iOS (no codesign)
+        if: github.event_name == 'pull_request'
+        run: |
+          flutter build ios --debug --no-codesign \
+            --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"
+
+      - name: Build iOS debug (no codesign)
+        if: github.event_name == 'push'
+        run: |
+          flutter build ios --debug --no-codesign \
+            --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"
+
+      # Push to main: 正式簽章 + 上傳 TestFlight
+      # - name: Import distribution certificate
+      #   if: github.event_name == 'push'
+      #   env:
+      #     CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      #     CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      #   run: |
+      #     echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+      #     security create-keychain -p "" build.keychain
+      #     security import certificate.p12 \
+      #       -k ~/Library/Keychains/build.keychain \
+      #       -P "$CERTIFICATE_PASSWORD" \
+      #       -T /usr/bin/codesign
+      #     security list-keychains -d user -s ~/Library/Keychains/build.keychain
+      #     security default-keychain -s ~/Library/Keychains/build.keychain
+      #     security unlock-keychain -p "" ~/Library/Keychains/build.keychain
+      #     security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
+
+      # - name: Install provisioning profile
+      #   if: github.event_name == 'push'
+      #   run: |
+      #     mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+      #     echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode \
+      #       > ~/Library/MobileDevice/Provisioning\ Profiles/distribution.mobileprovision
+
+      # - name: Build iOS IPA
+      #   if: github.event_name == 'push'
+      #   run: |
+      #     flutter build ipa --release \
+      #       --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
+      #       --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+      #       --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+      #       --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"
+
+      # - name: Upload to TestFlight
+      #   if: github.event_name == 'push'
+      #   run: |
+      #     mkdir -p ~/.private_keys
+      #     echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" \
+      #       > ~/.private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8
+      #     xcrun altool --upload-app \
+      #       --type ios \
+      #       --file "$(ls build/ios/ipa/*.ipa)" \
+      #       --apiKey "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" \
+      #       --apiIssuer "${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}"

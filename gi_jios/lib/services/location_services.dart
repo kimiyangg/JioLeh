@@ -22,8 +22,12 @@ class LocationServices {
       permission = await geo.Geolocator.requestPermission();
     }
 
-    if (permission == geo.LocationPermission.denied ||
-        permission == geo.LocationPermission.deniedForever) {
+    if (permission == geo.LocationPermission.deniedForever) {
+      await geo.Geolocator.openAppSettings();
+      return false;
+    }
+
+    if (permission == geo.LocationPermission.denied) {
       return false;
     }
 
@@ -36,14 +40,18 @@ class LocationServices {
     return geo.Geolocator.getCurrentPosition(
       locationSettings: const geo.LocationSettings(
           accuracy: geo.LocationAccuracy.high,
-      ) 
+      )
     );
   }
 
   Future<bool> startLocationTracking({
     required void Function(geo.Position position) onLocationUpdate,
+    void Function(Object error)? onError,
   }) async {
     // Starts tracking the user's location in real-time and calls provided callback on update
+    if (_positionStream != null) {
+      return false;
+    }
     final hasPermission = await ensureLocationPermission();
     if (!hasPermission) {
       return false;
@@ -53,9 +61,10 @@ class LocationServices {
         accuracy: geo.LocationAccuracy.high,
         distanceFilter: 1, // Only receive updates when the user has moved at least 1 meter
       ),
-    ).listen((geo.Position position) {
-      onLocationUpdate(position);
-    });
+    ).listen(
+      onLocationUpdate,
+      onError: onError,
+    );
     return true;
   }
 

@@ -1,0 +1,46 @@
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  android:
+    name: Build Android
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./gi_jios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Android APK
+        run: |
+          flutter build apk --debug \
+            --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: gi_jios/build/app/outputs/flutter-apk/app-debug.apk

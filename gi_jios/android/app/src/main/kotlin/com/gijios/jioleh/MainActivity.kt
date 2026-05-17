@@ -1,4 +1,4 @@
-package com.example.gi_jios
+package com.gijios.jioleh
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gi_jios"
+    namespace = "com.gijios.jioleh"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.gi_jios"
+        applicationId = "com.gijios.jioleh"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
