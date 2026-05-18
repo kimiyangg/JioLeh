@@ -107,19 +107,6 @@ jobs:
           name: ios-build
           path: ios-build
 
-      - name: Prepare App Store Connect private key
-        id: appstore-key
-        env:
-          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
-        run: |
-          DELIMITER="APP_STORE_PRIVATE_KEY_$(uuidgen)"
-
-          {
-            echo "private-key<<$DELIMITER"
-            echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 -D
-            printf '\n%s\n' "$DELIMITER"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Prepare IPA for upload
         run: |
           IPA_PATH="$(find ios-build -name '*.ipa' -print -quit)"
@@ -132,9 +119,17 @@ jobs:
           cp "$IPA_PATH" App.ipa
 
       - name: Upload app to TestFlight
-        uses: apple-actions/upload-testflight-build@v3
-        with:
-          app-path: ./App.ipa
-          issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          api-private-key: ${{ steps.appstore-key.outputs.private-key }}
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+        run: |
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 -D > "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          chmod 600 "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+
+          xcrun altool --upload-app \
+            --type ios \
+            --file App.ipa \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID"
