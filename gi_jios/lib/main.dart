@@ -514,7 +514,7 @@ class _MyAppState extends State<MyApp> {
             ),
             Positioned(
               left: 20,
-              right: 20,
+              right: 50,
               top: 16,
               child: SafeArea(
                 child: Container(
