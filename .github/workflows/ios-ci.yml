@@ -1,4 +1,4 @@
-name: iOS Release
+name: "Build (& Deploy to TestFlight) iOS APP"
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - 'v*.*.*'
 
 jobs:
-  ios-release:
-    name: Build iOS
+  build-ios:
+    name: Build iOS App
     runs-on: macos-latest
 
     defaults:
@@ -15,9 +15,16 @@ jobs:
         working-directory: ./gi_jios
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
@@ -25,27 +32,32 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Import Distribution Certificate
+      - name: Install the Apple certificate and provisioning profile
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-        run: |
-          KEYCHAIN_PASSWORD="ci-build-keychain"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security set-keychain-settings -t 3600 -u build.keychain
-          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-
-      - name: Install Provisioning Profile
-        env:
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
+          KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-ci-build-keychain}"
+          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
+          PP_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          echo -n "$APPLE_CERTIFICATE_BASE64" | base64 -D > "$CERTIFICATE_PATH"
+          echo -n "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 -D > "$PP_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security import "$CERTIFICATE_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode \
-            > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
       - name: Build iOS IPA
         run: |
@@ -55,17 +67,51 @@ jobs:
             --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
             --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}"
 
-      - name: Upload to TestFlight
+      - name: Archive iOS build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: gi_jios/build/ios/ipa/*.ipa
+          if-no-files-found: error
+
+  deploy-ios:
+    name: Deploy iOS to TestFlight
+    needs: build-ios
+    runs-on: macos-latest
+
+    steps:
+      - name: Download iOS build output
+        uses: actions/download-artifact@v5
+        with:
+          name: ios-build
+          path: ios-build
+
+      - name: Prepare App Store Connect private key
+        id: appstore-key
         env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 --decode \
-            > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-          xcrun altool --upload-app \
-            --type ios \
-            --file build/ios/ipa/*.ipa \
-            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID"
+          {
+            echo 'private-key<<EOF'
+            echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 -D
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Prepare IPA for upload
+        run: |
+          IPA_PATH="$(find ios-build -name '*.ipa' -print -quit)"
+
+          if [ -z "$IPA_PATH" ]; then
+            echo "No IPA found in ios-build"
+            exit 1
+          fi
+
+          cp "$IPA_PATH" App.ipa
+
+      - name: Upload app to TestFlight
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ./App.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          api-private-key: ${{ steps.appstore-key.outputs.private-key }}
