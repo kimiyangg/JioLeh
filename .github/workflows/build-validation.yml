@@ -1,15 +1,23 @@
 name: Build Validation
 
 on:
-  push:
+  pull_request:
     branches:
       - main
+    types:
+      - closed
   workflow_dispatch:
 
 jobs:
   android:
     name: Build Android
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        contains(github.event.pull_request.labels.*.name, 'run-build-validation')
+      )
 
     defaults:
       run:
@@ -37,6 +45,12 @@ jobs:
   ios:
     name: Build iOS
     runs-on: macos-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        contains(github.event.pull_request.labels.*.name, 'run-build-validation')
+      )
 
     defaults:
       run:
