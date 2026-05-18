@@ -36,6 +36,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Verify export compliance flag
+        run: |
+          EXPORT_COMPLIANCE=$(/usr/libexec/PlistBuddy -c "Print :ITSAppUsesNonExemptEncryption" ios/Runner/Info.plist)
+
+          if [ "$EXPORT_COMPLIANCE" != "false" ]; then
+            echo "ITSAppUsesNonExemptEncryption must be false for this app."
+            exit 1
+          fi
+
       - name: Derive iOS release version
         run: |
           VERSION_NAME="${GITHUB_REF_NAME#v}"
