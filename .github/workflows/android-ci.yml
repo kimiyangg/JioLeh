@@ -38,6 +38,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Derive Android release version
+        run: |
+          VERSION_NAME="${GITHUB_REF_NAME#v}"
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+
+          if ! [[ "$VERSION_NAME" =~ ^[0-9]+(\.[0-9]+){1,2}([.-][0-9A-Za-z]+)*$ ]]; then
+            echo "Tag '$GITHUB_REF_NAME' does not produce a valid Android version name."
+            echo "Use a tag like v1.2.3."
+            exit 1
+          fi
+
+          {
+            echo "ANDROID_VERSION_NAME=$VERSION_NAME"
+            echo "ANDROID_BUILD_NUMBER=$BUILD_NUMBER"
+          } >> "$GITHUB_ENV"
+
       - name: Configure Android release signing
         env:
           PLAY_SIGNING_KEY: ${{ secrets.PLAY_SIGNING_KEY }}
@@ -57,6 +73,8 @@ jobs:
       - name: Build Android App Bundle
         run: |
           flutter build appbundle --release \
+            --build-name="$ANDROID_VERSION_NAME" \
+            --build-number="$ANDROID_BUILD_NUMBER" \
             --dart-define=MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}" \
             --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
@@ -91,6 +109,21 @@ jobs:
           fi
 
           cp "$AAB_PATH" app-release.aab
+          ls -lh app-release.aab
+
+      - name: Validate Google Play service account
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
+            echo "SERVICE_ACCOUNT_JSON secret is empty or unavailable."
+            exit 1
+          fi
+
+          if ! jq -e '.type == "service_account" and (.client_email | length > 0) and (.private_key | length > 0)' <<< "$SERVICE_ACCOUNT_JSON" > /dev/null; then
+            echo "SERVICE_ACCOUNT_JSON must be the full Google service account JSON key."
+            exit 1
+          fi
 
       - name: Deploy to Google Play
         uses: r0adkll/upload-google-play@v1
@@ -98,5 +131,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.gijios.jioleh
           releaseFiles: ./app-release.aab
-          track: internal
+          tracks: internal
           inAppUpdatePriority: 3
+          status: completed
+          changesNotSentForReview: false
