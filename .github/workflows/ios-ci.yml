@@ -125,8 +125,20 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
         run: |
           mkdir -p "$HOME/.appstoreconnect/private_keys"
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 -D > "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-          chmod 600 "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+
+          if [[ "$APP_STORE_CONNECT_API_KEY_CONTENT" == *"BEGIN PRIVATE KEY"* ]]; then
+            printf '%s\n' "$APP_STORE_CONNECT_API_KEY_CONTENT" > "$KEY_PATH"
+          else
+            echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 -D > "$KEY_PATH"
+          fi
+
+          if ! grep -q "BEGIN PRIVATE KEY" "$KEY_PATH" || ! grep -q "END PRIVATE KEY" "$KEY_PATH"; then
+            echo "APP_STORE_CONNECT_API_KEY_CONTENT must be the AuthKey .p8 file content or a base64 encoding of the full .p8 file."
+            exit 1
+          fi
+
+          chmod 600 "$KEY_PATH"
 
           xcrun altool --upload-app \
             --type ios \
