@@ -44,3 +44,5 @@ app.*.map.json
 
 # Android signing
 upload-keystore.jks
+gi_jios/build/
+gi_jios/build/
