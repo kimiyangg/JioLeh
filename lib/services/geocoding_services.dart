@@ -13,50 +13,61 @@ class GeoCodingServices {
   final int minIntervalSeconds;
   final int minDistanceMeters;
 
-  DateTime? _lastFetchAt;
-  geo.Position? _lastFetchPos;
+  ({DateTime time, double lat, double lng, String name})? _lastFetch;
 
-  bool wouldFetch(geo.Position position) => !_isThrottled(position);
+  bool shouldRefetchLocation({
+    required double latitude,
+    required double longitude,
+  }) {
+    // Determines if a reverse geocoding request should be throttled based on time and distance thresholds.
+    //
+    // Copy fields to locals so Dart can type-promote them to non-null after the
+    // null check below. Dart won't promote instance fields directly (they could
+    // be reassigned between the check and the use), but locals are safe.
+    final lastFetched = _lastFetch;
 
-  Future<String?> fetchAreaName(
-    geo.Position position, {
-    bool force = false,
-  }) async {
-    if (!force && _isThrottled(position)) return null;
-
-    final name = await _reverseGeocode(
-      latitude: position.latitude,
-      longitude: position.longitude,
-    );
-
-    _lastFetchAt = DateTime.now();
-    _lastFetchPos = position;
-    return name;
-  }
-
-  bool _isThrottled(geo.Position position) {
-    final lastTime = _lastFetchAt;
-    final lastPos = _lastFetchPos;
-    if (lastTime == null || lastPos == null) return false;
+    if (lastFetched == null) return true;
 
     final recentlyUpdated =
-        DateTime.now().difference(lastTime).inSeconds < minIntervalSeconds;
+        DateTime.now().difference(lastFetched.time).inSeconds < minIntervalSeconds;
 
-    final hasNotMovedMuch = geo.Geolocator.distanceBetween(
-          lastPos.latitude,
-          lastPos.longitude,
-          position.latitude,
-          position.longitude,
-        ) <
-        minDistanceMeters;
+    final notMovedMuch = geo.Geolocator.distanceBetween(
+      lastFetched.lat,
+      lastFetched.lng,
+      latitude,
+      longitude,
+    ) < minDistanceMeters;
 
-    return recentlyUpdated && hasNotMovedMuch;
+    return !(recentlyUpdated && notMovedMuch);
+  }
+
+  Future<String> fetchAreaName({
+    required double latitude,
+    required double longitude,
+  }) async {
+    // Fetches a human-readable area name for the given latitude and longitude
+    // using Mapbox's reverse geocoding API.
+    if (!shouldRefetchLocation(
+      latitude: latitude,
+      longitude: longitude,
+    )){
+      return _lastFetch!.name;
+    }
+
+    final name = await _reverseGeocode(
+      latitude: latitude,
+      longitude: longitude,
+    );
+    _lastFetch = (time: DateTime.now(), lat: latitude, lng: longitude, name: name);
+    return name;
   }
 
   Future<String> _reverseGeocode({
     required double latitude,
     required double longitude,
   }) async {
+    // Helper method that performs the actual reverse geocoding API call to Mapbox
+    // and parses the response to extract a user-friendly location name.
     final uri = Uri.https(
       'api.mapbox.com',
       '/search/geocode/v6/reverse',
@@ -95,12 +106,14 @@ class GeoCodingServices {
     final region = context['region']?['name'] as String?;
     final country = context['country']?['name'] as String?;
 
+    // Construct a user-friendly location name by prioritizing more specific area names
     final area = neighborhood ?? locality ?? district ?? place ?? region ?? name;
 
+    // If both area and country are available and different, return "area, country". 
     if (area != null && country != null && area != country) {
       return '$area, $country';
     }
-
+    // Otherwise, return whichever is available or "Unknown location" if neither is found.
     return area ?? country ?? 'Unknown location';
   }
 }
