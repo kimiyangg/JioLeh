@@ -14,10 +14,6 @@ jobs:
     name: Build Android App (${{ github.ref_name }})
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./gi_jios
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,9 +25,9 @@ jobs:
           java-version: '21'
           cache: gradle
           cache-dependency-path: |
-            gi_jios/android/build.gradle.kts
-            gi_jios/android/app/build.gradle.kts
-            gi_jios/android/gradle/wrapper/gradle-wrapper.properties
+            android/build.gradle.kts
+            android/app/build.gradle.kts
+            android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -99,8 +95,8 @@ jobs:
         with:
           name: android-build
           path: |
-            gi_jios/build/app/outputs/bundle/release/app-release.aab
-            gi_jios/build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
   deploy-android:

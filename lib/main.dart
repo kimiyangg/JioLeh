@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:gi_jios/config/map_env.dart';
-import 'package:gi_jios/config/supabase_env.dart';
+import 'package:jio_leh/config/map_env.dart';
+import 'package:jio_leh/config/supabase_env.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:supabase_flutter/supabase_flutter.dart';

@@ -10,10 +10,6 @@ jobs:
     name: Analyze & Test
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./gi_jios
-
     steps:
       - uses: actions/checkout@v4
 
