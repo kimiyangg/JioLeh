@@ -96,10 +96,12 @@ class _MapPageState extends State<MapPage> {
   Future<void> _startLocationTracking() async {
     final position = await _location.getCurrentLocation();
     if (!mounted) return;
+
     setState(() {
       _currentPosition = position;
       _isLoadingLocation = false;
     });
+
     _updateLocationName(position);
     await _location.startLocationTracking(
       onLocationUpdate: _onLocationUpdate
@@ -111,8 +113,9 @@ class _MapPageState extends State<MapPage> {
     _updateLocationName(position);
   }
 
-  Future<void> _recenterMap() {
-    // TO-DO
+  Future<void> _recenterMap() async {
+    if (_currentPosition == null) return;
+    await _moveCameraToPos(_currentPosition!);
   }
 
   // Area Name Helper Methods
