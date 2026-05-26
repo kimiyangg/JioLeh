@@ -93,12 +93,22 @@ class _MapPageState extends State<MapPage> {
   }
   
   // Location Helper Methods
-  Future<void> _startLocationTracking() {
-    // TO-DO
+  Future<void> _startLocationTracking() async {
+    final position = await _location.getCurrentLocation();
+    if (!mounted) return;
+    setState(() {
+      _currentPosition = position;
+      _isLoadingLocation = false;
+    });
+    _updateLocationName(position);
+    await _location.startLocationTracking(
+      onLocationUpdate: _onLocationUpdate
+    );
   }
 
   void _onLocationUpdate(geo.Position position) {
-    // TO-DO
+    _currentPosition = position;
+    _updateLocationName(position);
   }
 
   Future<void> _recenterMap() {
@@ -106,8 +116,14 @@ class _MapPageState extends State<MapPage> {
   }
 
   // Area Name Helper Methods
-  Future<void> _updateLocationName(geo.Position position) {
-    // TO-DO
+  Future<void> _updateLocationName(geo.Position position) async {
+    _geocoding.fetchAreaName(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    ).then((name) {
+      if (!mounted) return;
+      setState(() => _currentLocationName = name);
+    });
   }
 
   // Pin Helper Methods
