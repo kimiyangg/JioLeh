@@ -30,12 +30,7 @@ class _MapPageState extends State<MapPage> {
   // Map state and controls
   MapboxMap? _map;
   CircleAnnotationManager? _pinsManager;
-  ViewportState? _initialViewport = CameraViewportState(
-    center: Point(coordinates: Position(103.7764, 1.2966)),
-    zoom: 15,
-    bearing: 0,
-    pitch: 60,
-  );
+  ViewportState? _initialViewport;
   
   // User location state and controls
   geo.Position? _currentPosition;
@@ -102,6 +97,14 @@ class _MapPageState extends State<MapPage> {
     setState(() {
       _currentPosition = position;
       _isLoadingLocation = false;
+      _initialViewport = CameraViewportState(
+        center: Point(
+          coordinates: Position(position.longitude, position.latitude),
+        ),
+        zoom: 15,
+        bearing: 0,
+        pitch: 60,
+      );
     });
 
     _updateLocationName(position);
