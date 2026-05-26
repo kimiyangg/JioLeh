@@ -63,7 +63,7 @@ class _MapPageState extends State<MapPage> {
 
   // Map Helper Methods
   Future<void> _enableMapboxLocationComponent() {
-    // TO-DO
+    BLABLABLABLA IMD OING WORKKKKk
   }
 
   Future<void> _moveCameraToPos(geo.Position position){
