@@ -14,10 +14,6 @@ jobs:
     name: Build iOS App (${{ github.ref_name }})
     runs-on: macos-latest
 
-    defaults:
-      run:
-        working-directory: ./gi_jios
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -123,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: gi_jios/build/ios/ipa/*.ipa
+          path: build/ios/ipa/*.ipa
           if-no-files-found: error
 
   deploy-ios:

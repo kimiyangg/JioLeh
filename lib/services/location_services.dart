@@ -35,7 +35,7 @@ class LocationServices {
   }
 
   Future<geo.Position> getCurrentLocation() async {
-    // Fetches the user's current location (for pinning feature)
+    // Fetches the user's current location
     await ensureLocationPermission();
     return geo.Geolocator.getCurrentPosition(
       locationSettings: const geo.LocationSettings(

@@ -19,10 +19,6 @@ jobs:
         contains(github.event.pull_request.labels.*.name, 'run-build-validation')
       )
 
-    defaults:
-      run:
-        working-directory: ./gi_jios
-
     steps:
       - uses: actions/checkout@v4
 
@@ -51,10 +47,6 @@ jobs:
         github.event.pull_request.merged == true &&
         contains(github.event.pull_request.labels.*.name, 'run-build-validation')
       )
-
-    defaults:
-      run:
-        working-directory: ./gi_jios
 
     steps:
       - uses: actions/checkout@v4
