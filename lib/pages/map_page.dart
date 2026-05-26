@@ -64,49 +64,47 @@ class _MapPageState extends State<MapPage> {
 
   // Map Helper Methods
   Future<void> _enableMapboxLocationComponent() async {
-    // Enables the built-in Mapbox location component
-    // to show the user's current location on the map
-    if (_map == null) return;
-    await _map!.location.updateSettings(
-      LocationComponentSettings(
-        enabled: true,
-        pulsingEnabled: true,
-        showAccuracyRing: true,
-        puckBearingEnabled: true,),
+    if (_map == null) return; //_map only assigned aft onMapCreated runs. this prevent crash 
+    await _map!.location.updateSettings(//access and update location component settings 
+      LocationComponentSettings( // how user location marker shld behave 
+        enabled: true, //current loc can be seen 
+        pulsingEnabled: true, // pulsing animation ard user loc 
+        showAccuracyRing: true, // show GPS accuracy area 
+        puckBearingEnabled: true,), // the ring/puck rotates when the user rotates (changes wrt bearing)
       );
   }
 
-  Future<void> _moveCameraToPos(geo.Position position) async {
-    // Moves the map camera to the specified position with animation
-    if (_map == null) return; 
-    await _map!.easeTo(
+  Future<void> _moveCameraToPos(geo.Position position) async{
+    if (_map == null) return; //prevent crash if method called too early 
+    await _map!.easeTo( //easeTo means the camera moves smoothly to current pos
       CameraOptions(
         center: Point(coordinates: Position(position.longitude, position.latitude,),
         ),
-        zoom: 15, bearing: 0, pitch: 60,),
-        MapAnimationOptions(duration: 1000, startDelay: 0,),
+        zoom: 15, bearing: 0, pitch: 60,), //stay constant w earlier settings:
+        //15 zoom == street lvl, 0 bearing == north facing, 60 pitch == 3D view 
+        MapAnimationOptions(duration: 1000, startDelay: 0,), //animate movement over 1000 millisec
     );
   }
 
-  Future<void> _zoomIn() async {
-    if (_map == null) return;
-    final cameraState = await _map!.getCameraState();
-    final nextZoom = (cameraState.zoom + 1).clamp(0.0, 22.0).toDouble();
-
-    await _map!.easeTo(
-      CameraOptions(zoom: nextZoom),
-      MapAnimationOptions(duration: 300, startDelay: 0),
+  Future<void> _zoomIn() async{
+    if (_map == null) return; //prevent crash if map havent start
+    final cameraState = await _map!.getCameraState(); // get current cam state 
+    final nextZoom = (cameraState.zoom + 1).clamp(0.0, 22.0).toDouble(); //increase zoom by 1
+    // clamp is just to remain within mapbox limits. toDouble to remain type safety
+    await _map!.easeTo(CameraOptions(zoom: nextZoom,),
+    MapAnimationOptions(duration: 300, startDelay: 0,), // smoothly ease to new cam state with updated zoom,
+    // animating over 300 milli sec 
     );
   }
 
-  Future<void> _zoomOut() async {
-    if (_map == null) return;
-    final cameraState = await _map!.getCameraState();
-    final nextZoom = (cameraState.zoom - 1).clamp(0.0, 22.0).toDouble();
-
-    await _map!.easeTo(
-      CameraOptions(zoom: nextZoom),
-      MapAnimationOptions(duration: 300, startDelay: 0),
+  Future<void> _zoomOut() async{
+    if (_map == null) return; //prevent crash if map havent start
+    final cameraState = await _map!.getCameraState(); // get current cam state 
+    final nextZoom = (cameraState.zoom - 1).clamp(0.0, 22.0).toDouble(); // decrease zoom size by 1
+    // clamp is just to remain within mapbox limits. toDouble to remain type safety
+    await _map!.easeTo(CameraOptions(zoom: nextZoom,),
+    MapAnimationOptions(duration: 300, startDelay: 0,), // smoothly ease to new cam state with updated zoom,
+    // animating over 300 milli sec 
     );
   }
   
