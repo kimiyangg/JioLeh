@@ -68,6 +68,7 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _moveCameraToPos(geo.Position position){
     // TO-DO
+    BLABLA2
   }
 
   Future<void> _zoomIn() {
