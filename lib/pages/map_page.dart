@@ -62,7 +62,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   // Map Helper Methods
-  Future<void> _enableMapboxLocationComponent() {
+  Future<void> _enableMapboxLocationComponent() async {
     if (_map == null) return;
     await _map!.location.updateSettings(
       LocationComponentSettings(
@@ -73,7 +73,7 @@ class _MapPageState extends State<MapPage> {
       );
   }
 
-  Future<void> _moveCameraToPos(geo.Position position){
+  Future<void> _moveCameraToPos(geo.Position position) async{
     if (_map == null) return; 
     await _map!.easeTo(
       CameraOptions(
