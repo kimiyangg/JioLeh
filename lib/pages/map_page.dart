@@ -112,23 +112,47 @@ class _MapPageState extends State<MapPage> {
   Future<void> _startLocationTracking() async {
     // Fetches the user's current location
     // and starts real-time tracking of location updates
-    final position = await _location.getCurrentLocation();
-    if (!mounted) return;
+    try {
+      final position = await _location.getCurrentLocation(); //get user current loc
+      if (!mounted) return;
 
-    setState(() {
-      _currentPosition = position;
-      _isLoadingLocation = false;
-    });
+      setState(() {
+        _currentPosition = position;
+        _isLoadingLocation = false;
+      }); // if successful, store the current loc and let map screen appear
 
-    _updateLocationName(position);
-    await _location.startLocationTracking(
-      onLocationUpdate: _onLocationUpdate
-    );
+      await _updateLocationName(position);
+      await _moveCameraToPos(position); //move camera to live loc immediately
+      await _location.startLocationTracking(onLocationUpdate: _onLocationUpdate,);
+      // start listening for future live updates 
+    } catch (error) { // if live location fails (no permission by user)
+      final lastKnownPosition = await _location.getLastKnownLocation(); // get cached last known position 
+      if (!mounted) return;
+      setState(() {
+        _currentPosition = lastKnownPosition; // use as default location
+        _isLoadingLocation = false;
+        _currentLocationName = lastKnownPosition == null
+          ? "Unable to fetch location"
+          : "Last known location";});
+
+      if (lastKnownPosition != null) {
+        await _updateLocationName(lastKnownPosition);
+        await _moveCameraToPos(lastKnownPosition); // move camera there 
+      }
+    }
   }
 
+
+
   void _onLocationUpdate(geo.Position position) {
-    _currentPosition = position;
-    _updateLocationName(position);
+    if (!mounted) return;
+    
+    setState(() {
+      _currentPosition = position; // stores newest live loc
+    });
+    
+    _updateLocationName(position); //updates text on top 
+    _moveCameraToPos(position); // makes camera keep following the live loc 
   }
 
   Future<void> _recenterMap() async {

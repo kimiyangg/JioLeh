@@ -68,6 +68,10 @@ class LocationServices {
     return true;
   }
 
+  Future<geo.Position?> getLastKnownLocation() async { //? means might return null if dont have last location saved.
+    return geo.Geolocator.getLastKnownPosition(); //getter for last known loc, NOT the current loc. 
+  }
+
   Future<void> dispose() async {
     // Cancels the location tracking stream subscription to free up resources
     await _positionStream?.cancel();
