@@ -33,7 +33,7 @@ class _MapPageState extends State<MapPage> {
   
   // User location state and controls
   geo.Position? _currentPosition;
-  late final _location = LocationService();
+  late final _location = LocationServices();
 
   bool _isLoadingLocation = true;
   
@@ -63,12 +63,25 @@ class _MapPageState extends State<MapPage> {
 
   // Map Helper Methods
   Future<void> _enableMapboxLocationComponent() {
-    // TO-DO
+    if (_map == null) return;
+    await _map!.location.updateSettings(
+      LocationComponentSettings(
+        enabled: true,
+        pulsingEnabled: true,
+        showAccuracyRing: true,
+        puckBearingEnabled: true,),
+      );
   }
 
   Future<void> _moveCameraToPos(geo.Position position){
-    // TO-DO
-    BLABLA2
+    if (_map == null) return; 
+    await _map!.easeTo(
+      CameraOptions(
+        center: Point(coordinates: Position(position.longitude, position.latitude,),
+        ),
+        zoom: 15, bearing: 0, pitch: 60,),
+        MapAnimationOptions(duration: 1000, startDelay: 0,),
+    );
   }
 
   Future<void> _zoomIn() {
