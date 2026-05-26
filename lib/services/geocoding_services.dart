@@ -7,7 +7,7 @@ import 'package:jio_leh/config/map_env.dart';
 class GeoCodingServices {
   GeoCodingServices({
     this.minIntervalSeconds = 20,
-    this.minDistanceMeters = 50,
+    this.minDistanceMeters = 100,
   });
 
   final int minIntervalSeconds;

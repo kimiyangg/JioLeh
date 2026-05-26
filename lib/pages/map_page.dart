@@ -30,6 +30,12 @@ class _MapPageState extends State<MapPage> {
   // Map state and controls
   MapboxMap? _map;
   CircleAnnotationManager? _pinsManager;
+  ViewportState? _initialViewport = CameraViewportState(
+    center: Point(coordinates: Position(103.7764, 1.2966)),
+    zoom: 15,
+    bearing: 0,
+    pitch: 60,
+  );
   
   // User location state and controls
   geo.Position? _currentPosition;
@@ -188,12 +194,7 @@ class _MapPageState extends State<MapPage> {
       body: Stack(
         children: [
           MapWidget(
-            viewport: CameraViewportState(
-              center: Point(coordinates: Position(103.7764, 1.2966)),
-              zoom: 15,
-              bearing: 0,
-              pitch: 60,
-            ),
+            viewport: _initialViewport,
             styleUri: MapEnv.mapboxStyleUri,
             onMapCreated: (controller) async {
               _map = controller;
@@ -207,6 +208,10 @@ class _MapPageState extends State<MapPage> {
 
               if (_currentPosition != null) {
                 await _moveCameraToPos(_currentPosition!);
+              }
+
+              if (mounted) {
+                setState(() => _initialViewport = null);
               }
             },
           ),
