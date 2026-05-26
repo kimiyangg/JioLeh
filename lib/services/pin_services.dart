@@ -1,57 +1,32 @@
+import 'package:jio_leh/services/auth_services.dart';
 import 'package:jio_leh/models/pinned_location.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PinServices {
   final SupabaseClient supabase;
+  final AuthServices auth;
 
-  PinServices(this.supabase);
+  // Static table name for pinned locations in the database
+  static const _tableName = 'pinned_locations';
 
-  Future<String> signInIfNeeded() async {
-    final currentUser = supabase.auth.currentUser;
+  PinServices(this.supabase, this.auth);
 
-    if (currentUser != null) {
-      return currentUser.id;
-    }
 
-    final response = await supabase.auth.signInAnonymously();
-    final user = response.user;
-
-    if (user == null) {
-    throw StateError('Anonymous sign-in failed');
-    }
-
-    return user.id;
-  }
-  
-
-  Future<void> savePinnedLocation({
-    required double latitude,
-    required double longitude,
-    required String name,
-    required String emoji,
-  }) async {
-    final userId = await signInIfNeeded();
-
-    await supabase.from('pinned_locations').insert({
-      'user_id': userId,
-      'name': name,
-      'emoji': emoji,
-      'latitude': latitude,
-      'longitude': longitude,
-    });
+  Future<void> savePinnedLocation(PinnedLocation pin) async {
+    final userId = await auth.signInIfNeeded();
+    await supabase.from(_tableName).insert(pin.toMap(userId));
   }
 
   Future<List<PinnedLocation>> loadPinnedLocations() async {
-    final userId = await signInIfNeeded();
+    final userId = await auth.signInIfNeeded();
 
     final data = await supabase
-        .from('pinned_locations')
+        .from(_tableName)
         .select()
         .eq('user_id', userId)
         .order('created_at', ascending: false);
 
-    return data
-    .map((map) => PinnedLocation.fromMap(map))
-    .toList();
+    return data.map(PinnedLocation.fromMap).toList();
   }
 }
