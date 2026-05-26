@@ -30,7 +30,7 @@ class _MapPageState extends State<MapPage> {
   // Map state and controls
   MapboxMap? _map;
   CircleAnnotationManager? _pinsManager;
-  late final ViewportState _initialViewport = CameraViewportState(
+  ViewportState? _initialViewport = CameraViewportState(
     center: Point(coordinates: Position(103.7764, 1.2966)),
     zoom: 15,
     bearing: 0,
@@ -208,6 +208,10 @@ class _MapPageState extends State<MapPage> {
 
               if (_currentPosition != null) {
                 await _moveCameraToPos(_currentPosition!);
+              }
+
+              if (mounted) {
+                setState(() => _initialViewport = null);
               }
             },
           ),
