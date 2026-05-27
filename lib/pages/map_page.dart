@@ -24,7 +24,7 @@ class _MapPageState extends State<MapPage> {
   // The term late means the variable will be initialized later, but before it's used.
   // This allows us to use the auth instance to create the pinServices instance
   // without running into initialization order issues.
-  late final _locationPins = PinServices(Supabase.instance.client, auth);
+  late final _locationServicePins = PinServices(Supabase.instance.client, auth);
   final _geocoding = GeoCodingServices();
 
   // Map state and controls
@@ -34,10 +34,10 @@ class _MapPageState extends State<MapPage> {
   
   // User location state and controls
   geo.Position? _currentPosition;
-  late final _location = LocationServices();
+  late final _locationService = LocationServices();
 
   bool _isLoadingLocation = true;
-  
+
   // AreaName state and controls
   String _currentLocationName = 'Fetching location...';
   
@@ -52,7 +52,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
-    _location.dispose();
+    _locationService.dispose();
     super.dispose();
   }
 
@@ -65,7 +65,7 @@ class _MapPageState extends State<MapPage> {
 
   // Map Helper Methods
   Future<void> _enableMapboxLocationComponent() async {
-    if (_map == null) return; //_map only assigned aft onMapCreated runs. this prevent crash 
+    if (_map == null) return; // _map only assigned aft onMapCreated runs. this prevent crash 
     await _map!.location.updateSettings(// access and update location component settings 
       LocationComponentSettings( // how user location marker shld behave 
         enabled: true, // current loc can be seen 
@@ -76,7 +76,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _moveCameraToPos(geo.Position position) async{
-    if (_map == null) return; //prevent crash if method called too early 
+    if (_map == null) return; // prevent crash if method called too early 
     await _map!.easeTo( // easeTo means the camera moves smoothly to current pos
       CameraOptions(
         center: Point(coordinates: Position(position.longitude, position.latitude,),
@@ -89,28 +89,34 @@ class _MapPageState extends State<MapPage> {
   
   // Location Helper Methods
   Future<void> _startLocationTracking() async {
-    // Fetches the user's current location
-    // and starts real-time tracking of location updates
-    final position = await _location.getCurrentLocation();
-    if (!mounted) return;
+    // Fetches the user's current location and starts real-time tracking.
+    // On failure, surfaces a dialog so the user can retry or open settings.
+    try {
+      final position = await _locationService.getCurrentLocation();
+      if (!mounted) return;
 
-    setState(() {
-      _currentPosition = position;
-      _isLoadingLocation = false;
-      _initialViewport = CameraViewportState(
-        center: Point(
-          coordinates: Position(position.longitude, position.latitude),
-        ),
-        zoom: 15,
-        bearing: 0,
-        pitch: 60,
+      setState(() {
+        _currentPosition = position;
+        _isLoadingLocation = false;
+        _initialViewport = CameraViewportState(
+          center: Point(
+            coordinates: Position(position.longitude, position.latitude),
+          ),
+          zoom: 15,
+          bearing: 0,
+          pitch: 60,
+        );
+      });
+
+      _updateLocationName(position);
+      await _locationService.startLocationTracking(
+        onLocationUpdate: _onLocationUpdate
       );
-    });
-
-    _updateLocationName(position);
-    await _location.startLocationTracking(
-      onLocationUpdate: _onLocationUpdate
-    );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingLocation = false);
+      await _showLocationErrorDialog(e);
+    }
   }
 
   void _onLocationUpdate(geo.Position position) {
@@ -136,7 +142,7 @@ class _MapPageState extends State<MapPage> {
 
   // Pin Helper Methods
   Future<void> _reloadPins() async {
-    final pins = await _locationPins.loadPinnedLocations();
+    final pins = await _locationServicePins.loadPinnedLocations();
     if (!mounted) return;
     setState(() => _pinnedLocations = pins);
     await _renderPinnedLocations();
@@ -149,7 +155,7 @@ class _MapPageState extends State<MapPage> {
     if (position == null) return;
     if (!mounted) return;
 
-    await _locationPins.savePinnedLocation(
+    await _locationServicePins.savePinnedLocation(
       PinnedLocation(
         name: "Pinned Location",
         emoji: "📌",
@@ -183,6 +189,61 @@ class _MapPageState extends State<MapPage> {
         ),
       );
     }
+  }
+
+  String _locationErrorMessage(Object? error) {
+    if (error is LocationServiceOff) {
+      return 'Location services are turned off. Please enable them and try again.';
+    }
+    if (error is LocationBlocked) {
+      return 'Location permission was permanently denied. Open settings to grant access.';
+    }
+    if (error is LocationDenied) {
+      return 'Location permission is required to use the map.';
+    }
+    return 'Unable to fetch your location. Please try again.';
+  }
+
+  Future<void> _showLocationErrorDialog(Object error) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.location_off, size: 40, color: Colors.grey),
+          title: const Text('Location unavailable'),
+          content: Text(_locationErrorMessage(error)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            if (error is LocationServiceOff)
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _locationService.openLocationSettings();
+                },
+                child: const Text('Open location settings'),
+              ),
+            if (error is LocationBlocked)
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _locationService.openAppSettings();
+                },
+                child: const Text('Open app settings'),
+              ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _startLocationTracking();
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -291,6 +352,4 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
-
-
 }
