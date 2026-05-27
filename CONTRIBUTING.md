@@ -1,46 +1,130 @@
 # Contributing Guide
 
+## Project Basics
+
+GI-Jios is a Flutter app that uses Mapbox for maps and Supabase for backend
+services.
+
+Useful paths:
+
+| Path | Purpose |
+|---|---|
+| `lib/` | App source code |
+| `lib/config/` | Dart define based environment configuration |
+| `lib/services/` | Auth, location, geocoding, and pin services |
+| `lib/widgets/` | Reusable UI widgets |
+| `test/` | Flutter tests |
+| `.github/workflows/` | CI, build validation, and release workflows |
+
+## Local Setup
+
+Install the stable Flutter SDK, then check your environment:
+
+```bash
+flutter doctor
+flutter pub get
+```
+
+This project currently requires the Dart SDK version declared in
+`pubspec.yaml`:
+
+```yaml
+environment:
+  sdk: ^3.11.5
+```
+
+## Environment Values
+
+The app reads required values through `--dart-define`:
+
+| Key | Required for |
+|---|---|
+| `MAPBOX_ACCESS_TOKEN` | Mapbox maps and geocoding |
+| `MAPBOX_STYLE_URI` | Mapbox map style |
+| `SUPABASE_URL` | Supabase connection |
+| `SUPABASE_ANON_KEY` | Supabase client auth |
+
+Run the app with all required values:
+
+```bash
+flutter run \
+  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" \
+  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" \
+  --dart-define=SUPABASE_URL="your-supabase-url" \
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+PowerShell example:
+
+```powershell
+flutter run `
+  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" `
+  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" `
+  --dart-define=SUPABASE_URL="your-supabase-url" `
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+Do not commit real secrets. Use local shell variables, your IDE run
+configuration, or CI secrets.
+
+## Development Checks
+
+Before opening a pull request, run:
+
+```bash
+flutter analyze
+flutter test
+```
+
+When you change dependencies, update and commit `pubspec.lock` if it changes:
+
+```bash
+flutter pub get
+```
+
+For platform-specific changes, also run the relevant local build when possible:
+
+```bash
+flutter build apk --debug
+flutter build ios --debug --no-codesign
+```
+
+Include the same `--dart-define` values as needed for builds that initialize the
+app configuration.
+
 ## Commit Style
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+Use Conventional Commits:
 
-```
+```text
 <type>(<scope>): <short description>
 ```
 
-**Types:**
+Common types:
 
 | Type | When to use |
 |---|---|
 | `feat` | New feature |
 | `fix` | Bug fix |
-| `chore` | Deps, config, tooling (no production code) |
-| `refactor` | Code restructure, no behavior change |
-| `style` | Formatting, whitespace |
+| `chore` | Dependencies, config, tooling, or maintenance |
+| `refactor` | Code restructure with no behavior change |
+| `style` | Formatting or whitespace only |
 | `test` | Adding or fixing tests |
 | `docs` | Documentation only |
 
-**Examples:**
-```
+Examples:
+
+```text
 feat(map): add real-time pin clustering
 fix(auth): handle Supabase session expiry on cold start
-chore(deps): bump flutter to 3.22.0
-refactor(map): extract marker builder to separate widget
+chore(deps): bump flutter dependencies
+refactor(map): extract marker builder widget
+docs(contributing): clarify release workflow
 ```
 
-**Rules:**
-- Keep the subject line under 72 characters
-- Use imperative mood: "add feature" not "added feature"
-- No period at the end of the subject line
-- Reference issues in the body if relevant: `Closes #42`
+## Branching
 
----
-
-## Full Workflow — Branch → PR → Deploy
-
-### Step 1 — Create a branch
-
-Branch off `main` using the naming convention:
+Branch from `main`:
 
 ```bash
 git checkout main
@@ -48,118 +132,115 @@ git pull origin main
 git checkout -b feat/your-feature-name
 ```
 
-**Branch naming:**
-```
-feat/<short-description>       # e.g. feat/offline-map-cache
-fix/<short-description>        # e.g. fix/pin-drag-gesture
+Branch names should match the kind of work:
+
+```text
+feat/<short-description>
+fix/<short-description>
 chore/<short-description>
 refactor/<short-description>
+docs/<short-description>
 ```
 
----
+## Pull Requests
 
-### Step 2 — Commit your changes
+Open pull requests into `main`.
 
-Commit frequently with clear messages following the commit style above:
+Before opening a PR:
 
-```bash
-git add .
-git commit -m "feat(map): add real-time pin clustering"
-```
+- Rebase or merge the latest `main`.
+- Run `flutter analyze`.
+- Run `flutter test`.
+- Keep the PR focused on one feature, fix, or cleanup.
+- Use a Conventional Commit style PR title, for example
+  `feat(map): add offline cache`.
+- Explain what changed and why it changed.
+- Add screenshots or screen recordings for visible UI changes.
 
-Push your branch to remote:
+PRs trigger `.github/workflows/pr-check.yml`, which runs:
 
-```bash
-git push origin feat/your-feature-name
-```
-
----
-
-### Step 3 — Open a Pull Request into `main` → Stage 1 CI
-
-Opening a PR triggers **`pr-check.yml`** (fast validation only, target: <10 min):
+- `flutter pub get`
 - `flutter analyze`
 - `flutter test`
 
-No builds are run at this stage. CI must be green before merging.
+CI must pass before merging.
 
-**PR checklist before opening:**
-1. Branch is up to date with `main`
-2. `flutter analyze` passes locally
-3. `flutter test` passes locally
-4. PR title follows commit convention: `feat(map): add offline cache`
-5. Description explains **what** and **why**, not just what changed
+## Build Validation
 
----
+Build validation is defined in `.github/workflows/build-validation.yml`.
 
-### Step 4 — Merge into `main` → Stage 2 CI
+It runs Android and iOS debug builds when either:
 
-Squash and merge (preferred) or merge commit. Delete the branch after merging.
+- The workflow is triggered manually with `workflow_dispatch`.
+- A PR into `main` is merged and has the `run-build-validation` label.
 
-Merging to `main` triggers **`build-validation.yml`** (full build check):
-- Android APK build (debug, no upload)
-- iOS build (no codesign, no upload)
+The workflow builds:
 
-This confirms the app builds cleanly on both platforms before a release is cut. Can also be triggered manually via `workflow_dispatch`.
+- Android APK with `flutter build apk --debug`
+- iOS app with `flutter build ios --debug --no-codesign`
 
----
+Use the `run-build-validation` label for changes that may affect platform
+builds, release configuration, native code, dependencies, or environment setup.
 
-### Step 5 — Tag a version to deploy → Stage 3 CI
+## Releases
 
-After the build validation passes, cut a version tag to trigger the release:
+Releases are triggered by version tags that match:
+
+```text
+v*.*.*
+```
+
+Create and push a release tag from `main`:
 
 ```bash
 git checkout main
 git pull origin main
-
 git tag v1.2.0
 git push origin v1.2.0
 ```
 
-This triggers **`android-ci.yml`** and **`ios-ci.yml`** (release builds):
-- Android: builds APK → uploads as artifact `android-debug-apk-v1.2.0`
-- iOS: builds (no codesign) — TestFlight upload available once signing is configured
+Use semantic versioning:
 
-No tests are re-run at this stage — code was already validated in Stage 1.
-
-**Semantic versioning:**
-
-```
+```text
 v<MAJOR>.<MINOR>.<PATCH>
-
-MAJOR → breaking change or major milestone
-MINOR → new feature, backwards-compatible
-PATCH → bug fix or small tweak
 ```
 
-**Examples:**
-```
-v1.0.0   — first public release
-v1.1.0   — added offline map support
-v1.1.1   — fixed crash on pin tap
-v2.0.0   — rewrote auth flow
+Examples:
+
+```text
+v1.0.0  first public release
+v1.1.0  new backwards-compatible feature
+v1.1.1  bug fix or small tweak
+v2.0.0  breaking change or major milestone
 ```
 
----
+Tag pushes trigger:
 
-## CI/CD Stage Summary
+| Workflow | Output |
+|---|---|
+| `android-ci.yml` | Android AAB/APK, Google Play internal track, GitHub Release files |
+| `ios-ci.yml` | iOS IPA, TestFlight upload, GitHub Release file |
+
+Release workflows depend on GitHub Actions secrets for Mapbox, Supabase, Android
+signing, Google Play, Apple signing, and App Store Connect. Do not hard-code
+these values in the repository.
+
+## CI Summary
 
 | Stage | Trigger | Workflow | What runs |
 |---|---|---|---|
-| 1 — PR Check | PR opened/updated → `main` | `pr-check.yml` | analyze + test only |
-| 2 — Build Validation | Merge to `main` or manual | `build-validation.yml` | Android + iOS builds, no upload |
-| 3 — Release | Tag push `v*.*.*` | `android-ci.yml` + `ios-ci.yml` | Build + upload artifacts |
-
-Each stage is isolated. No stage duplicates another's responsibility.
-
----
+| PR check | Pull request into `main` | `pr-check.yml` | Analyze and test |
+| Build validation | Manual, or merged labeled PR | `build-validation.yml` | Android and iOS debug builds |
+| Release | Tag push `v*.*.*` | `android-ci.yml`, `ios-ci.yml` | Signed release builds and deployment |
 
 ## Quick Reference
 
-```
-1. git checkout -b feat/...          →  create branch
-2. git commit + git push             →  commit work
-3. open PR into main                 →  Stage 1: analyze + test
-4. merge PR                          →  Stage 2: full build validation
-5. git tag v*.*.* + push tag         →  Stage 3: release build + artifact upload
+```text
+1. Create branch:       git checkout -b feat/...
+2. Install deps:        flutter pub get
+3. Run checks:          flutter analyze && flutter test
+4. Push branch:         git push origin feat/...
+5. Open PR:             target main
+6. Merge PR:            after review and green CI
+7. Release:             git tag v1.2.0 && git push origin v1.2.0
 ```

@@ -1,2 +1,151 @@
-# GI-Jios
-Orbital Project
+# GI-Jios & JioLeh!
+
+GI-Jios is the team behind **JioLeh!**, an Orbital 26 project that explores a
+more personal way to discover places with friends.
+
+Instead of treating maps as anonymous search results, JioLeh! aims to turn the
+real places people visit into a shared social map. Users can pin meaningful
+locations, revisit their own discoveries, and eventually share reviews, photos,
+comments, and recommendations with trusted friends.
+
+This README is based on the GI-Jios Proposal for Orbital 26 and the current
+Flutter implementation in this repository.
+
+## Current App
+
+The app currently includes:
+
+- A Mapbox-powered map interface.
+- Current location detection and live location updates.
+- Reverse geocoding to show the user's current area.
+- Anonymous Supabase sign-in.
+- Persistent pinned locations stored in Supabase.
+- A simple map toolbar for recentering and adding pins.
+
+## Product Direction
+
+The proposal describes JioLeh! as a location-based social platform for:
+
+- Sharing real-world recommendations such as restaurants, entertainment venues,
+  hotels, toilets, and memorable places.
+- Letting friends view trusted ratings, reviews, photos, and comments.
+- Supporting private friend-based discovery instead of public-only reviews.
+- Making exploration more engaging through points, leaderboards, map
+  progression, virtual buildings, and other game-like features.
+- Helping users plan outings through shared friend recommendations and future
+  OpenJio-style gathering flows.
+
+## Roadmap
+
+Planned features from the proposal include:
+
+- Location categories and custom emoji pins.
+- User-renamed pinned places.
+- Ratings, reviews, comments, and photos.
+- Friend invitations and private sharing.
+- Place-specific discussion or chat.
+- Social points and friend leaderboards.
+- Fog-of-map exploration.
+- Group chats, gatherings, and group location filters.
+- Profile search and close-friends filtering.
+- AI-assisted content classification and recommendation ideas.
+
+## Tech Stack
+
+| Area | Technology |
+|---|---|
+| App | Flutter, Dart |
+| Maps | Mapbox Maps SDK for Flutter |
+| Location | Geolocator |
+| Backend | Supabase |
+| Auth | Supabase anonymous auth |
+| Database | Supabase PostgreSQL |
+| HTTP | Dart `http` package |
+| CI/CD | GitHub Actions |
+
+## Getting Started
+
+Install Flutter, then fetch dependencies:
+
+```bash
+flutter doctor
+flutter pub get
+```
+
+The required Dart SDK version is declared in `pubspec.yaml`:
+
+```yaml
+environment:
+  sdk: ^3.11.5
+```
+
+## Environment Values
+
+The app requires these `--dart-define` values:
+
+| Key | Purpose |
+|---|---|
+| `MAPBOX_ACCESS_TOKEN` | Mapbox SDK and reverse geocoding |
+| `MAPBOX_STYLE_URI` | Mapbox map style |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Supabase anonymous client key |
+
+Run the app:
+
+```bash
+flutter run \
+  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" \
+  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" \
+  --dart-define=SUPABASE_URL="your-supabase-url" \
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+PowerShell:
+
+```powershell
+flutter run `
+  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" `
+  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" `
+  --dart-define=SUPABASE_URL="your-supabase-url" `
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+Do not commit real secrets.
+
+## Development
+
+Run local checks before opening a pull request:
+
+```bash
+flutter analyze
+flutter test
+```
+
+For platform build checks:
+
+```bash
+flutter build apk --debug
+flutter build ios --debug --no-codesign
+```
+
+Build commands may also need the same `--dart-define` values used by
+`flutter run`.
+
+## Project Structure
+
+| Path | Purpose |
+|---|---|
+| `lib/main.dart` | App bootstrap and service initialization |
+| `lib/app.dart` | Root Flutter app |
+| `lib/pages/` | App pages |
+| `lib/widgets/` | Reusable UI widgets |
+| `lib/services/` | Auth, location, geocoding, and pin services |
+| `lib/config/` | Mapbox and Supabase environment config |
+| `lib/models/` | App data models |
+| `test/` | Flutter tests |
+| `.github/workflows/` | CI and release workflows |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, PR workflow,
+environment setup, CI behavior, and release notes.

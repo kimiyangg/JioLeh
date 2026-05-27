@@ -10,6 +10,10 @@ import 'package:jio_leh/services/geocoding_services.dart';
 import 'package:jio_leh/services/location_services.dart';
 import 'package:jio_leh/services/pin_services.dart';
 
+import 'package:jio_leh/widgets/location_permission_dialog.dart';
+import 'package:jio_leh/widgets/current_area_bar.dart';
+import 'package:jio_leh/widgets/toolbar.dart';
+
 class MapPage extends StatefulWidget{
   const MapPage({super.key});
 
@@ -129,6 +133,15 @@ class _MapPageState extends State<MapPage> {
     await _moveCameraToPos(_currentPosition!);
   }
 
+  Future<void> _showLocationErrorDialog(Object error) async {
+    await showLocationErrorDialog(
+      context: context,
+      error: error,
+      locationService: _locationService,
+      onRetry: () => _startLocationTracking(),
+    );
+  }
+
   // Area Name Helper Methods
   Future<void> _updateLocationName(geo.Position position) async {
     _geocoding.fetchAreaName(
@@ -191,61 +204,6 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  String _locationErrorMessage(Object? error) {
-    if (error is LocationServiceOff) {
-      return 'Location services are turned off. Please enable them and try again.';
-    }
-    if (error is LocationBlocked) {
-      return 'Location permission was permanently denied. Open settings to grant access.';
-    }
-    if (error is LocationDenied) {
-      return 'Location permission is required to use the map.';
-    }
-    return 'Unable to fetch your location. Please try again.';
-  }
-
-  Future<void> _showLocationErrorDialog(Object error) async {
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          icon: const Icon(Icons.location_off, size: 40, color: Colors.grey),
-          title: const Text('Location unavailable'),
-          content: Text(_locationErrorMessage(error)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            if (error is LocationServiceOff)
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  _locationService.openLocationSettings();
-                },
-                child: const Text('Open location settings'),
-              ),
-            if (error is LocationBlocked)
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  _locationService.openAppSettings();
-                },
-                child: const Text('Open app settings'),
-              ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _startLocationTracking();
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoadingLocation) {
@@ -279,74 +237,16 @@ class _MapPageState extends State<MapPage> {
               }
             },
           ),
-
+          
           // Top: current area name display
-          Positioned(
-            left: 20,
-            right: 60,
-            top: 10,
-            child: SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.white,
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: Color.fromARGB(255, 10, 250, 186),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _currentLocationName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          CurrentAreaBar(
+            locationName: _currentLocationName
           ),
 
           // Bottom right: zoom in/out, recenter, and add pin buttons
-          Positioned(
-            right: 16,
-            bottom: 32,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  heroTag: 'recenter',
-                  onPressed: _recenterMap,
-                  child: const Icon(Icons.my_location),
-                ),
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  heroTag: 'addPin',
-                  onPressed: _addPin,
-                  child: const Icon(Icons.place),
-                ),
-              ],
-            ),
+          MapToolbar(
+            onRecenter: _recenterMap,
+            onAddPin: _addPin,
           ),
         ],
       ),
