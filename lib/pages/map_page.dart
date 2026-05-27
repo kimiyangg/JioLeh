@@ -10,6 +10,10 @@ import 'package:jio_leh/services/geocoding_services.dart';
 import 'package:jio_leh/services/location_services.dart';
 import 'package:jio_leh/services/pin_services.dart';
 
+import 'package:jio_leh/widgets/location_permission_dialog.dart';
+import 'package:jio_leh/widgets/current_area_bar.dart';
+import 'package:jio_leh/widgets/toolbar.dart';
+
 class MapPage extends StatefulWidget{
   const MapPage({super.key});
 
@@ -24,7 +28,7 @@ class _MapPageState extends State<MapPage> {
   // The term late means the variable will be initialized later, but before it's used.
   // This allows us to use the auth instance to create the pinServices instance
   // without running into initialization order issues.
-  late final _locationPins = PinServices(Supabase.instance.client, auth);
+  late final _locationServicePins = PinServices(Supabase.instance.client, auth);
   final _geocoding = GeoCodingServices();
 
   // Map state and controls
@@ -34,10 +38,10 @@ class _MapPageState extends State<MapPage> {
   
   // User location state and controls
   geo.Position? _currentPosition;
-  late final _location = LocationServices();
+  late final _locationService = LocationServices();
 
   bool _isLoadingLocation = true;
-  
+
   // AreaName state and controls
   String _currentLocationName = 'Fetching location...';
   
@@ -52,7 +56,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
-    _location.dispose();
+    _locationService.dispose();
     super.dispose();
   }
 
@@ -65,7 +69,7 @@ class _MapPageState extends State<MapPage> {
 
   // Map Helper Methods
   Future<void> _enableMapboxLocationComponent() async {
-    if (_map == null) return; //_map only assigned aft onMapCreated runs. this prevent crash 
+    if (_map == null) return; // _map only assigned aft onMapCreated runs. this prevent crash 
     await _map!.location.updateSettings(// access and update location component settings 
       LocationComponentSettings( // how user location marker shld behave 
         enabled: true, // current loc can be seen 
@@ -76,7 +80,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _moveCameraToPos(geo.Position position) async{
-    if (_map == null) return; //prevent crash if method called too early 
+    if (_map == null) return; // prevent crash if method called too early 
     await _map!.easeTo( // easeTo means the camera moves smoothly to current pos
       CameraOptions(
         center: Point(coordinates: Position(position.longitude, position.latitude,),
@@ -89,28 +93,34 @@ class _MapPageState extends State<MapPage> {
   
   // Location Helper Methods
   Future<void> _startLocationTracking() async {
-    // Fetches the user's current location
-    // and starts real-time tracking of location updates
-    final position = await _location.getCurrentLocation();
-    if (!mounted) return;
+    // Fetches the user's current location and starts real-time tracking.
+    // On failure, surfaces a dialog so the user can retry or open settings.
+    try {
+      final position = await _locationService.getCurrentLocation();
+      if (!mounted) return;
 
-    setState(() {
-      _currentPosition = position;
-      _isLoadingLocation = false;
-      _initialViewport = CameraViewportState(
-        center: Point(
-          coordinates: Position(position.longitude, position.latitude),
-        ),
-        zoom: 15,
-        bearing: 0,
-        pitch: 60,
+      setState(() {
+        _currentPosition = position;
+        _isLoadingLocation = false;
+        _initialViewport = CameraViewportState(
+          center: Point(
+            coordinates: Position(position.longitude, position.latitude),
+          ),
+          zoom: 15,
+          bearing: 0,
+          pitch: 60,
+        );
+      });
+
+      _updateLocationName(position);
+      await _locationService.startLocationTracking(
+        onLocationUpdate: _onLocationUpdate
       );
-    });
-
-    _updateLocationName(position);
-    await _location.startLocationTracking(
-      onLocationUpdate: _onLocationUpdate
-    );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingLocation = false);
+      await _showLocationErrorDialog(e);
+    }
   }
 
   void _onLocationUpdate(geo.Position position) {
@@ -121,6 +131,15 @@ class _MapPageState extends State<MapPage> {
   Future<void> _recenterMap() async {
     if (_currentPosition == null) return;
     await _moveCameraToPos(_currentPosition!);
+  }
+
+  Future<void> _showLocationErrorDialog(Object error) async {
+    await showLocationErrorDialog(
+      context: context,
+      error: error,
+      locationService: _locationService,
+      onRetry: () => _startLocationTracking(),
+    );
   }
 
   // Area Name Helper Methods
@@ -136,7 +155,7 @@ class _MapPageState extends State<MapPage> {
 
   // Pin Helper Methods
   Future<void> _reloadPins() async {
-    final pins = await _locationPins.loadPinnedLocations();
+    final pins = await _locationServicePins.loadPinnedLocations();
     if (!mounted) return;
     setState(() => _pinnedLocations = pins);
     await _renderPinnedLocations();
@@ -149,7 +168,7 @@ class _MapPageState extends State<MapPage> {
     if (position == null) return;
     if (!mounted) return;
 
-    await _locationPins.savePinnedLocation(
+    await _locationServicePins.savePinnedLocation(
       PinnedLocation(
         name: "Pinned Location",
         emoji: "📌",
@@ -218,79 +237,19 @@ class _MapPageState extends State<MapPage> {
               }
             },
           ),
-
+          
           // Top: current area name display
-          Positioned(
-            left: 20,
-            right: 60,
-            top: 10,
-            child: SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.white,
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: Color.fromARGB(255, 10, 250, 186),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _currentLocationName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          CurrentAreaBar(
+            locationName: _currentLocationName
           ),
 
           // Bottom right: zoom in/out, recenter, and add pin buttons
-          Positioned(
-            right: 16,
-            bottom: 32,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  heroTag: 'recenter',
-                  onPressed: _recenterMap,
-                  child: const Icon(Icons.my_location),
-                ),
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  heroTag: 'addPin',
-                  onPressed: _addPin,
-                  child: const Icon(Icons.place),
-                ),
-              ],
-            ),
+          MapToolbar(
+            onRecenter: _recenterMap,
+            onAddPin: _addPin,
           ),
         ],
       ),
     );
   }
-
-
 }

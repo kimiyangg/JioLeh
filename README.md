@@ -1,152 +1,151 @@
-# JioLeh!
+# GI-Jios & JioLeh!
 
-A Flutter-based location social media & gaming application.
+GI-Jios is the team behind **JioLeh!**, an Orbital 26 project that explores a
+more personal way to discover places with friends.
 
-## Overview
+Instead of treating maps as anonymous search results, JioLeh! aims to turn the
+real places people visit into a shared social map. Users can pin meaningful
+locations, revisit their own discoveries, and eventually share reviews, photos,
+comments, and recommendations with trusted friends.
 
-JioLeh! is a cross-platform mobile application that allows users to:
+This README is based on the GI-Jios Proposal for Orbital 26 and the current
+Flutter implementation in this repository.
 
-* View their live location on an interactive Mapbox map
-* Pin locations directly onto the map
-* Save pinned locations to a Supabase backend
-* Retrieve previously saved pins
-* Reverse geocode coordinates into readable place names
-* Use anonymous authentication for lightweight onboarding
+## Current App
 
-The project is structured using a clean service-oriented architecture, separating:
+The app currently includes:
 
-* UI/pages
-* Models
-* Backend services
-* Environment configuration
-* Location and geocoding logic
+- A Mapbox-powered map interface.
+- Current location detection and live location updates.
+- Reverse geocoding to show the user's current area.
+- Anonymous Supabase sign-in.
+- Persistent pinned locations stored in Supabase.
+- A simple map toolbar for recentering and adding pins.
 
----
+## Product Direction
+
+The proposal describes JioLeh! as a location-based social platform for:
+
+- Sharing real-world recommendations such as restaurants, entertainment venues,
+  hotels, toilets, and memorable places.
+- Letting friends view trusted ratings, reviews, photos, and comments.
+- Supporting private friend-based discovery instead of public-only reviews.
+- Making exploration more engaging through points, leaderboards, map
+  progression, virtual buildings, and other game-like features.
+- Helping users plan outings through shared friend recommendations and future
+  OpenJio-style gathering flows.
+
+## Roadmap
+
+Planned features from the proposal include:
+
+- Location categories and custom emoji pins.
+- User-renamed pinned places.
+- Ratings, reviews, comments, and photos.
+- Friend invitations and private sharing.
+- Place-specific discussion or chat.
+- Social points and friend leaderboards.
+- Fog-of-map exploration.
+- Group chats, gatherings, and group location filters.
+- Profile search and close-friends filtering.
+- AI-assisted content classification and recommendation ideas.
 
 ## Tech Stack
 
-### Frontend
+| Area | Technology |
+|---|---|
+| App | Flutter, Dart |
+| Maps | Mapbox Maps SDK for Flutter |
+| Location | Geolocator |
+| Backend | Supabase |
+| Auth | Supabase anonymous auth |
+| Database | Supabase PostgreSQL |
+| HTTP | Dart `http` package |
+| CI/CD | GitHub Actions |
 
-* Flutter
-* Dart
-* Material UI
+## Getting Started
 
-### Mapping & Location
+Install Flutter, then fetch dependencies:
 
-* Mapbox Maps Flutter SDK
-* Geolocator
+```bash
+flutter doctor
+flutter pub get
+```
 
-### Backend & Database
+The required Dart SDK version is declared in `pubspec.yaml`:
 
-* Supabase
-* Supabase Anonymous Authentication
+```yaml
+environment:
+  sdk: ^3.11.5
+```
 
-### Networking
+## Environment Values
 
-* HTTP package
+The app requires these `--dart-define` values:
 
----
+| Key | Purpose |
+|---|---|
+| `MAPBOX_ACCESS_TOKEN` | Mapbox SDK and reverse geocoding |
+| `MAPBOX_STYLE_URI` | Mapbox map style |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Supabase anonymous client key |
+
+Run the app:
+
+```bash
+flutter run \
+  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" \
+  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" \
+  --dart-define=SUPABASE_URL="your-supabase-url" \
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+PowerShell:
+
+```powershell
+flutter run `
+  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" `
+  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" `
+  --dart-define=SUPABASE_URL="your-supabase-url" `
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+Do not commit real secrets.
+
+## Development
+
+Run local checks before opening a pull request:
+
+```bash
+flutter analyze
+flutter test
+```
+
+For platform build checks:
+
+```bash
+flutter build apk --debug
+flutter build ios --debug --no-codesign
+```
+
+Build commands may also need the same `--dart-define` values used by
+`flutter run`.
 
 ## Project Structure
 
-```text
-lib/
-├── app.dart
-├── main.dart
-├── config/
-│   ├── map_env.dart
-│   ├── supabase_env.dart
-│   └── validate_env.dart
-├── models/
-│   └── pinned_location.dart
-├── pages/
-│   └── map_page.dart
-├── services/
-│   ├── auth_services.dart
-│   ├── geocoding_services.dart
-│   ├── location_services.dart
-│   └── pin_services.dart
-```
+| Path | Purpose |
+|---|---|
+| `lib/main.dart` | App bootstrap and service initialization |
+| `lib/app.dart` | Root Flutter app |
+| `lib/pages/` | App pages |
+| `lib/widgets/` | Reusable UI widgets |
+| `lib/services/` | Auth, location, geocoding, and pin services |
+| `lib/config/` | Mapbox and Supabase environment config |
+| `lib/models/` | App data models |
+| `test/` | Flutter tests |
+| `.github/workflows/` | CI and release workflows |
 
-### Directory Breakdown
+## Contributing
 
-#### `config/`
-
-Contains environment configuration and validation logic.
-
-* `map_env.dart` → Mapbox access token configuration
-* `supabase_env.dart` → Supabase URL and anon key
-* `validate_env.dart` → Runtime validation for required environment variables
-
-#### `models/`
-
-Contains data models used throughout the application.
-
-* `pinned_location.dart` → Represents a saved map pin
-
-#### `pages/`
-
-Contains application screens.
-
-* `map_page.dart` → Main interactive map screen
-
-#### `services/`
-
-Encapsulates business logic and external integrations.
-
-* `auth_services.dart` → Handles Supabase authentication
-* `location_services.dart` → Manages device location tracking
-* `geocoding_services.dart` → Converts coordinates into readable locations
-* `pin_services.dart` → Handles CRUD operations for saved pins
-
----
-
-## Features
-
-### Interactive Map
-
-* Live map rendering with Mapbox
-* Smooth camera movement
-* Real-time location updates
-* User location puck and accuracy ring
-
-### Location Tracking
-
-* GPS-based location tracking
-* Continuous position updates
-* Device permission handling
-
-### Pin Management
-
-* Create location pins
-* Save pins to Supabase
-* Load user-specific saved pins
-* Display pins as map annotations
-
-### Reverse Geocoding
-
-* Converts latitude/longitude into readable area names
-* Enhances user experience with contextual location labels
-
-### Authentication
-
-* Anonymous sign-in using Supabase
-* Automatic session reuse
-* Lightweight onboarding flow
-
----
-
-## License
-
-This project is currently private and not licensed for public distribution.
-
----
-
-## Acknowledgements
-
-Built using:
-
-* Flutter
-* Mapbox
-* Supabase
-* Geolocator
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, PR workflow,
+environment setup, CI behavior, and release notes.
