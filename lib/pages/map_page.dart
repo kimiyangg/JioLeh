@@ -242,6 +242,22 @@ class _MapPageState extends State<MapPage> {
             locationName: _currentLocationName
           ),
 
+          // Top right: logout button
+          Positioned(
+            top: 10,
+            right: 10,
+            child: SafeArea(
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'logout',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                onPressed: () => auth.signOut(),
+                child: const Icon(Icons.logout),
+              ),
+            ),
+          ),
+
           // Bottom right: zoom in/out, recenter, and add pin buttons
           MapToolbar(
             onRecenter: _recenterMap,
