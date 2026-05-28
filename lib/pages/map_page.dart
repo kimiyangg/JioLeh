@@ -180,8 +180,16 @@ class _MapPageState extends State<MapPage> {
 
     if (!mounted) return; // in case user left page while sheet open 
 
+    final customName = await _showLocationCustomiseSheet(selectedType);
+
+    if (!mounted) return;
+
     await _locationServicePins.savePinnedLocation(
-      PinnedLocation(latitude: position.latitude, longitude: position.longitude, name: selectedType.name, emoji: selectedType.emoji));
+      PinnedLocation(latitude: position.latitude,
+       longitude: position.longitude,
+        name: customName?.trim() ?? '', // if user close page early, return ''
+        // else, return wtv he typed in 
+         emoji: selectedType.emoji)); // still save the emoji 
     
     await _reloadPins();
   }
@@ -234,7 +242,67 @@ class _MapPageState extends State<MapPage> {
   );
 }
 
-  Future<void> _renderPinnedLocations() async {
+// this is AI-generated for UI. subject to changes ltr 
+Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
+  final controller = TextEditingController();
+
+  try {
+    return await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.95,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                8,
+                16,
+                MediaQuery.viewInsetsOf(context).bottom + 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    '${selectedType.emoji} Customise location name',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(
+                      labelText: 'Location name',
+                      hintText: 'Example: My favourite prata place',
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (value) {
+                      Navigator.pop(context, value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.pop(context, controller.text);
+                    },
+                    child: const Text('Enter'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  } finally {
+    controller.dispose();
+  }
+}
+
+Future<void> _renderPinnedLocations() async {
     if (_map == null) return;
 
     _pinsManager ??=
