@@ -22,6 +22,13 @@ class MapPage extends StatefulWidget{
 }
 
 class _MapPageState extends State<MapPage> {
+
+  static const _pinTypeOptions = [
+    _PinTypeOption(name: "Restaurant", emoji: "🍽️"),
+    _PinTypeOption(name: "Gym", emoji: "🏋"),
+    _PinTypeOption(name: "Hotel", emoji: "🏨"),
+    _PinTypeOption(name: "Toilet", emoji: "🚽"),
+  ];
   // Initialize services
   final auth = AuthServices();
 
@@ -162,22 +169,70 @@ class _MapPageState extends State<MapPage> {
   }
 
 
-  Future<void> _addPin() async {
-    final position = _currentPosition;
+  Future<void> _addPin() async { // function runs when user press add pin button 
+    final position = _currentPosition; // save current location for pinning
 
-    if (position == null) return;
-    if (!mounted) return;
+    if (position == null) return; // stops if location unknown 
+    if (!mounted) return; // stops if page not active 
+
+    final selectedType = await _showPinTypePicker(); // page comes up, wait for user to tap 
+    if (selectedType == null) return; // if nvr choose, return nth 
+
+    if (!mounted) return; // in case user left page while sheet open 
 
     await _locationServicePins.savePinnedLocation(
-      PinnedLocation(
-        name: "Pinned Location",
-        emoji: "📌",
-        latitude: position.latitude,
-        longitude: position.longitude,
-      ),
-    );
+      PinnedLocation(latitude: position.latitude, longitude: position.longitude, name: selectedType.name, emoji: selectedType.emoji));
+    
     await _reloadPins();
   }
+  
+  // this is AI-generated for the UI. subject to changes ltr 
+  Future<_PinTypeOption?> _showPinTypePicker() { // ? means may return null, or the selected option
+  return showModalBottomSheet<_PinTypeOption>(  // shows bottom sheet,
+  // _PinTypeOption mean can only return 1 pin type 
+    context: context,
+    showDragHandle: true, // drag handle on top of sheet 
+    builder: (context) {
+      return SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.5, // makes sheet half screen ht 
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Choose location type',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2, // 2 column button grid 
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 2.4,
+                    children: [
+                      for (final option in _pinTypeOptions) 
+                      // loops through restaurant, ...
+                        FilledButton( // one button per option 
+                          onPressed: () => Navigator.pop(context, option),
+                          child: Text(
+                            '${option.emoji} ${option.name}',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _renderPinnedLocations() async {
     if (_map == null) return;
@@ -252,4 +307,14 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
+}
+
+class _PinTypeOption {
+  final String emoji;
+  final String name;
+
+  const _PinTypeOption({
+    required this.name,
+    required this.emoji,
+  });
 }
