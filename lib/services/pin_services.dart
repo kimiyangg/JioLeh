@@ -12,14 +12,13 @@ class PinServices {
 
   PinServices(this.supabase, this.auth);
 
-
   Future<void> savePinnedLocation(PinnedLocation pin) async {
-    final userId = await auth.signInIfNeeded();
+    final userId = auth.requireCurrentUserId();
     await supabase.from(_tableName).insert(pin.toMap(userId));
   }
 
   Future<List<PinnedLocation>> loadPinnedLocations() async {
-    final userId = await auth.signInIfNeeded();
+    final userId = auth.requireCurrentUserId();
 
     final data = await supabase
         .from(_tableName)

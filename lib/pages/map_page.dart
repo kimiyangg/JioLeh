@@ -62,7 +62,6 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _booting() async {
     // Main boot sequence to initialize location, map, and pins
-    await auth.signInIfNeeded();
     await _reloadPins();
     await _startLocationTracking();
   }
@@ -241,6 +240,22 @@ class _MapPageState extends State<MapPage> {
           // Top: current area name display
           CurrentAreaBar(
             locationName: _currentLocationName
+          ),
+
+          // Top right: logout button
+          Positioned(
+            top: 10,
+            right: 10,
+            child: SafeArea(
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'logout',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                onPressed: () => auth.signOut(),
+                child: const Icon(Icons.logout),
+              ),
+            ),
           ),
 
           // Bottom right: zoom in/out, recenter, and add pin buttons
