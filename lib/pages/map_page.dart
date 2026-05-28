@@ -40,7 +40,7 @@ class _MapPageState extends State<MapPage> {
 
   // Map state and controls
   MapboxMap? _map;
-  CircleAnnotationManager? _pinsManager;
+  PointAnnotationManager? _pinsManager;
   ViewportState? _initialViewport;
   
   // User location state and controls
@@ -169,20 +169,19 @@ class _MapPageState extends State<MapPage> {
   }
 
 
-  Future<void> _addPin() async { // function runs when user press add pin button 
-    final position = _currentPosition; // save current location for pinning
-
-    if (position == null) return; // stops if location unknown 
-    if (!mounted) return; // stops if page not active 
-
+  Future<void> _addPin() async { // function runs when user press add pin button
     final selectedType = await _showPinTypePicker(); // page comes up, wait for user to tap 
     if (selectedType == null) return; // if nvr choose, return nth 
-
-    if (!mounted) return; // in case user left page while sheet open 
+    
+    if (!mounted) return; // stops if page not active 
 
     final customName = await _showLocationCustomiseSheet(selectedType);
 
-    if (!mounted) return;
+    if (!mounted) return; // in case user left page while sheet open 
+
+    final position = _currentPosition; // save current location for pinning
+
+    if (position == null) return; // stops if location unknown 
 
     await _locationServicePins.savePinnedLocation(
       PinnedLocation(latitude: position.latitude,
@@ -246,24 +245,25 @@ class _MapPageState extends State<MapPage> {
 Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
   final controller = TextEditingController();
 
-  try {
-    return await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.95,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                8,
-                16,
-                MediaQuery.viewInsetsOf(context).bottom + 24,
-              ),
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) {
+      return FractionallySizedBox(
+        heightFactor: 0.95,
+        child: SafeArea(
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     '${selectedType.emoji} Customise location name',
@@ -294,38 +294,41 @@ Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
               ),
             ),
           ),
-        );
-      },
-    );
-  } finally {
-    controller.dispose();
-  }
+        ),
+      );
+    },
+  );
 }
 
 Future<void> _renderPinnedLocations() async {
-    if (_map == null) return;
+  if (_map == null) return;
 
-    _pinsManager ??=
-        await _map!.annotations.createCircleAnnotationManager();
+  _pinsManager ??= await _map!.annotations.createPointAnnotationManager();
 
-    await _pinsManager!.deleteAll();
+  await _pinsManager!.deleteAll();
 
-    for (final location in _pinnedLocations) {
-      await _pinsManager!.create(
-        CircleAnnotationOptions(
-          geometry: Point(
-            coordinates: Position(
-              location.longitude,
-              location.latitude,
-            ),
+  for (final location in _pinnedLocations) {
+    final label = location.name.trim().isEmpty
+        ? location.emoji
+        : '${location.emoji} ${location.name}';
+
+    await _pinsManager!.create(
+      PointAnnotationOptions(
+        geometry: Point(
+          coordinates: Position(
+            location.longitude,
+            location.latitude,
           ),
-          circleRadius: 9.0,
-          circleColor: Colors.red.toARGB32(),
-          circleStrokeColor: Colors.white.toARGB32(),
         ),
-      );
-    }
+        textField: label,
+        textSize: 18,
+        textColor: Colors.black.toARGB32(),
+        textHaloColor: Colors.white.toARGB32(),
+        textHaloWidth: 2,
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
