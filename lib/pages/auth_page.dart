@@ -13,10 +13,11 @@ class AuthPage extends StatefulWidget {
 class _AuthPageState extends State<AuthPage> {
   final _auth = AuthServices();
 
-  bool _isLoading = false;
+  // Local state to track whether the sign-in process is in progress,
+  bool _isSigningIn = false;
 
   Future<void> _signInWithGoogle() async {
-    setState(() => _isLoading = true);
+    setState(() => _isSigningIn = true);
 
     try {
       await _auth.signInWithGoogle();
@@ -25,7 +26,7 @@ class _AuthPageState extends State<AuthPage> {
     } catch (_) {
       if (mounted) _showSnackBar('Google sign-in could not be started.');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isSigningIn = false);
     }
   }
 
@@ -98,8 +99,8 @@ class _AuthPageState extends State<AuthPage> {
                         ),
                         const SizedBox(height: 18),
                         FilledButton.icon(
-                          onPressed: _isLoading ? null : _signInWithGoogle,
-                          icon: _isLoading
+                          onPressed: _isSigningIn ? null : _signInWithGoogle,
+                          icon: _isSigningIn
                               ? const SizedBox.square(
                                   dimension: 18,
                                   child: CircularProgressIndicator(
