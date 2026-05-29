@@ -31,7 +31,6 @@ class AuthGate extends StatelessWidget {
         if (!_auth.isSignedIn()) {
           return const AuthPage();
         }
-
         return const MapPage();
       },
     );
