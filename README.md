@@ -18,7 +18,7 @@ The app currently includes:
 - A Mapbox-powered map interface.
 - Current location detection and live location updates.
 - Reverse geocoding to show the user's current area.
-- Anonymous Supabase sign-in.
+- Google sign-in through Supabase Auth.
 - Persistent pinned locations stored in Supabase.
 - A simple map toolbar for recentering and adding pins.
 
@@ -58,7 +58,7 @@ Planned features from the proposal include:
 | Maps | Mapbox Maps SDK for Flutter |
 | Location | Geolocator |
 | Backend | Supabase |
-| Auth | Supabase anonymous auth |
+| Auth | Supabase Auth with Google OAuth |
 | Database | Supabase PostgreSQL |
 | HTTP | Dart `http` package |
 | CI/CD | GitHub Actions |
@@ -88,7 +88,7 @@ The app requires these `--dart-define` values:
 | `MAPBOX_ACCESS_TOKEN` | Mapbox SDK and reverse geocoding |
 | `MAPBOX_STYLE_URI` | Mapbox map style |
 | `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Supabase anonymous client key |
+| `SUPABASE_ANON_KEY` | Supabase client anon key |
 
 Run the app:
 

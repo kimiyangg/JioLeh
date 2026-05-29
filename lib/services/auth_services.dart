@@ -1,30 +1,56 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthServices {
-  // Supabase client instance private to this service
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  String? get currentUserId {
-    return _supabase.auth.currentUser?.id;
+  User? getCurrentUser() {
+    // Helper method to retrieve the current user from the Supabase client.
+    return _supabase.auth.currentUser;
+  }
+  
+  Session? _getCurrentSession() {
+    // Helper method to retrieve the current session from the Supabase client.
+    return _supabase.auth.currentSession;
   }
 
   bool isSignedIn() {
-    return _supabase.auth.currentUser != null;
+    return _getCurrentSession() != null;
   }
 
-  Future<String> signInIfNeeded() async {
-    // Checks if a user is already signed in; if not, performs anonymous sign-in
-    // returns the user ID
-    final currentUser = _supabase.auth.currentUser;
-    if (currentUser != null) {
-      return currentUser.id;
+  String getCurrentUserId() {
+    // Retrieves the current user's ID,
+    // throwing an error if no user is signed in.
+    final userId = getCurrentUser()?.id;
+
+    if (userId == null) {
+      // StateError is used here to indicate that the application is in an unexpected state
+      // (i.e., a user ID is required but not available).
+
+      // TO-DO: Catch and handle this error in PinServices
+      throw StateError('User must be signed in.');
     }
-    final response = await _supabase.auth.signInAnonymously();
-    final user = response.user;
-    if (user == null) {
-      throw StateError('Anonymous sign-in failed');
-    }
-    return user.id;
+
+    return userId;
+  }
+
+  Stream<AuthState> authStateChanges() {
+    // The onAuthStateChange stream emits an event
+    // whenever the authentication state changes (e.g., user signs in, signs out, or the session expires).
+
+    // Current use: determine whether to show the AuthPage or the MapPage in app.dart
+    return _supabase.auth.onAuthStateChange;
+  }
+
+  Future<void> signInWithGoogle() async {
+    // Initiates the Google sign-in flow using Supabase's authentication API.
+    // On web, it will open a popup; on mobile, it will launch the external browser for authentication.
+    await _supabase.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: kIsWeb ? null : 'com.gijios.jioleh://login-callback/',
+      authScreenLaunchMode:
+          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+    );
   }
 
   Future<void> signOut() async {
