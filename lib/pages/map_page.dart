@@ -359,7 +359,20 @@ Future<void> _renderPinnedLocations() async {
 
   await _pinsManager!.deleteAll();
 
+  final renderedLocations = <PinnedLocation>[];
+
   for (final location in _pinnedLocations) {
+    final alreadyRenderedNearby = renderedLocations.any(
+      (renderedLocation) => _isNearbyLocation(
+        location,
+        renderedLocation,
+      ),
+    );
+
+    if (alreadyRenderedNearby) continue;
+
+    renderedLocations.add(location);
+
     final emojiImage = await _emojiImageFor(location.emoji);
     final name = location.name.trim();
 
@@ -384,6 +397,22 @@ Future<void> _renderPinnedLocations() async {
       ),
     );
   }
+}
+
+bool _isNearbyLocation(
+  PinnedLocation firstLocation,
+  PinnedLocation secondLocation,
+) {
+  const tolerance = 0.0002;
+
+  final latitudeDifference =
+      (firstLocation.latitude - secondLocation.latitude).abs();
+
+  final longitudeDifference =
+      (firstLocation.longitude - secondLocation.longitude).abs();
+
+  return latitudeDifference < tolerance &&
+      longitudeDifference < tolerance;
 }
 
   @override
