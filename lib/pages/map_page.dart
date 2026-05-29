@@ -14,6 +14,8 @@ import 'package:jio_leh/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/widgets/current_area_bar.dart';
 import 'package:jio_leh/widgets/toolbar.dart';
 
+import 'package:jio_leh/pages/profile_page.dart';
+
 class MapPage extends StatefulWidget{
   const MapPage({super.key});
 
@@ -76,6 +78,24 @@ class _MapPageState extends State<MapPage> {
         showAccuracyRing: true, // show GPS accuracy area 
         puckBearingEnabled: true,), // the ring/puck rotates when the user rotates (changes wrt bearing)
       );
+  }
+
+  Future<void> _initMapStyleSettings() async {
+    if (_map == null) return;
+
+    _map!.scaleBar.updateSettings(
+      ScaleBarSettings(enabled: false),
+    );
+
+    // Position the compass above the recenter button 
+    // (which is at bottom left with some margin)
+    _map!.compass.updateSettings(
+      CompassSettings(
+        position: OrnamentPosition.BOTTOM_LEFT,
+        marginLeft: 10,
+        marginBottom: 90,
+      ),
+    );
   }
 
   Future<void> _moveCameraToPos(geo.Position position) async{
@@ -220,9 +240,7 @@ class _MapPageState extends State<MapPage> {
             onMapCreated: (controller) async {
               _map = controller;
 
-              await _map!.scaleBar.updateSettings(
-                ScaleBarSettings(enabled: false),
-              );
+              await _initMapStyleSettings();
 
               await _enableMapboxLocationComponent();
               await _renderPinnedLocations();
@@ -258,7 +276,26 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          // Bottom right: zoom in/out, recenter, and add pin buttons
+          // Left Top: User Profile button
+          Positioned(
+            top: 90,
+            left: 10,
+            child: SafeArea(
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'profile',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                ),
+                child: const Icon(Icons.person),
+              ),
+            ),
+          ),
+
+          // Bottom right: recenter, and add pin buttons
           MapToolbar(
             onRecenter: _recenterMap,
             onAddPin: _addPin,
