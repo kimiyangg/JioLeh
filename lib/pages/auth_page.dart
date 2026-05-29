@@ -238,28 +238,16 @@ class _GoogleSignInButton extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 160),
-            child: isSigningIn
-                ? const SizedBox.square(
-                    key: ValueKey('loading'),
-                    dimension: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Row(
-                    key: ValueKey('google'),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _GoogleLogoDisc(),
-                      SizedBox(width: 11),
-                      Text('Continue with Google'),
-                    ],
-                  ),
-          ),
+          child: 
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _GoogleLogoDisc(),
+                SizedBox(width: 11),
+                Text('Continue with Google'),
+              ],
+            ),
         ),
       ),
     );
