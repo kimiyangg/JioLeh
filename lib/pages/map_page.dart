@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -24,6 +27,18 @@ class MapPage extends StatefulWidget{
 }
 
 class _MapPageState extends State<MapPage> {
+
+  static const _pinTypeOptions = [
+    _PinTypeOption(name: "Restaurant", emoji: "🍽️"),
+    _PinTypeOption(name: "Gym", emoji: "🏋"),
+    _PinTypeOption(name: "Hotel", emoji: "🏨"),
+    _PinTypeOption(name: "Toilet", emoji: "🚽"),
+  ];
+
+  // stores already created emoji images so app dont redraw the same emoji agn and agn
+  final Map<String, Uint8List> _emojiImageCache = {};
+
+
   // Initialize services
   final auth = AuthServices();
 
@@ -35,7 +50,7 @@ class _MapPageState extends State<MapPage> {
 
   // Map state and controls
   MapboxMap? _map;
-  CircleAnnotationManager? _pinsManager;
+  PointAnnotationManager? _pinsManager;
   ViewportState? _initialViewport;
   
   // User location state and controls
@@ -181,47 +196,257 @@ class _MapPageState extends State<MapPage> {
   }
 
 
-  Future<void> _addPin() async {
-    final position = _currentPosition;
+  Future<void> _addPin() async { // function runs when user press add pin button
+    final selectedType = await _showPinTypePicker(); // page comes up, wait for user to tap 
+    if (selectedType == null) return; // if nvr choose, return nth 
+    
+    if (!mounted) return; // stops if page not active 
 
-    if (position == null) return;
-    if (!mounted) return;
+    final customName = await _showLocationCustomiseSheet(selectedType);
+
+    if (!mounted) return; // in case user left page while sheet open 
+
+    final position = _currentPosition; // save current location for pinning
+
+    if (position == null) return; // stops if location unknown 
 
     await _locationServicePins.savePinnedLocation(
-      PinnedLocation(
-        name: "Pinned Location",
-        emoji: "📌",
-        latitude: position.latitude,
-        longitude: position.longitude,
-      ),
-    );
+      PinnedLocation(latitude: position.latitude,
+       longitude: position.longitude,
+        name: customName?.trim() ?? '', // if user close page early, return ''
+        // else, return wtv he typed in 
+         emoji: selectedType.emoji)); // still save the emoji 
+    
     await _reloadPins();
   }
-
-  Future<void> _renderPinnedLocations() async {
-    if (_map == null) return;
-
-    _pinsManager ??=
-        await _map!.annotations.createCircleAnnotationManager();
-
-    await _pinsManager!.deleteAll();
-
-    for (final location in _pinnedLocations) {
-      await _pinsManager!.create(
-        CircleAnnotationOptions(
-          geometry: Point(
-            coordinates: Position(
-              location.longitude,
-              location.latitude,
+  
+  // this is AI-generated UI when user first click add location and choose frm the types 
+  Future<_PinTypeOption?> _showPinTypePicker() { // ? means may return null, or the selected option
+  return showModalBottomSheet<_PinTypeOption>(  // shows bottom sheet,
+  // _PinTypeOption mean can only return 1 pin type 
+    context: context,
+    showDragHandle: true, // drag handle on top of sheet 
+    builder: (context) {
+      return SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.5, // makes sheet half screen ht 
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Choose location type',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2, // 2 column button grid 
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 2.4,
+                    children: [
+                      for (final option in _pinTypeOptions) 
+                      // loops through restaurant, ...
+                        FilledButton( // one button per option 
+                          onPressed: () => Navigator.pop(context, option),
+                          child: Text(
+                            '${option.emoji} ${option.name}',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          circleRadius: 9.0,
-          circleColor: Colors.red.toARGB32(),
-          circleStrokeColor: Colors.white.toARGB32(),
         ),
       );
-    }
+    },
+  );
+}
+
+// this is AI-generated UI when user chose loc type and now customising name 
+Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
+  final controller = TextEditingController();
+
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) {
+      return FractionallySizedBox(
+        heightFactor: 0.95,
+        child: SafeArea(
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${selectedType.emoji} Customise location name',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(
+                      labelText: 'Location name',
+                      hintText: 'Example: My favourite prata place',
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (value) {
+                      Navigator.pop(context, value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.pop(context, controller.text);
+                    },
+                    child: const Text('Enter'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<Uint8List> _emojiImageFor(String emoji) async {
+  final cachedImage = _emojiImageCache[emoji];
+
+  if (cachedImage != null) {
+    return cachedImage;
   }
+
+  final recorder = ui.PictureRecorder();
+  final canvas = ui.Canvas(recorder);
+
+  // emoji size. change fontSize to make bigger/smaller 
+  const imageSize = 128.0;
+  const fontSize = 92.0;
+
+  // draw the emoji like a text 
+  final textPainter = TextPainter(
+    text: TextSpan(
+      text: emoji,
+      style: const TextStyle(fontSize: fontSize),
+    ),
+    textDirection: TextDirection.ltr,
+  );
+
+  textPainter.layout();
+
+  final offset = Offset(
+    (imageSize - textPainter.width) / 2,
+    (imageSize - textPainter.height) / 2,
+  );
+
+  // paints emoji onto invisible canvas 
+  textPainter.paint(canvas, offset);
+
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(
+    // the canvas turn into an image 
+    imageSize.toInt(),
+    imageSize.toInt(),
+  );
+
+  final byteData = await image.toByteData(
+    format: ui.ImageByteFormat.png,
+  );
+
+  final emojiImage = byteData!.buffer.asUint8List(); 
+  // converts image into the format Mapbox needs 
+  _emojiImageCache[emoji] = emojiImage;
+
+  return emojiImage;
+}
+
+// draws the newest pin first from supabase, skips overlapping ones 
+Future<void> _renderPinnedLocations() async {
+  if (_map == null) return;
+
+  _pinsManager ??= await _map!.annotations.createPointAnnotationManager();
+
+  await _pinsManager!.deleteAll();
+
+  final renderedLocations = <PinnedLocation>[]; // keeps track of pins alr shown on map 
+
+  for (final location in _pinnedLocations) {
+    final alreadyRenderedNearby = renderedLocations.any( 
+      // checks if this pin is close to another pin already drawn 
+      (renderedLocation) => _isNearbyLocation(
+        location,
+        renderedLocation,
+      ),
+    );
+
+    if (alreadyRenderedNearby) continue;
+    // if pins are nearby, skip pinning so no overlapping of names 
+
+    renderedLocations.add(location);
+    // else, rmb it and draw it 
+
+    final emojiImage = await _emojiImageFor(location.emoji);
+    final name = location.name.trim();
+
+    await _pinsManager!.create(
+      PointAnnotationOptions(
+        geometry: Point(
+          coordinates: Position(
+            location.longitude,
+            location.latitude,
+          ),
+        ),
+        image: emojiImage,
+        iconSize: 0.55,
+        iconAnchor: IconAnchor.BOTTOM,
+        textField: name.isEmpty ? null : name,
+        textSize: 15,
+        textOffset: [0, 0.8],
+        textAnchor: TextAnchor.TOP,
+        textColor: Colors.black.toARGB32(),
+        textHaloColor: Colors.white.toARGB32(),
+        textHaloWidth: 2,
+      ),
+    );
+  }
+}
+
+// takes in 2 location. if the diff in longitude and latitude less than 20m, it is
+// same place. This is a helper method for renderPinnedLocation()
+bool _isNearbyLocation(
+  PinnedLocation firstLocation,
+  PinnedLocation secondLocation,
+) {
+  const tolerance = 0.0002; // loc within 20m is the "same" place 
+  
+
+  final latitudeDifference =
+      (firstLocation.latitude - secondLocation.latitude).abs();
+
+  final longitudeDifference =
+      (firstLocation.longitude - secondLocation.longitude).abs();
+
+  return latitudeDifference < tolerance &&
+      longitudeDifference < tolerance;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -304,4 +529,16 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
+}
+
+// each location type e.g. gym will store its corresponding set emoji 
+//and the customised name from user 
+class _PinTypeOption {
+  final String emoji;
+  final String name;
+
+  const _PinTypeOption({
+    required this.name,
+    required this.emoji,
+  });
 }
