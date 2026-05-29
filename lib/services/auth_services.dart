@@ -5,7 +5,6 @@ class AuthServices {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   User? getCurrentUser() {
-    // Helper method to retrieve the current user from the Supabase client.
     return _supabase.auth.currentUser;
   }
   
@@ -51,6 +50,36 @@ class AuthServices {
       authScreenLaunchMode:
           kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
     );
+  }
+
+  Future<bool> profileExists() async {
+    // Returns whether the current user has a profile row
+    // i.e. whether they have completed onboarding
+    final userId = getCurrentUserId();
+
+    final row = await _supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    return row != null;
+  }
+
+  Future<void> createProfile({
+    required String username,
+    required String displayName,
+    DateTime? birthday,
+  }) async {
+    // Inserts the current user's profile row
+    final userId = getCurrentUserId();
+
+    await _supabase.from('profiles').insert({
+      'id': userId,
+      'username': username,
+      'display_name': displayName,
+      if (birthday != null) 'birthday': birthday.toIso8601String().split('T').first,
+    });
   }
 
   Future<void> signOut() async {
