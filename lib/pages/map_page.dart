@@ -34,7 +34,10 @@ class _MapPageState extends State<MapPage> {
     _PinTypeOption(name: "Toilet", emoji: "🚽"),
   ];
 
+  // stores already created emoji images so app dont redraw the same emoji agn and agn
   final Map<String, Uint8List> _emojiImageCache = {};
+
+
   // Initialize services
   final auth = AuthServices();
 
@@ -199,7 +202,7 @@ class _MapPageState extends State<MapPage> {
     await _reloadPins();
   }
   
-  // this is AI-generated for the UI. subject to changes ltr 
+  // this is AI-generated UI when user first click add location and choose frm the types 
   Future<_PinTypeOption?> _showPinTypePicker() { // ? means may return null, or the selected option
   return showModalBottomSheet<_PinTypeOption>(  // shows bottom sheet,
   // _PinTypeOption mean can only return 1 pin type 
@@ -247,7 +250,7 @@ class _MapPageState extends State<MapPage> {
   );
 }
 
-// this is AI-generated for UI. subject to changes ltr 
+// this is AI-generated UI when user chose loc type and now customising name 
 Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
   final controller = TextEditingController();
 
@@ -316,9 +319,11 @@ Future<Uint8List> _emojiImageFor(String emoji) async {
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder);
 
+  // emoji size. change fontSize to make bigger/smaller 
   const imageSize = 128.0;
   const fontSize = 92.0;
 
+  // draw the emoji like a text 
   final textPainter = TextPainter(
     text: TextSpan(
       text: emoji,
@@ -334,10 +339,12 @@ Future<Uint8List> _emojiImageFor(String emoji) async {
     (imageSize - textPainter.height) / 2,
   );
 
+  // paints emoji onto invisible canvas 
   textPainter.paint(canvas, offset);
 
   final picture = recorder.endRecording();
   final image = await picture.toImage(
+    // the canvas turn into an image 
     imageSize.toInt(),
     imageSize.toInt(),
   );
@@ -346,12 +353,14 @@ Future<Uint8List> _emojiImageFor(String emoji) async {
     format: ui.ImageByteFormat.png,
   );
 
-  final emojiImage = byteData!.buffer.asUint8List();
+  final emojiImage = byteData!.buffer.asUint8List(); 
+  // converts image into the format Mapbox needs 
   _emojiImageCache[emoji] = emojiImage;
 
   return emojiImage;
 }
 
+// draws the newest pin first from supabase, skips overlapping ones 
 Future<void> _renderPinnedLocations() async {
   if (_map == null) return;
 
@@ -359,10 +368,11 @@ Future<void> _renderPinnedLocations() async {
 
   await _pinsManager!.deleteAll();
 
-  final renderedLocations = <PinnedLocation>[];
+  final renderedLocations = <PinnedLocation>[]; // keeps track of pins alr shown on map 
 
   for (final location in _pinnedLocations) {
-    final alreadyRenderedNearby = renderedLocations.any(
+    final alreadyRenderedNearby = renderedLocations.any( 
+      // checks if this pin is close to another pin already drawn 
       (renderedLocation) => _isNearbyLocation(
         location,
         renderedLocation,
@@ -370,8 +380,10 @@ Future<void> _renderPinnedLocations() async {
     );
 
     if (alreadyRenderedNearby) continue;
+    // if pins are nearby, skip pinning so no overlapping of names 
 
     renderedLocations.add(location);
+    // else, rmb it and draw it 
 
     final emojiImage = await _emojiImageFor(location.emoji);
     final name = location.name.trim();
@@ -399,11 +411,14 @@ Future<void> _renderPinnedLocations() async {
   }
 }
 
+// takes in 2 location. if the diff in longitude and latitude less than 20m, it is
+// same place. This is a helper method for renderPinnedLocation()
 bool _isNearbyLocation(
   PinnedLocation firstLocation,
   PinnedLocation secondLocation,
 ) {
-  const tolerance = 0.0002;
+  const tolerance = 0.0002; // loc within 20m is the "same" place 
+  
 
   final latitudeDifference =
       (firstLocation.latitude - secondLocation.latitude).abs();
@@ -465,6 +480,8 @@ bool _isNearbyLocation(
   }
 }
 
+// each location type e.g. gym will store its corresponding set emoji 
+//and the customised name from user 
 class _PinTypeOption {
   final String emoji;
   final String name;
