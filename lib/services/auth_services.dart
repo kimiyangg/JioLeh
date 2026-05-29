@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthServices {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  User? _getCurrentUser() {
+  User? getCurrentUser() {
     // Helper method to retrieve the current user from the Supabase client.
     return _supabase.auth.currentUser;
   }
@@ -21,7 +21,7 @@ class AuthServices {
   String getCurrentUserId() {
     // Retrieves the current user's ID,
     // throwing an error if no user is signed in.
-    final userId = _getCurrentUser()?.id;
+    final userId = getCurrentUser()?.id;
 
     if (userId == null) {
       // StateError is used here to indicate that the application is in an unexpected state

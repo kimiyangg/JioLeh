@@ -14,6 +14,8 @@ import 'package:jio_leh/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/widgets/current_area_bar.dart';
 import 'package:jio_leh/widgets/toolbar.dart';
 
+import 'package:jio_leh/pages/profile_page.dart';
+
 class MapPage extends StatefulWidget{
   const MapPage({super.key});
 
@@ -274,7 +276,26 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          // Bottom right: zoom in/out, recenter, and add pin buttons
+          // Left Top: User Profile button
+          Positioned(
+            top: 90,
+            left: 10,
+            child: SafeArea(
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'profile',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                ),
+                child: const Icon(Icons.person),
+              ),
+            ),
+          ),
+
+          // Bottom right: recenter, and add pin buttons
           MapToolbar(
             onRecenter: _recenterMap,
             onAddPin: _addPin,
