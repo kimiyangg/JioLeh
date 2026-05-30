@@ -135,6 +135,42 @@ flutter build ios --debug --no-codesign
 Build commands may also need the same `--dart-define` values used by
 `flutter run`.
 
+## Store Deployment
+
+Release builds and store uploads are driven by GitHub Actions and triggered by a
+version tag matching `v*.*.*`. Unlike a manual setup, you do not edit version
+files by hand: the workflow derives the version name from the tag
+(`v1.2.0` -> `1.2.0`) and the build number from the CI run number.
+
+### Google Play (Android)
+
+[![Build (& Deploy to Google Play) Android APP](https://github.com/KimiYang951116/JioLeh/actions/workflows/android-ci.yml/badge.svg)](https://github.com/KimiYang951116/JioLeh/actions/workflows/android-ci.yml)
+
+1. From `main`, create and push a release tag, for example:
+
+   ```bash
+   git checkout main
+   git pull origin main
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+2. The `android-ci.yml` workflow builds a signed AAB and APK, uploads the AAB to
+   the Google Play **internal** track, and attaches the build files to the
+   GitHub Release.
+
+### TestFlight (iOS)
+
+[![Build (& Deploy to TestFlight) iOS APP](https://github.com/KimiYang951116/JioLeh/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/KimiYang951116/JioLeh/actions/workflows/ios-ci.yml)
+
+1. Pushing the same `v*.*.*` tag also triggers the `ios-ci.yml` workflow.
+2. It builds a signed IPA, uploads it to **TestFlight**, and attaches the IPA to
+   the GitHub Release.
+
+Release workflows depend on GitHub Actions secrets for Mapbox, Supabase, Android
+signing, Google Play, Apple signing, and App Store Connect. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full release and CI details.
+
 ## Project Structure
 
 | Path | Purpose |
