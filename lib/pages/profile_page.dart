@@ -31,6 +31,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final birthday = _profile?.birthday;
+    final birthdayLabel = birthday == null
+      ? '-'
+      : '${birthday.year}-${birthday.month.toString().padLeft(2, '0')}-${birthday.day.toString().padLeft(2, '0')}';
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -52,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(_auth.getCurrentUser()?.email ?? 'No email'),
                         Text('Username: ${_profile!.username}'),
                         Text('Display name: ${_profile!.displayName}'),
-                        Text('Birthday: ${_profile!.birthday ?? '-'}'),
+                        Text('Birthday: $birthdayLabel'),
                       ],
                     ),
             ),
