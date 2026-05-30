@@ -28,7 +28,7 @@ The app currently includes:
 
 ## Product Direction
 
-The proposal describes JioLeh! as a location-based social platform for:
+The aims of our project includes but are not limited to:
 
 - Sharing real-world recommendations such as restaurants, entertainment venues,
   hotels, toilets, and memorable places.
