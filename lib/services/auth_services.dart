@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:flutter/foundation.dart';
+
 class AuthServices {
   late final SupabaseClient _supabase;
 
@@ -60,8 +62,9 @@ class AuthServices {
     // On web, it will open a popup; on mobile, it will launch the external browser for authentication.
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: 'com.gijios.jioleh://login-callback/',
-      authScreenLaunchMode: LaunchMode.platformDefault
+      redirectTo: kIsWeb ? null : 'com.gijios.jioleh://login-callback/',
+      authScreenLaunchMode:
+          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
     );
   }
 
