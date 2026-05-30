@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/config/map_env.dart';
 import 'package:jio_leh/models/pinned_location.dart';
@@ -45,7 +44,7 @@ class _MapPageState extends State<MapPage> {
   // The term late means the variable will be initialized later, but before it's used.
   // This allows us to use the auth instance to create the pinServices instance
   // without running into initialization order issues.
-  late final _locationServicePins = PinServices(Supabase.instance.client, auth);
+  late final _locationServicePins = PinServices(auth: auth);
   final _geocoding = GeoCodingServices();
 
   // Map state and controls
@@ -108,7 +107,7 @@ class _MapPageState extends State<MapPage> {
       CompassSettings(
         position: OrnamentPosition.BOTTOM_LEFT,
         marginLeft: 10,
-        marginBottom: 90,
+        marginBottom: 30,
       ),
     );
   }

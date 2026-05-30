@@ -19,12 +19,16 @@ The app currently includes:
 - Current location detection and live location updates.
 - Reverse geocoding to show the user's current area.
 - Google sign-in through Supabase Auth.
-- Persistent pinned locations stored in Supabase.
+- An auth gate that routes users between sign-in, onboarding, and the map.
+- First-time onboarding to set up a user profile (username, display name,
+  birthday).
+- A profile page showing the signed-in user's details.
+- Persistent pinned locations and user profiles stored in Supabase.
 - A simple map toolbar for recentering and adding pins.
 
 ## Product Direction
 
-The proposal describes JioLeh! as a location-based social platform for:
+The aims of our project includes but are not limited to:
 
 - Sharing real-world recommendations such as restaurants, entertainment venues,
   hotels, toilets, and memorable places.
@@ -131,15 +135,51 @@ flutter build ios --debug --no-codesign
 Build commands may also need the same `--dart-define` values used by
 `flutter run`.
 
+## Store Deployment
+
+Release builds and store uploads are driven by GitHub Actions and triggered by a
+version tag matching `v*.*.*`. Unlike a manual setup, you do not edit version
+files by hand: the workflow derives the version name from the tag
+(`v1.2.0` -> `1.2.0`) and the build number from the CI run number.
+
+### Google Play (Android)
+
+[![Build (& Deploy to Google Play) Android APP](https://github.com/KimiYang951116/JioLeh/actions/workflows/android-ci.yml/badge.svg)](https://github.com/KimiYang951116/JioLeh/actions/workflows/android-ci.yml)
+
+1. From `main`, create and push a release tag, for example:
+
+   ```bash
+   git checkout main
+   git pull origin main
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+2. The `android-ci.yml` workflow builds a signed AAB and APK, uploads the AAB to
+   the Google Play **internal** track, and attaches the build files to the
+   GitHub Release.
+
+### TestFlight (iOS)
+
+[![Build (& Deploy to TestFlight) iOS APP](https://github.com/KimiYang951116/JioLeh/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/KimiYang951116/JioLeh/actions/workflows/ios-ci.yml)
+
+1. Pushing the same `v*.*.*` tag also triggers the `ios-ci.yml` workflow.
+2. It builds a signed IPA, uploads it to **TestFlight**, and attaches the IPA to
+   the GitHub Release.
+
+Release workflows depend on GitHub Actions secrets for Mapbox, Supabase, Android
+signing, Google Play, Apple signing, and App Store Connect. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full release and CI details.
+
 ## Project Structure
 
 | Path | Purpose |
 |---|---|
 | `lib/main.dart` | App bootstrap and service initialization |
-| `lib/app.dart` | Root Flutter app |
-| `lib/pages/` | App pages |
+| `lib/app.dart` | Root Flutter app and auth gate routing |
+| `lib/pages/` | App pages (auth, onboarding, map, profile) |
 | `lib/widgets/` | Reusable UI widgets |
-| `lib/services/` | Auth, location, geocoding, and pin services |
+| `lib/services/` | Auth, account, location, geocoding, and pin services |
 | `lib/config/` | Mapbox and Supabase environment config |
 | `lib/models/` | App data models |
 | `test/` | Flutter tests |

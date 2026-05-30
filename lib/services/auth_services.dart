@@ -1,11 +1,24 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthServices {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  late final SupabaseClient _supabase;
+
+  AuthServices({SupabaseClient? supabase}) {
+    // If a Supabase client is provided (e.g., for testing), use it
+    // otherwise, use the default instance.
+    if (supabase != null) {
+      _supabase = supabase;
+    } else {
+      _supabase = Supabase.instance.client;
+    }
+  }
+
+  // Exposes the underlying Supabase client so other services (e.g.
+  // AccountServices, PinServices) share a single client instead of each
+  // resolving their own.
+  SupabaseClient get client => _supabase;
 
   User? getCurrentUser() {
-    // Helper method to retrieve the current user from the Supabase client.
     return _supabase.auth.currentUser;
   }
   
@@ -47,9 +60,8 @@ class AuthServices {
     // On web, it will open a popup; on mobile, it will launch the external browser for authentication.
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? null : 'com.gijios.jioleh://login-callback/',
-      authScreenLaunchMode:
-          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+      redirectTo: 'com.gijios.jioleh://login-callback/',
+      authScreenLaunchMode: LaunchMode.platformDefault
     );
   }
 

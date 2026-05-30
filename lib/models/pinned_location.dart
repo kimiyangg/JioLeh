@@ -1,6 +1,9 @@
 // Model class representing a pinned location with its details
 class PinnedLocation {
-  // Null for drafts (not yet saved); set by Supabase on insert.
+  // The id is nullable because the same class represents a pin in two different life stages
+  // and the id only exists in one of them, cuz id is assigned when written into database
+  // 1. Before saving (client-side draft): no id yet
+  // 2. After loading from the database: id is present
   final String? id;
   final double latitude;
   final double longitude;
