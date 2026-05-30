@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/services/auth_services.dart';
+import 'package:jio_leh/models/user_profile.dart';
 
 class AccountServices {
   late final AuthServices auth;
@@ -56,7 +57,7 @@ class AccountServices {
     });
   }
 
-  Future<Map<String, dynamic>> getUserProfile() async {
+  Future<UserProfile> getUserProfile() async {
     // Retrieves the current user's profile row from the 'profiles' table.
     final userId = auth.getCurrentUserId();
 
@@ -70,6 +71,6 @@ class AccountServices {
       throw StateError('Profile not found for user ID: $userId');
     }
 
-    return profile;
+    return UserProfile.fromMap(profile);
   }
 }
