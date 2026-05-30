@@ -7,6 +7,9 @@ import 'package:jio_leh/pages/map_page.dart';
 import 'package:jio_leh/pages/onboarding_page.dart';
 
 import 'package:jio_leh/services/auth_services.dart';
+import 'package:jio_leh/services/account_services.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -31,6 +34,7 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   final _auth = AuthServices();
+  late final _account = AccountServices(Supabase.instance.client, _auth);
   late final StreamSubscription<dynamic> _authSub;
   _GateState _state = _GateState.loading;
 
@@ -57,7 +61,7 @@ class _AuthGateState extends State<AuthGate> {
 
     setState(() => _state = _GateState.loading);
     try {
-      final exists = await _auth.profileExists();
+      final exists = await _account.profileExists();
       if (!mounted) return; // widget may be disposed during the await
       setState(() =>
           _state = exists ? _GateState.ready : _GateState.needsOnboarding);

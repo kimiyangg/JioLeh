@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/services/auth_services.dart';
+import 'package:jio_leh/services/account_services.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key, this.onComplete});
@@ -15,6 +18,7 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage> {
   final _auth = AuthServices();
+  late final _account = AccountServices(Supabase.instance.client, _auth);
 
   final _usernameController = TextEditingController();
   late final TextEditingController _displayNameController;
@@ -54,7 +58,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _submit() async {
     setState(() => _submitting = true);
     try {
-      await _auth.createProfile(
+      await _account.createProfile(
         username: _usernameController.text.trim(),
         displayName: _displayNameController.text.trim(),
         birthday: _birthday,

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthServices {
@@ -46,40 +45,9 @@ class AuthServices {
     // On web, it will open a popup; on mobile, it will launch the external browser for authentication.
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? null : 'com.gijios.jioleh://login-callback/',
-      authScreenLaunchMode:
-          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+      redirectTo: 'com.gijios.jioleh://login-callback/',
+      authScreenLaunchMode: LaunchMode.platformDefault
     );
-  }
-
-  Future<bool> profileExists() async {
-    // Returns whether the current user has a profile row
-    // i.e. whether they have completed onboarding
-    final userId = getCurrentUserId();
-
-    final row = await _supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
-
-    return row != null;
-  }
-
-  Future<void> createProfile({
-    required String username,
-    required String displayName,
-    DateTime? birthday,
-  }) async {
-    // Inserts the current user's profile row
-    final userId = getCurrentUserId();
-
-    await _supabase.from('profiles').insert({
-      'id': userId,
-      'username': username,
-      'display_name': displayName,
-      if (birthday != null) 'birthday': birthday.toIso8601String().split('T').first,
-    });
   }
 
   Future<void> signOut() async {
