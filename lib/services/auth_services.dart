@@ -1,7 +1,22 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthServices {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  late final SupabaseClient _supabase;
+
+  AuthServices({SupabaseClient? supabase}) {
+    // If a Supabase client is provided (e.g., for testing), use it
+    // otherwise, use the default instance.
+    if (supabase != null) {
+      _supabase = supabase;
+    } else {
+      _supabase = Supabase.instance.client;
+    }
+  }
+
+  // Exposes the underlying Supabase client so other services (e.g.
+  // AccountServices, PinServices) share a single client instead of each
+  // resolving their own.
+  SupabaseClient get client => _supabase;
 
   User? getCurrentUser() {
     return _supabase.auth.currentUser;
