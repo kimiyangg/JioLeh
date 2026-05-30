@@ -92,7 +92,7 @@ class _MapPageState extends State<MapPage> {
       CompassSettings(
         position: OrnamentPosition.BOTTOM_LEFT,
         marginLeft: 10,
-        marginBottom: 90,
+        marginBottom: 30,
       ),
     );
   }
