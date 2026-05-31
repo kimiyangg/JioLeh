@@ -12,8 +12,6 @@ class SignInPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(22),
@@ -35,8 +33,8 @@ class SignInPanel extends StatelessWidget {
           Text(
             "Sign in to explore your friends' favourite spots",
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: const Color(0xFF7A736A),
+            style: const TextStyle(
+              color: Color(0xFF7A736A),
               fontSize: 14.5,
               fontWeight: FontWeight.w600,
             ),

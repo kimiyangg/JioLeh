@@ -236,7 +236,10 @@ class _MapPageState extends State<MapPage> {
               children: [
                 Text(
                   'Choose location type',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -293,7 +296,10 @@ Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
                 children: [
                   Text(
                     '${selectedType.emoji} Customise location name',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
