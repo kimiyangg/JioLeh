@@ -11,7 +11,9 @@ Useful paths:
 |---|---|
 | `lib/` | App source code |
 | `lib/config/` | Dart define based environment configuration |
-| `lib/services/` | Auth, location, geocoding, and pin services |
+| `lib/pages/` | App pages (auth, onboarding, map, profile) |
+| `lib/services/` | Auth, account, location, geocoding, and pin services |
+| `lib/models/` | App data models |
 | `lib/widgets/` | Reusable UI widgets |
 | `test/` | Flutter tests |
 | `.github/workflows/` | CI, build validation, and release workflows |
@@ -66,6 +68,38 @@ flutter run `
 
 Do not commit real secrets. Use local shell variables, your IDE run
 configuration, or CI secrets.
+
+## Backend / Supabase Schema
+
+The app talks to two tables in the Supabase project. Sign-in uses Supabase Auth
+with Google OAuth, so each row is keyed to the authenticated user.
+
+`profiles` holds onboarding data and is created the first time a user signs in:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key, matches the Supabase Auth user id |
+| `username` | text | Set during onboarding |
+| `display_name` | text | Set during onboarding |
+| `birthday` | date | Optional |
+| `bio` | text | Optional |
+| `avatar_url` | text | Optional profile image URL |
+| `created_at` | timestamp | Row creation time |
+| `updated_at` | timestamp | Last update time |
+
+`pinned_locations` holds the pins each user drops on the map:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key, generated on insert |
+| `user_id` | uuid | Owning Supabase Auth user id |
+| `name` | text | Pin label |
+| `emoji` | text | Pin emoji |
+| `latitude` | double | |
+| `longitude` | double | |
+| `created_at` | timestamp | Used to order pins newest first |
+
+Enable row-level security so each user can only read and write their own rows.
 
 ## Development Checks
 
