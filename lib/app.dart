@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/pages/auth_page.dart';
+import 'package:jio_leh/pages/auth/login_page.dart';
 import 'package:jio_leh/pages/map/map_page.dart';
-import 'package:jio_leh/pages/onboarding_page.dart';
+import 'package:jio_leh/pages/auth/onboarding_page.dart';
 
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/account_service.dart';
