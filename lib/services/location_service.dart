@@ -31,7 +31,7 @@ class LocationBlocked extends LocationException {
       : super('Location permission was permanently denied.');
 }
 
-class LocationServices {
+class LocationService {
   // Service class to handle all location-related functionality,
   // including permission checks, fetching current location, and real-time tracking
   StreamSubscription<geo.Position>? _positionStream;

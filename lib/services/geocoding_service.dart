@@ -4,8 +4,8 @@ import 'package:geolocator/geolocator.dart' as geo;
 import 'package:http/http.dart' as http;
 import 'package:jio_leh/config/map_env.dart';
 
-class GeoCodingServices {
-  GeoCodingServices({
+class GeocodingService {
+  GeocodingService({
     this.minIntervalSeconds = 20,
     this.minDistanceMeters = 100,
   });

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jio_leh/services/location_services.dart';
+import 'package:jio_leh/services/location_service.dart';
 
 String _locationErrorMessage(Object? error) {
   if (error is LocationServiceOff) {
@@ -17,7 +17,7 @@ String _locationErrorMessage(Object? error) {
 Future<void> showLocationErrorDialog({
   required BuildContext context,
   required Object error,
-  required LocationServices locationService,
+  required LocationService locationService,
   required VoidCallback onRetry,
 }) async {
   await showDialog<void>(
