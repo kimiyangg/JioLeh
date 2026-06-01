@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/services/auth_services.dart';
-import 'package:jio_leh/services/account_services.dart';
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/services/account_service.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key, this.onComplete});
@@ -15,8 +15,8 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
-  final _auth = AuthServices();
-  late final _account = AccountServices(auth: _auth);
+  final _auth = AuthService();
+  late final _account = AccountService(auth: _auth);
 
   final _usernameController = TextEditingController();
   late final TextEditingController _displayNameController;

@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/pages/auth_page.dart';
-import 'package:jio_leh/pages/map_page.dart';
-import 'package:jio_leh/pages/onboarding_page.dart';
+import 'package:jio_leh/pages/auth/login_page.dart';
+import 'package:jio_leh/pages/map/map_page.dart';
+import 'package:jio_leh/pages/auth/onboarding_page.dart';
 
-import 'package:jio_leh/services/auth_services.dart';
-import 'package:jio_leh/services/account_services.dart';
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/services/account_service.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -31,8 +31,8 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  final _auth = AuthServices();
-  late final _account = AccountServices(auth: _auth);
+  final _auth = AuthService();
+  late final _account = AccountService(auth: _auth);
   late final StreamSubscription<dynamic> _authSub;
   _GateState _state = _GateState.loading;
 

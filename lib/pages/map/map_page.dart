@@ -7,14 +7,14 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import 'package:jio_leh/config/map_env.dart';
 import 'package:jio_leh/models/pinned_location.dart';
-import 'package:jio_leh/services/auth_services.dart';
-import 'package:jio_leh/services/geocoding_services.dart';
-import 'package:jio_leh/services/location_services.dart';
-import 'package:jio_leh/services/pin_services.dart';
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/services/geocoding_service.dart';
+import 'package:jio_leh/services/location_service.dart';
+import 'package:jio_leh/services/pin_service.dart';
 
-import 'package:jio_leh/widgets/location_permission_dialog.dart';
-import 'package:jio_leh/widgets/current_area_bar.dart';
-import 'package:jio_leh/widgets/toolbar.dart';
+import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
+import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
+import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 
 import 'package:jio_leh/pages/profile_page.dart';
 
@@ -39,13 +39,13 @@ class _MapPageState extends State<MapPage> {
 
 
   // Initialize services
-  final auth = AuthServices();
+  final auth = AuthService();
 
   // The term late means the variable will be initialized later, but before it's used.
-  // This allows us to use the auth instance to create the pinServices instance
+  // This allows us to use the auth instance to create the pinService instance
   // without running into initialization order issues.
-  late final _locationServicePins = PinServices(auth: auth);
-  final _geocoding = GeoCodingServices();
+  late final _locationServicePins = PinService(auth: auth);
+  final _geocoding = GeocodingService();
 
   // Map state and controls
   MapboxMap? _map;
@@ -54,7 +54,7 @@ class _MapPageState extends State<MapPage> {
   
   // User location state and controls
   geo.Position? _currentPosition;
-  late final _locationService = LocationServices();
+  late final _locationService = LocationService();
 
   bool _isLoadingLocation = true;
 
@@ -236,7 +236,10 @@ class _MapPageState extends State<MapPage> {
               children: [
                 Text(
                   'Choose location type',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -293,7 +296,10 @@ Future<String?> _showLocationCustomiseSheet(_PinTypeOption selectedType) async {
                 children: [
                   Text(
                     '${selectedType.emoji} Customise location name',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(

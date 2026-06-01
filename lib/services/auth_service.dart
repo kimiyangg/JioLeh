@@ -2,10 +2,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter/foundation.dart';
 
-class AuthServices {
+class AuthService {
   late final SupabaseClient _supabase;
 
-  AuthServices({SupabaseClient? supabase}) {
+  // {} makes the supabase parameter optional, allowing for dependency injection (e.g., during testing).
+  AuthService({SupabaseClient? supabase}) {
     // If a Supabase client is provided (e.g., for testing), use it
     // otherwise, use the default instance.
     if (supabase != null) {
@@ -16,7 +17,7 @@ class AuthServices {
   }
 
   // Exposes the underlying Supabase client so other services (e.g.
-  // AccountServices, PinServices) share a single client instead of each
+  // AccountService, PinService) share a single client instead of each
   // resolving their own.
   SupabaseClient get client => _supabase;
 
@@ -42,7 +43,7 @@ class AuthServices {
       // StateError is used here to indicate that the application is in an unexpected state
       // (i.e., a user ID is required but not available).
 
-      // TO-DO: Catch and handle this error in PinServices
+      // TO-DO: Catch and handle this error in PinService
       throw StateError('User must be signed in.');
     }
 
