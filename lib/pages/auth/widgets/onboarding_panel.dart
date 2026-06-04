@@ -27,7 +27,7 @@ class OnboardingPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Sign in to explore your friends' favourite spots",
+            "Please enter some information for us to know more about you.",
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF7A736A),
