@@ -13,6 +13,7 @@ import 'package:jio_leh/pages/map/models/pin_type.dart';
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
+import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
 
 import 'package:jio_leh/pages/profile_page.dart';
 
@@ -192,7 +193,7 @@ class _MapPageState extends State<MapPage> {
     
     if (!mounted) return; // stops if page not active 
 
-    final customName = await _showLocationCustomiseSheet(selectedType);
+    final customName = await showLocationCustomizeSheet(context, selectedType);
 
     if (!mounted) return; // in case user left page while sheet open 
 
@@ -253,68 +254,6 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-// this is AI-generated UI when user chose loc type and now customising name 
-Future<String?> _showLocationCustomiseSheet(PinType selectedType) async {
-  final controller = TextEditingController();
-
-  return showModalBottomSheet<String>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (context) {
-      return FractionallySizedBox(
-        heightFactor: 0.95,
-        child: SafeArea(
-          child: AnimatedPadding(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.viewInsetsOf(context).bottom,
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${selectedType.emoji} Customise location name',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: controller,
-                    autofocus: true,
-                    textInputAction: TextInputAction.done,
-                    decoration: const InputDecoration(
-                      labelText: 'Location name',
-                      hintText: 'Example: My favourite prata place',
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (value) {
-                      Navigator.pop(context, value);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: () {
-                      Navigator.pop(context, controller.text);
-                    },
-                    child: const Text('Enter'),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
