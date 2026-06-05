@@ -7,16 +7,19 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import 'package:jio_leh/config/map_env.dart';
 import 'package:jio_leh/models/pinned_location.dart';
-import 'package:jio_leh/services/auth_service.dart';
-import 'package:jio_leh/services/geocoding_service.dart';
-import 'package:jio_leh/services/location_service.dart';
-import 'package:jio_leh/services/pin_service.dart';
+
+// import 'package:jio_leh/services/auth_service.dart';
+// import 'package:jio_leh/services/geocoding_service.dart';
+// import 'package:jio_leh/services/location_service.dart';
+// import 'package:jio_leh/services/pin_service.dart';
 
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 
 import 'package:jio_leh/pages/profile_page.dart';
+
+import 'package:jio_leh/services/services.dart';
 
 class MapPage extends StatefulWidget{
   const MapPage({super.key});
@@ -38,14 +41,13 @@ class _MapPageState extends State<MapPage> {
   final Map<String, Uint8List> _emojiImageCache = {};
 
 
-  // Initialize services
-  final auth = AuthService();
-
-  // The term late means the variable will be initialized later, but before it's used.
-  // This allows us to use the auth instance to create the pinService instance
-  // without running into initialization order issues.
-  late final _locationServicePins = PinService(auth: auth);
-  final _geocoding = GeocodingService();
+  // Services are resolved from the shared composition root (Services) so the
+  // whole app uses a single AuthService — and therefore a single Supabase
+  // client — instead of each page constructing its own.
+  final auth = Services.auth;
+  final _locationServicePins = Services.pins;
+  final _geocoding = Services.geocoding;
+  final _locationService = Services.location;
 
   // Map state and controls
   MapboxMap? _map;
@@ -54,7 +56,6 @@ class _MapPageState extends State<MapPage> {
   
   // User location state and controls
   geo.Position? _currentPosition;
-  late final _locationService = LocationService();
 
   bool _isLoadingLocation = true;
 

@@ -4,7 +4,7 @@ import 'package:jio_leh/models/pinned_location.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PinService {
-  late final AuthService auth;
+  final AuthService auth;
 
   // The Supabase client is shared from AuthService so there is a single
   // source of truth for which client this app talks to.
@@ -16,15 +16,7 @@ class PinService {
   // Static table name for pinned locations in the database
   static const _tableName = 'pinned_locations';
 
-  PinService({AuthService? auth}) {
-    // If an AuthService is provided (e.g., for testing), use it
-    // otherwise, use the default instance.
-    if (auth != null) {
-      this.auth = auth;
-    } else {
-      this.auth = AuthService();
-    }
-  }
+  PinService(this.auth);
 
   Future<void> savePinnedLocation(PinnedLocation pin) async {
     final userId = auth.getCurrentUserId();
