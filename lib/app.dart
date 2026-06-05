@@ -6,8 +6,7 @@ import 'package:jio_leh/pages/auth/login_page.dart';
 import 'package:jio_leh/pages/map/map_page.dart';
 import 'package:jio_leh/pages/auth/onboarding_page.dart';
 
-import 'package:jio_leh/services/auth_service.dart';
-import 'package:jio_leh/services/account_service.dart';
+import 'package:jio_leh/services/services.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -31,8 +30,8 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  final _auth = AuthService();
-  late final _account = AccountService(auth: _auth);
+  final _auth = Services.auth;
+  late final _account = Services.account;
   late final StreamSubscription<dynamic> _authSub;
   _GateState _state = _GateState.loading;
 

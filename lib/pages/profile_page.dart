@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/services/auth_service.dart';
-import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/models/user_profile.dart';
+
+import 'package:jio_leh/services/services.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,8 +12,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _auth = AuthService();
-  late final _account = AccountService(auth: _auth);
+  final _auth = Services.auth;
+  late final _account = Services.account;
 
   // The loaded profile. Null until it finishes loading.
   UserProfile? _profile;

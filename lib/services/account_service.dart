@@ -4,27 +4,22 @@ import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/models/user_profile.dart';
 
 class AccountService {
-  late final AuthService auth;
+  final AuthService auth;
 
   // The Supabase client is shared from AuthService so there is a single
   // source of truth for which client this app talks to.
 
   // This getter exists purely as a convenience alias so the method bodies can write
-  // _supabase.from(...) instead of the noisier auth.client.from(...) 
+  // _supabase.from(...) instead of the noisier auth.client.from(...)
   SupabaseClient get _supabase => auth.client;
 
   // Static table name for user profiles in the database
   static const _tableName = 'profiles';
 
-  AccountService({AuthService? auth}) {
-    // If an AuthService is provided (e.g., for testing), use it
-    // otherwise, use the default instance.
-    if (auth != null) {
-      this.auth = auth;
-    } else {
-      this.auth = AuthService();
-    }
-  }
+  // auth is required so the shared AuthService (from the Services composition
+  // root) is always injected. There is no silent fallback, so a stray second
+  // AuthService can never be created here.
+  AccountService(this.auth);
 
   Future<bool> profileExists() async {
     // Returns whether the current user has a profile row
