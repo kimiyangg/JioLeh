@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 class AuthService {
   late final SupabaseClient _supabase = Supabase.instance.client;
 
-  // {} makes the supabase parameter optional, allowing for dependency injection (e.g., during testing).
   AuthService();
   
   SupabaseClient get client => _supabase;

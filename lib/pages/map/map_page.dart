@@ -292,6 +292,25 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
+          // Left Top: Friends button
+          Positioned(
+            top: 150,
+            left: 10,
+            child: SafeArea(
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'friends',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                ),
+                child: const Icon(Icons.people),
+              ),
+            ),
+          ),
+
           // Bottom right: recenter, and add pin buttons
           MapToolbar(onRecenter: _recenterMap, onAddPin: _addPin),
         ],

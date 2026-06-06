@@ -16,6 +16,7 @@ Useful paths:
 | `lib/models/` | App data models |
 | `lib/widgets/` | Reusable UI widgets |
 | `test/` | Flutter tests |
+| `supabase/` | Supabase CLI config and versioned schema migrations |
 | `.github/workflows/` | CI, build validation, and release workflows |
 
 ## Local Setup
@@ -35,44 +36,10 @@ environment:
   sdk: ^3.11.5
 ```
 
-## Environment Values
-
-The app reads required values through `--dart-define`:
-
-| Key | Required for |
-|---|---|
-| `MAPBOX_ACCESS_TOKEN` | Mapbox maps and geocoding |
-| `MAPBOX_STYLE_URI` | Mapbox map style |
-| `SUPABASE_URL` | Supabase connection |
-| `SUPABASE_ANON_KEY` | Supabase client auth |
-
-Run the app with all required values:
-
-```bash
-flutter run \
-  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" \
-  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" \
-  --dart-define=SUPABASE_URL="your-supabase-url" \
-  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
-```
-
-PowerShell example:
-
-```powershell
-flutter run `
-  --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" `
-  --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" `
-  --dart-define=SUPABASE_URL="your-supabase-url" `
-  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
-```
-
-Do not commit real secrets. Use local shell variables, your IDE run
-configuration, or CI secrets.
-
 ## Backend / Supabase Schema
 
-The app talks to two tables in the Supabase project. Sign-in uses Supabase Auth
-with Google OAuth, so each row is keyed to the authenticated user.
+The app talks to several tables in the Supabase project. Sign-in uses Supabase
+Auth with Google OAuth, so each row is keyed to the authenticated user.
 
 `profiles` holds onboarding data and is created the first time a user signs in:
 
@@ -99,7 +66,33 @@ with Google OAuth, so each row is keyed to the authenticated user.
 | `longitude` | double | |
 | `created_at` | timestamp | Used to order pins newest first |
 
+`friendships` holds friend relationships between users:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key, generated on insert |
+| `requester_id` | uuid | Profile that sent the request |
+| `addressee_id` | uuid | Profile that received the request |
+| `status` | text | `pending`, `accepted`, or `blocked` |
+| `created_at` | timestamp | Row creation time |
+| `updated_at` | timestamp | Last update time |
+
 Enable row-level security so each user can only read and write their own rows.
+
+### Schema migrations
+
+The database schema is version-controlled with the Supabase CLI under
+`supabase/migrations/`. Evolve it through migration files instead of editing the
+dashboard directly, so the local files and the cloud database stay in sync.
+
+```bash
+supabase migration new <name>   # create a new migration file
+supabase db push                # apply pending migrations to the linked project
+supabase db pull                # import schema changes made elsewhere
+```
+
+`supabase db push` and `db pull` need Docker Desktop running. Never commit
+secrets: `supabase/.temp/` and `.env*` files are git-ignored.
 
 ## Development Checks
 
@@ -145,6 +138,7 @@ Common types:
 | `style` | Formatting or whitespace only |
 | `test` | Adding or fixing tests |
 | `docs` | Documentation only |
+| `db` | Database schema, migrations, or RLS policies |
 
 Examples:
 
@@ -154,6 +148,7 @@ fix(auth): handle Supabase session expiry on cold start
 chore(deps): bump flutter dependencies
 refactor(map): extract marker builder widget
 docs(contributing): clarify release workflow
+db(friendships): add updated_at trigger
 ```
 
 ## Branching
@@ -174,6 +169,7 @@ fix/<short-description>
 chore/<short-description>
 refactor/<short-description>
 docs/<short-description>
+db/<short-description>
 ```
 
 ## Pull Requests

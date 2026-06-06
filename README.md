@@ -135,6 +135,11 @@ flutter build ios --debug --no-codesign
 Build commands may also need the same `--dart-define` values used by
 `flutter run`.
 
+The database schema is version-controlled with the Supabase CLI under
+`supabase/migrations/`. Change it through migration files (`supabase migration
+new`, `supabase db push`) rather than the dashboard. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the schema and migration workflow.
+
 ## Store Deployment
 
 Release builds and store uploads are driven by GitHub Actions and triggered by a
@@ -183,6 +188,7 @@ signing, Google Play, Apple signing, and App Store Connect. See
 | `lib/config/` | Mapbox and Supabase environment config |
 | `lib/models/` | App data models |
 | `test/` | Flutter tests |
+| `supabase/migrations/` | Versioned database schema (Supabase CLI) |
 | `.github/workflows/` | CI and release workflows |
 
 ## Contributing
