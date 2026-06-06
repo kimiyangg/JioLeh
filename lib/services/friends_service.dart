@@ -42,7 +42,7 @@ class FriendsService {
     // Case: current user is the addressee (i.e., they received the friend request)
     final receivedFriends = await _supabase
         .from(_tableName)
-        .select('profiles!requestor_id(*), status')
+        .select('profiles!requester_id(*), status')
         .eq('addressee_id', userId);
     
     for (final row in sentFriends) {
