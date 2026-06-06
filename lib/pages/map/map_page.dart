@@ -5,12 +5,12 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:jio_leh/config/map_env.dart';
 
 import 'package:jio_leh/models/pinned_location.dart';
-import 'package:jio_leh/pages/map/models/pin_type.dart';
 
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
+import 'package:jio_leh/pages/map/widgets/pin_type_picker.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
@@ -26,7 +26,6 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  // stores already created emoji images so app dont redraw the same emoji agn and agn
 
   // Services are resolved from the shared composition root (Services) so the
   // whole app uses a single AuthService — and therefore a single Supabase
@@ -198,7 +197,7 @@ class _MapPageState extends State<MapPage> {
   Future<void> _addPin() async {
     // function runs when user press add pin button
     final selectedType =
-        await _showPinTypePicker(); // page comes up, wait for user to tap
+        await showPinTypePicker(context); // page comes up, wait for user to tap
     if (selectedType == null) return; // if nvr choose, return nth
 
     if (!mounted) return; // stops if page not active
@@ -224,61 +223,6 @@ class _MapPageState extends State<MapPage> {
     await _reloadPins();
   }
 
-  // this is AI-generated UI when user first click add location and choose frm the types
-  Future<PinType?> _showPinTypePicker() {
-    // ? means may return null, or the selected option
-    return showModalBottomSheet<PinType>(
-      // shows bottom sheet,
-      // PinType mean can only return 1 pin type
-      context: context,
-      showDragHandle: true, // drag handle on top of sheet
-      builder: (context) {
-        return SafeArea(
-          child: SizedBox(
-            height:
-                MediaQuery.sizeOf(context).height *
-                0.5, // makes sheet half screen ht
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Choose location type',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 2, // 2 column button grid
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 2.4,
-                      children: [
-                        for (final option in PinType.values)
-                          // loops through restaurant, ...
-                          FilledButton(
-                            // one button per option
-                            onPressed: () => Navigator.pop(context, option),
-                            child: Text(
-                              '${option.emoji} ${option.label}',
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
