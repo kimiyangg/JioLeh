@@ -53,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text('#${_profile!.username}'),
+                        Text('@${_profile!.username}'),
                         const SizedBox(height: 4),
                         Text(_auth.getCurrentUser()?.email ?? 'No email'),
                         Text('Display name: ${_profile!.displayName}'),
