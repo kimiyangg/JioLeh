@@ -2,35 +2,6 @@ import 'dart:async';
 
 import 'package:geolocator/geolocator.dart' as geo;
 
-class LocationException implements Exception {
-  // Base class for all location-related exceptions
-  final String message;
-  const LocationException(this.message);
-  @override
-  String toString() => message;
-}
-
-class LocationServiceOff extends LocationException {
-  // Thrown when location services are disabled on the device-wide settings
-  // The user must be directed to location settings to enable it.
-  const LocationServiceOff()
-      : super('Location services are disabled on this device.');
-}
-
-class LocationDenied extends LocationException {
-  // Thrown when the user denies location permission but has not permanently blocked it
-  // The request location interface can be shown again in this case.
-  const LocationDenied() : super('Location permission was denied.');
-}
-
-class LocationBlocked extends LocationException {
-  // Thrown when the user has permanently blocked location permission (denied forever).
-  // The request location interface cannot be shown again,
-  // and the user must be directed to app settings to enable it.
-  const LocationBlocked()
-      : super('Location permission was permanently denied.');
-}
-
 class LocationService {
   // Service class to handle all location-related functionality,
   // including permission checks, fetching current location, and real-time tracking
@@ -112,4 +83,33 @@ class LocationService {
     await _positionStream?.cancel();
     _positionStream = null;
   }
+}
+
+class LocationException implements Exception {
+  // Base class for all location-related exceptions
+  final String message;
+  const LocationException(this.message);
+  @override
+  String toString() => message;
+}
+
+class LocationServiceOff extends LocationException {
+  // Thrown when location services are disabled on the device-wide settings
+  // The user must be directed to location settings to enable it.
+  const LocationServiceOff()
+      : super('Location services are disabled on this device.');
+}
+
+class LocationDenied extends LocationException {
+  // Thrown when the user denies location permission but has not permanently blocked it
+  // The request location interface can be shown again in this case.
+  const LocationDenied() : super('Location permission was denied.');
+}
+
+class LocationBlocked extends LocationException {
+  // Thrown when the user has permanently blocked location permission (denied forever).
+  // The request location interface cannot be shown again,
+  // and the user must be directed to app settings to enable it.
+  const LocationBlocked()
+      : super('Location permission was permanently denied.');
 }
