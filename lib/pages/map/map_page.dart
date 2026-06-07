@@ -15,6 +15,7 @@ import 'package:jio_leh/pages/map/widgets/pin_type_picker.dart';
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
 import 'package:jio_leh/pages/profile_page.dart';
+import 'package:jio_leh/pages/friends_page.dart';
 
 import 'package:jio_leh/services/services.dart';
 
@@ -304,7 +305,7 @@ class _MapPageState extends State<MapPage> {
                 foregroundColor: Colors.black,
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                  MaterialPageRoute(builder: (_) => const FriendsPage()),
                 ),
                 child: const Icon(Icons.people),
               ),
