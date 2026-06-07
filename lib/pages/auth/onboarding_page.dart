@@ -17,7 +17,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final _auth = Services.auth;
   late final _account = Services.account;
 
-  final _usernameController = TextEditingController();
   late final TextEditingController _displayNameController;
   DateTime? _birthday;
   bool _submitting = false;
@@ -34,7 +33,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _displayNameController.dispose();
     super.dispose();
   }
@@ -56,7 +54,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     setState(() => _submitting = true);
     try {
       await _account.createProfile(
-        username: _usernameController.text.trim(),
         displayName: _displayNameController.text.trim(),
         birthday: _birthday,
       );
@@ -94,14 +91,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
               TextField(
                 controller: _displayNameController,
                 decoration: const InputDecoration(

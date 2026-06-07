@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/services/auth_service.dart';
@@ -36,20 +38,48 @@ class AccountService {
   }
 
   Future<void> createProfile({
-    required String username,
+    String? username,
     required String displayName,
     DateTime? birthday,
   }) async {
     // Inserts the current user's profile row
     final userId = auth.getCurrentUserId();
 
-    await _supabase.from(_tableName).insert({
-      'id': userId,
-      'username': username,
-      'display_name': displayName,
-      if (birthday != null)
-        'birthday': birthday.toIso8601String().split('T').first,
-    });
+    if (await profileExists()) {
+      throw const ProfileAlreadyExists();
+    }
+
+    // A generated username can randomly collide with an existing one, so keep
+    // generating a fresh code and retrying until the insert succeeds.
+    while (true) {
+      // Fall back to a generated username when the caller doesn't supply one.
+      final inputUserName = username ?? generateUserName();
+      try {
+        await _supabase.from(_tableName).insert({
+          'id': userId,
+          'username': inputUserName,
+          'display_name': displayName,
+          if (birthday != null)
+            'birthday': birthday.toIso8601String().split('T').first,
+        });
+        return;
+      } on PostgrestException catch (e) {
+        // PostgrestException with code '23505' indicates a unique constraint violation
+        // https://www.postgresql.org/docs/current/errcodes-appendix.html for more details
+
+        // Only a generated username can be retried, a caller-supplied one
+        // would collide forever, so the UsernameTaken exception will be thrown.
+        if (e.code == '23505') {
+          if (username == null) {
+            continue;
+          } else {
+            throw const UsernameTaken();
+          }
+        }
+        // Any other PostgrestException is rethrown for the caller to handle.
+        rethrow;
+      }
+    }
   }
 
   Future<UserProfile> getUserProfile() async {
@@ -68,4 +98,37 @@ class AccountService {
 
     return UserProfile.fromMap(profile);
   }
+
+  /// Generates a random username consisting of 8 lowercase letters and digits.
+  /// 
+  /// Returns a string that can be used as a default username
+  String generateUserName() {
+    final random = Random();
+    final letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    String code = '';
+    for (int i = 0; i < 8; i++) {
+        code += letters[random.nextInt(letters.length)];
+    }
+    return code;
+  }
+}
+
+/// Base class for all account-related exceptions
+class AccountException implements Exception {
+  final String message;
+  const AccountException(this.message);
+  @override
+  String toString() => message;
+}
+
+/// Exception thrown when Username already taken
+class UsernameTaken extends AccountException {
+  const UsernameTaken()
+    : super('Username Taken');
+}
+
+/// Exception thrown when the user already has a profile
+class ProfileAlreadyExists extends AccountException {
+  const ProfileAlreadyExists()
+    : super('Profile already exists');
 }
