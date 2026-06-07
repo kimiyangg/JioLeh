@@ -46,11 +46,11 @@ class FriendsService {
         .eq('addressee_id', userId);
     
     for (final row in sentFriends) {
-      friends.add(UserFriend.fromMap(row));
+      friends.add(UserFriend.fromMap(row, FriendDirection.outgoing));
     }
 
     for (final row in receivedFriends) {
-      friends.add(UserFriend.fromMap(row));
+      friends.add(UserFriend.fromMap(row, FriendDirection.incoming));
     }
 
     return friends;

@@ -3,6 +3,7 @@ import 'pin_service.dart';
 import 'location_service.dart';
 import 'geocoding_service.dart';
 import 'account_service.dart';
+import 'friends_service.dart';
 
 class Services {
   static final auth = AuthService();
@@ -10,4 +11,5 @@ class Services {
   static final location = LocationService();
   static final geocoding = GeocodingService();
   static final account = AccountService(auth);
+  static final friends = FriendsService(auth);
 }
