@@ -1,6 +1,6 @@
 # Software Design Principles — Summary
 
-A quick reference for the six core design principles and what each one means.
+A quick reference for the six core design principles and what each one means, plus one complementary principle (DRY).
 
 ## 1. Increase Abstraction
 **Hide complexity, show what matters.** When you use something, you care about *what* it does, not *how*. Each layer (functions → classes → modules → systems) hides the messy details of the layer below.
@@ -30,6 +30,13 @@ A quick reference for the six core design principles and what each one means.
 
 > Example: adding a new pin type by appending to a list, instead of rewriting the picker logic.
 
+## 7. Don't Repeat Yourself (DRY)
+**Every piece of knowledge should have a single, authoritative home.** Not "avoid code that looks the same" — avoid duplicating the same *fact* or *rule*. If one rule changes, you should only edit one place.
+
+> Caveat: only deduplicate genuinely identical knowledge. Two snippets that merely *look* alike but encode different rules should stay separate — merging them creates a false dependency.
+
+> Example: `UserFriend.fromMap` being the only place that knows how a DB row maps to a `UserFriend`, instead of repeating that mapping at every call site.
+
 ---
 
 ## How they connect
@@ -44,5 +51,6 @@ They're really six lenses on the same goal — **manageable, changeable code**:
 | Cohesion | "Does everything here belong together?" |
 | SRP | "Does this class have just one reason to change?" |
 | OCP | "Can I extend it without editing it?" |
+| DRY | "If this rule changed, is there only one place to edit?" |
 
 **SoC is the root** — applying it well naturally produces *higher cohesion* and *lower coupling*, which in turn make *abstraction*, *SRP*, and *OCP* easier to achieve.
