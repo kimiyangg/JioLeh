@@ -82,6 +82,17 @@ class AccountService {
     }
   }
 
+  /// Looks up a profile by its username. Returns null if no user has it.
+  Future<UserProfile?> findByUsername(String username) async {
+    final row = await _supabase
+        .from(_tableName)
+        .select()
+        .eq('username', username)
+        .maybeSingle();
+
+    return row == null ? null : UserProfile.fromMap(row);
+  }
+
   Future<UserProfile> getUserProfile() async {
     // Retrieves the current user's profile row from the 'profiles' table.
     final userId = auth.getCurrentUserId();
