@@ -61,7 +61,7 @@ class FriendsService {
   /// Returns a Future that completes when the friend request is successfully sent.
   /// 
   /// Throws a [FriendAlreadyExists] exception if a friend request already exists between the users
-  Future<void> sentFriendRequest(UserProfile toUser) async {
+  Future<void> sendFriendRequest(UserProfile toUser) async {
     final userId = auth.getCurrentUserId();
     try {
       await _supabase.from(_tableName).insert({
@@ -70,6 +70,8 @@ class FriendsService {
         'status': FriendshipStatus.pending.name,
       });
     } on PostgrestException catch (e) {
+      // PostgrestException with code '23505' indicates a unique constraint violation
+      // https://www.postgresql.org/docs/current/errcodes-appendix.html for more details
       if (e.code == '23505') {
         throw const FriendAlreadyExists();
       }
