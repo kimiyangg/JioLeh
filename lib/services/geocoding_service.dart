@@ -8,10 +8,14 @@ class GeocodingService {
   GeocodingService({
     this.minIntervalSeconds = 20,
     this.minDistanceMeters = 100,
-  });
+    // Allows injection of a custom HTTP client for testing purposes
+    http.Client? httpClient,
+  }) : _httpClient = httpClient ?? http.Client();
+
 
   final int minIntervalSeconds;
   final int minDistanceMeters;
+  final http.Client _httpClient;
 
   ({DateTime time, double lat, double lng, String name})? _lastFetch;
 
@@ -79,7 +83,7 @@ class GeocodingService {
       },
     );
 
-    final response = await http.get(uri);
+    final response = await _httpClient.get(uri);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to get location name: ${response.body}');
