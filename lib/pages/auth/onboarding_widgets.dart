@@ -78,7 +78,7 @@ class ProfileForm extends StatelessWidget {
             ),
             SizedBox(height: 10,),
             Container(
-              width: 350,
+              width: double.infinity,
               height: 55,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -115,7 +115,7 @@ class ProfileForm extends StatelessWidget {
             ),
             SizedBox(height: 10,),
             Container(
-              width: 350,
+              width: double.infinity,
               height: 55,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -154,107 +154,113 @@ class ProfileForm extends StatelessWidget {
             SizedBox(height: 10),
             Row(
               children: [
-                Container(
-                  width: 70,
-                  height: 55,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0F1E1B16),
-                        blurRadius: 24,
-                        offset: Offset(0, 8),
-                      ),
-                    ]
-                  ),
-                  child: TextField(
-                    controller: dayController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: "DD",
-                      hintStyle: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0F1E1B16),
+                          blurRadius: 24,
+                          offset: Offset(0, 8),
+                        ),
+                      ]
                     ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Container(
-                  width: 150,
-                  height: 55,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0F1E1B16),
-                        blurRadius: 24,
-                        offset: Offset(0, 8),
-                      ),
-                    ]
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DropdownButton<String>(
-                      value: selectedMonth,
-                      hint: Text(
-                        "Month",
-                        style: TextStyle(
+                    child: TextField(
+                      controller: dayController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: "DD",
+                        hintStyle: TextStyle(
                           fontSize: 18,
                           color: Colors.grey,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.bold
                         ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                       ),
-                      isExpanded: true,
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold
-                      ),
-                      dropdownColor: AppColors.lightBackground,
-                      borderRadius: BorderRadius.circular(18),
-                      items: months.map((String month) {
-                        return DropdownMenuItem<String>(
-                          value: month,
-                          child: Text(month),
-                        );
-                      }).toList(),
-                      onChanged: onMonthChanged,
                     ),
                   ),
                 ),
                 SizedBox(width: 10),
-                Container(
-                  width: 100,
-                  height: 55,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0F1E1B16),
-                        blurRadius: 24,
-                        offset: Offset(0, 8),
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0F1E1B16),
+                          blurRadius: 24,
+                          offset: Offset(0, 8),
+                        ),
+                      ]
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: DropdownButton<String>(
+                        value: selectedMonth,
+                        hint: Text(
+                          "Month",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        isExpanded: true,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold
+                        ),
+                        dropdownColor: AppColors.lightBackground,
+                        borderRadius: BorderRadius.circular(18),
+                        items: months.map((String month) {
+                          return DropdownMenuItem<String>(
+                            value: month,
+                            child: Text(month, overflow: TextOverflow.ellipsis),
+                          );
+                        }).toList(),
+                        onChanged: onMonthChanged,
                       ),
-                    ]
+                    ),
                   ),
-                  child: TextField(
-                    controller: yearController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: "YYYY",
-                      hintStyle: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0F1E1B16),
+                          blurRadius: 24,
+                          offset: Offset(0, 8),
+                        ),
+                      ]
+                    ),
+                    child: TextField(
+                      controller: yearController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: "YYYY",
+                        hintStyle: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                     ),
                   ),
                 ),
