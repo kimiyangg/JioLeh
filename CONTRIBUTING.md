@@ -182,10 +182,45 @@ Before opening a PR:
 - Run `flutter analyze`.
 - Run `flutter test`.
 - Keep the PR focused on one feature, fix, or cleanup.
-- Use a Conventional Commit style PR title, for example
-  `feat(map): add offline cache`.
-- Explain what changed and why it changed.
 - Add screenshots or screen recordings for visible UI changes.
+
+### PR title
+
+Use the same Conventional Commit style as commits, so the squash-merge
+commit stays consistent on `main`:
+
+```text
+<type>(<scope>): <short description>
+```
+
+- Use the types from the [Commit Style](#commit-style) table.
+- Scope is the affected area, for example `map`, `auth`, `onboarding`,
+  `profile`, `friendships`, `deps`, or `ci`.
+- Write the description in the imperative, lowercase, with no trailing
+  period, and keep it under about 60 characters.
+
+```text
+feat(map): add real-time pin clustering
+fix(auth): handle Supabase session expiry on cold start
+db(friendships): add updated_at trigger
+```
+
+### PR description
+
+Opening a PR pre-fills `.github/pull_request_template.md`. Fill in the
+sections that apply and delete the rest:
+
+```markdown
+## What
+What this PR changes, in one or two sentences.
+
+## Why
+The reason or problem it solves. Optionally link an issue: Closes #123
+
+## How
+Notable implementation decisions, trade-offs, or what to review first.
+Delete if the change is trivial.
+```
 
 PRs trigger `.github/workflows/pr-check.yml`, which runs:
 
