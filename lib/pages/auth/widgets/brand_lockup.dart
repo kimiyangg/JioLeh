@@ -8,37 +8,16 @@ class BrandLockup extends StatelessWidget {
 
     return Column(
       children: [
-        SizedBox(height: 70),
-        Text(
-          "Sign in to explore your friends' favourite spots",
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF7A736A),
-            fontSize: 14.5,
-            fontWeight: FontWeight.w600,
+        SizedBox(height: 100),
+        SizedBox(
+          height: 150,
+          width: 450,
+          child: Image.asset(
+            'assets/logo.png',
+            fit: BoxFit.cover,
           ),
         ),
-        SizedBox(height: 14),
-        Text.rich(
-          TextSpan(
-            text: 'JioLeh',
-            children: const [
-              TextSpan(
-                text: '!',
-                style: TextStyle(color: Color(0xFFFF4A2E)),
-              ),
-            ],
-          ),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF211D18),
-            fontSize: 64,
-            fontWeight: FontWeight.w900,
-            height: 0.95,
-            letterSpacing: 0,
-          ),
-        ),
-        SizedBox(height: 16),
+        SizedBox(height: 5),
         Text(
           'Pin, drop, and jio - all on one map.',
           textAlign: TextAlign.center,

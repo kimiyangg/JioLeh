@@ -5,6 +5,8 @@ import 'package:jio_leh/services/services.dart';
 import 'widgets/brand_lockup.dart';
 import 'widgets/signin_panel.dart';
 
+import 'package:jio_leh/theme.dart';
+
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
 
@@ -53,7 +55,7 @@ class _AuthPageState extends State<AuthPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE9E0CF),
+      backgroundColor: AppColors.lightBackground,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {

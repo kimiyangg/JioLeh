@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class SignInPanel extends StatelessWidget {
   const SignInPanel({
@@ -14,15 +17,14 @@ class SignInPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.fromLTRB(18, 25, 18, 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            blurRadius: 30,
           ),
         ],
       ),
@@ -35,7 +37,7 @@ class SignInPanel extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF7A736A),
-              fontSize: 14.5,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -43,6 +45,34 @@ class SignInPanel extends StatelessWidget {
           _GoogleSignInButton(
             isSigningIn: isSigningIn,
             onPressed: onGooglePressed,
+          ),
+          const SizedBox(height: 16),
+          Text.rich(
+            TextSpan(
+              text: "By continuing you agree to our ",
+              style: const TextStyle(
+                color: Color(0xFF7A736A),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              children: [
+                TextSpan(
+                  text: "Terms & Privacy",
+                  style: const TextStyle(
+                    color: Color(0xFF7A736A),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => launchUrl(
+                      Uri.parse('https://jio-leh-website.vercel.app/privacy'),
+                      mode: LaunchMode.inAppBrowserView,
+                    ),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
