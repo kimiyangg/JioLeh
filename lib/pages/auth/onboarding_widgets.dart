@@ -7,6 +7,10 @@ class WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final titleSize = (screenWidth * 0.075).clamp(24.0, 32.0);
+    final subtitleSize = (screenWidth * 0.0375).clamp(13.0, 16.0);
+
     return SizedBox(
       width: double.infinity,
       child: Padding(
@@ -19,7 +23,7 @@ class WelcomeHeader extends StatelessWidget {
             Text(
               "Welcome! Let's set you up",
               style: TextStyle(
-                fontSize: 28,
+                fontSize: titleSize,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -27,7 +31,7 @@ class WelcomeHeader extends StatelessWidget {
             Text(
               "This is how friends will see in your profile.",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: subtitleSize,
                 color: AppColors.onboardingSubtitle,
               ),
             ),
@@ -61,6 +65,10 @@ class ProfileForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final labelSize = (screenWidth * 0.0375).clamp(13.0, 16.0);
+    final fieldSize = (screenWidth * 0.045).clamp(15.0, 19.0);
+
     return SizedBox(
       width: double.infinity,
       child: Padding(
@@ -71,7 +79,7 @@ class ProfileForm extends StatelessWidget {
             Text(
               "USER ID · NOT AVAILABLE",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: labelSize,
                 color: AppColors.onboardingSubtitle,
                 fontWeight: FontWeight.bold
               ),
@@ -95,7 +103,7 @@ class ProfileForm extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "Pls don't enter anything yet",
                   hintStyle: TextStyle(
-                    fontSize: 18,
+                    fontSize: fieldSize,
                     color: Colors.grey,
                     fontWeight: FontWeight.bold
                   ),
@@ -108,7 +116,7 @@ class ProfileForm extends StatelessWidget {
             Text(
               "YOUR NAME",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: labelSize,
                 color: AppColors.onboardingSubtitle,
                 fontWeight: FontWeight.bold
               ),
@@ -133,7 +141,7 @@ class ProfileForm extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "What should we call you?",
                   hintStyle: TextStyle(
-                    fontSize: 18,
+                    fontSize: fieldSize,
                     color: Colors.grey,
                     fontWeight: FontWeight.bold
                   ),
@@ -146,7 +154,7 @@ class ProfileForm extends StatelessWidget {
             Text(
               "BIRTHDAY · OPTIONAL",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: labelSize,
                 color: AppColors.onboardingSubtitle,
                 fontWeight: FontWeight.bold
               ),
@@ -175,7 +183,7 @@ class ProfileForm extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: "DD",
                         hintStyle: TextStyle(
-                          fontSize: 18,
+                          fontSize: fieldSize,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold
                         ),
@@ -208,14 +216,14 @@ class ProfileForm extends StatelessWidget {
                         hint: Text(
                           "Month",
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: fieldSize,
                             color: Colors.grey,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         isExpanded: true,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: fieldSize,
                           color: Colors.black,
                           fontWeight: FontWeight.bold
                         ),
@@ -254,7 +262,7 @@ class ProfileForm extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: "YYYY",
                         hintStyle: TextStyle(
-                          fontSize: 18,
+                          fontSize: fieldSize,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold
                         ),
