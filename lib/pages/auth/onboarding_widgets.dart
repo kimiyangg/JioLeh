@@ -20,11 +20,16 @@ class WelcomeHeader extends StatelessWidget {
           children: [
             Text("👋", style: TextStyle(fontSize: 40)),
             SizedBox(height: 8),
-            Text(
-              "Welcome! Let's set you up",
-              style: TextStyle(
-                fontSize: titleSize,
-                fontWeight: FontWeight.bold,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Welcome! Let's set you up",
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: titleSize,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             SizedBox(height: 10),
