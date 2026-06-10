@@ -66,7 +66,6 @@ void main() {
     }
 
     devices.forEach((name, size) {
-      // Done with the assistance of debugging using AI
       testWidgets('title wraps in one line $name', (tester) async {
         setScreenSize(tester, size);
         await tester.pumpWidget(buildHeader());

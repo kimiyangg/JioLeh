@@ -48,12 +48,13 @@ class AuthService {
 
   Future<void> signInWithGoogle() async {
     // Initiates the Google sign-in flow using Supabase's authentication API.
-    // On web, it will open a popup; on mobile, it will launch the external browser for authentication.
+    // On web, it will open a popup; on mobile, it will launch an in-app browser tab for authentication
+    // (SFSafariViewController on iOS / Chrome Custom Tabs on Android), which closes automatically after the redirect.
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: kIsWeb ? null : 'com.gijios.jioleh://login-callback/',
       authScreenLaunchMode:
-          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+          kIsWeb ? LaunchMode.platformDefault : LaunchMode.inAppBrowserView,
     );
   }
 
