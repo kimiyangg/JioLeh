@@ -7,6 +7,8 @@ class BrandLockup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final taglineSize = (screenWidth * 0.0425).clamp(15.0, 18.0);
 
     return Column(
       children: [
@@ -23,9 +25,9 @@ class BrandLockup extends StatelessWidget {
         Text(
           'Pin, drop, and jio - all on one map.',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF776F65),
-            fontSize: 17,
+          style: TextStyle(
+            color: const Color(0xFF776F65),
+            fontSize: taglineSize,
             fontWeight: FontWeight.w500,
             height: 1.45,
           ),
@@ -47,6 +49,10 @@ class SignInPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final headingSize = (screenWidth * 0.035).clamp(10.0, 13.0);
+    final termsSize = (screenWidth * 0.03).clamp(11.0, 13.0);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 25, 18, 20),
@@ -67,9 +73,9 @@ class SignInPanel extends StatelessWidget {
           Text(
             "Sign in to explore your friends' favourite spots",
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFF7A736A),
-              fontSize: 14,
+            style: TextStyle(
+              color: const Color(0xFF7A736A),
+              fontSize: headingSize,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -82,17 +88,17 @@ class SignInPanel extends StatelessWidget {
           Text.rich(
             TextSpan(
               text: "By continuing you agree to our ",
-              style: const TextStyle(
-                color: Color(0xFF7A736A),
-                fontSize: 12,
+              style: TextStyle(
+                color: const Color(0xFF7A736A),
+                fontSize: termsSize,
                 fontWeight: FontWeight.w500,
               ),
               children: [
                 TextSpan(
                   text: "Terms & Privacy",
-                  style: const TextStyle(
-                    color: Color(0xFF7A736A),
-                    fontSize: 12,
+                  style: TextStyle(
+                    color: const Color(0xFF7A736A),
+                    fontSize: termsSize,
                     fontWeight: FontWeight.w500,
                     decoration: TextDecoration.underline,
                   ),
@@ -123,6 +129,9 @@ class _GoogleSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final buttonTextSize = (screenWidth * 0.04).clamp(14.0, 17.0);
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.black,
@@ -147,12 +156,12 @@ class _GoogleSignInButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             elevation: 0,
-            textStyle: const TextStyle(
-              fontSize: 16,
+            textStyle: TextStyle(
+              fontSize: buttonTextSize,
               fontWeight: FontWeight.w800,
             ),
           ),
-          child: 
+          child:
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
