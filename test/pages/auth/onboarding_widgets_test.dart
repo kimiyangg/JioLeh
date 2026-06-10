@@ -22,7 +22,7 @@ void main() {
     'large phone (440 wide)': const Size(440, 900),
   };
 
-  // We use November to test cuz its the longest month name
+  // We use September to test cuz its the longest month name
   group("ProfileForm", () {
     Widget buildForm() {
       return MaterialApp(
@@ -31,7 +31,7 @@ void main() {
             displayNameController: TextEditingController(),
             dayController: TextEditingController(),
             yearController: TextEditingController(),
-            selectedMonth: 'November',
+            selectedMonth: 'September',
             months: months,
             onMonthChanged: (_) {},
           ),
@@ -51,7 +51,7 @@ void main() {
         // The labels and the long month value should all be present.
         expect(find.text('YOUR NAME'), findsOneWidget);
         expect(find.text('BIRTHDAY · OPTIONAL'), findsOneWidget);
-        expect(find.text('November'), findsOneWidget);
+        expect(find.text('September'), findsOneWidget);
       });
     });
   });
