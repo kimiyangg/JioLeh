@@ -100,19 +100,26 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Column(
-            children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
               SizedBox(height: 10),
-              SizedBox(
-                width: 375,
-                child: LinearProgressIndicator(
-                  value: 0.5,
-                  minHeight: 6,
-                  color: AppColors.lightWidgetBackground,
-                  backgroundColor: AppColors.darkWidgetBackground,
-                  borderRadius: BorderRadius.circular(4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: LinearProgressIndicator(
+                    value: 0.5,
+                    minHeight: 6,
+                    color: AppColors.lightWidgetBackground,
+                    backgroundColor: AppColors.darkWidgetBackground,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
               WelcomeHeader(),
@@ -176,8 +183,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 ),
               ),
-            ],
-          ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
