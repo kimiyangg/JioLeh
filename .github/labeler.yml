@@ -1,0 +1,66 @@
+changed-files-labels-limit: 10
+
+"area:android":
+  - changed-files:
+      - any-glob-to-any-file: "android/**"
+
+"area:ios":
+  - changed-files:
+      - any-glob-to-any-file: "ios/**"
+
+"area:app-shell":
+  - changed-files:
+      - any-glob-to-any-file: "lib/*.dart"
+
+"area:config":
+  - changed-files:
+      - any-glob-to-any-file: "lib/config/**"
+
+"area:models":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/models/**"
+          - "lib/pages/**/models/**"
+
+"area:services":
+  - changed-files:
+      - any-glob-to-any-file: "lib/services/**"
+
+"area:auth":
+  - changed-files:
+      - any-glob-to-any-file: "lib/pages/auth/**"
+
+"area:friends":
+  - changed-files:
+      - any-glob-to-any-file: "lib/pages/friends_page.dart"
+
+"area:map":
+  - changed-files:
+      - any-glob-to-any-file: "lib/pages/map/**"
+
+"area:profile":
+  - changed-files:
+      - any-glob-to-any-file: "lib/pages/profile_page.dart"
+
+"area:assets":
+  - changed-files:
+      - any-glob-to-any-file: "assets/**"
+
+"area:database":
+  - changed-files:
+      - any-glob-to-any-file: "supabase/**"
+
+"area:tests":
+  - changed-files:
+      - any-glob-to-any-file: "test/**"
+
+"area:ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"

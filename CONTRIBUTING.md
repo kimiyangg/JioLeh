@@ -187,13 +187,18 @@ Before opening a PR:
 - Explain what changed and why it changed.
 - Add screenshots or screen recordings for visible UI changes.
 
-PRs trigger `.github/workflows/pr-check.yml`, which runs:
+PRs trigger `.github/workflows/ci.yml`, which runs:
 
 - `flutter pub get`
 - `flutter analyze`
 - `flutter test`
 
 CI must pass before merging.
+
+PR area labels are applied automatically by `.github/workflows/pr-labeler.yml`
+from the changed paths in `.github/labeler.yml`, for example
+`area:app-shell`, `area:auth`, `area:map`, `area:services`,
+`area:android`, `area:ios`, `area:database`, `area:ci`, and `area:docs`.
 
 ## Build Validation
 
@@ -259,7 +264,8 @@ these values in the repository.
 
 | Stage | Trigger | Workflow | What runs |
 |---|---|---|---|
-| PR check | Pull request into `main` | `pr-check.yml` | Analyze and test |
+| PR check | Pull request into `main` | `ci.yml` | Analyze and test |
+| PR labeling | Pull request into `main` | `pr-labeler.yml` | Apply area labels from changed paths |
 | Build validation | Manual, or merged labeled PR | `build-validation.yml` | Android and iOS debug builds |
 | Release | Tag push `v*.*.*` | `android-ci.yml`, `ios-ci.yml` | Signed release builds and deployment |
 
