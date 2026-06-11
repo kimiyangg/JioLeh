@@ -7,9 +7,8 @@ class WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final titleSize = (screenWidth * 0.075).clamp(24.0, 28.0);
-    final subtitleSize = (screenWidth * 0.0375).clamp(15.0, 20.0);
+    final titleSize = context.scaledFont(AppTextSizes.heading);
+    final subtitleSize = context.scaledFont(AppTextSizes.subtitle);
 
     return SizedBox(
       width: double.infinity,
@@ -70,9 +69,8 @@ class ProfileForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final labelSize = (screenWidth * 0.0375).clamp(13.0, 16.0);
-    final fieldSize = (screenWidth * 0.045).clamp(11.0, 15.0);
+    final labelSize = context.scaledFont(AppTextSizes.label);
+    final fieldSize = context.scaledFont(AppTextSizes.body);
 
     return SizedBox(
       width: double.infinity,

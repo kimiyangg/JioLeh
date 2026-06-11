@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:jio_leh/theme.dart';
+
 class BrandLockup extends StatelessWidget {
   const BrandLockup({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final taglineSize = (screenWidth * 0.0425).clamp(15.0, 18.0);
+    final taglineSize = context.scaledFont(AppTextSizes.subtitle);
 
     return Column(
       children: [
@@ -49,9 +50,8 @@ class SignInPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final headingSize = (screenWidth * 0.035).clamp(10.0, 13.0);
-    final termsSize = (screenWidth * 0.03).clamp(11.0, 13.0);
+    final headingSize = context.scaledFont(AppTextSizes.caption);
+    final termsSize = context.scaledFont(AppTextSizes.caption);
 
     return Container(
       width: double.infinity,
@@ -133,8 +133,7 @@ class _GoogleSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final buttonTextSize = (screenWidth * 0.04).clamp(14.0, 17.0);
+    final buttonTextSize = context.scaledFont(AppTextSizes.button);
 
     return DecoratedBox(
       decoration: BoxDecoration(

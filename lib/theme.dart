@@ -23,3 +23,21 @@ class LogoColors {
   static const peachLogo = Color(0xFFEEDACA);
   static const forestLogo = Color(0xFF0B3D2E);
 }
+
+
+class AppTextSizes {
+  static const heading = 26.0;
+  static const subtitle = 18.0;
+  static const body = 16.0;
+  static const label = 14.0;
+  static const button = 17.0; // primary button text (e.g. Continue with Google)
+  static const caption = 12.0;
+}
+
+// Extension on BuildContext to provide responsive text scaling based on screen width.
+extension ResponsiveText on BuildContext {
+  double scaledFont(double base) {
+    final width = MediaQuery.sizeOf(this).width;
+    return (width / 390 * base).clamp(base * 0.85, base * 1.15);
+  }
+}
