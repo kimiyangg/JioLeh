@@ -24,13 +24,13 @@ class LogoColors {
   static const forestLogo = Color(0xFF0B3D2E);
 }
 
-
+// The text sizes used in the app, defined as constants for consistency and easy maintenance.
 class AppTextSizes {
   static const heading = 26.0;
   static const subtitle = 18.0;
   static const body = 16.0;
   static const label = 14.0;
-  static const button = 17.0; // primary button text (e.g. Continue with Google)
+  static const button = 17.0;
   static const caption = 12.0;
 }
 
