@@ -133,63 +133,75 @@ class _ProfilePageState extends State<ProfilePage> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    FilledButton(
-                                      style: FilledButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFF211D18),
-                                        foregroundColor: Colors.white,
-                                        disabledBackgroundColor: const Color(0xFF211D18),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                    Expanded(
+                                      child: FilledButton(
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF211D18),
+                                          foregroundColor: Colors.white,
+                                          disabledBackgroundColor: const Color(0xFF211D18),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
                                         ),
-                                      ),
-                                      onPressed: null,
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.edit,
-                                            color: Colors.white,
-                                          ),
-                                          SizedBox(width: 5,),
-                                          Text(
-                                            "Edit Profile",
-                                            style: TextStyle(
-                                              fontSize: AppTextSizes.button,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white
+                                        onPressed: null,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.edit,
+                                              color: Colors.white,
                                             ),
-                                          ),
-                                        ],
+                                            SizedBox(width: 5,),
+                                            Flexible(
+                                              child: Text(
+                                                "Edit Profile",
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: AppTextSizes.label,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    SizedBox(width: 20),
-                                    FilledButton(
-                                      style: FilledButton.styleFrom(
-                                        backgroundColor:
-                                            AppColors.lightWidgetBackground,
-                                        foregroundColor: Colors.white,
-                                        disabledBackgroundColor: AppColors.lightWidgetBackground,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                    SizedBox(width: 30),
+                                    Expanded(
+                                      child: FilledButton(
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor:
+                                              AppColors.lightWidgetBackground,
+                                          foregroundColor: Colors.white,
+                                          disabledBackgroundColor: AppColors.lightWidgetBackground,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
                                         ),
-                                      ),
-                                      onPressed: null,
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.share,
-                                            color: Colors.white,
-                                          ),
-                                          SizedBox(width: 5,),
-                                          Text(
-                                            "Share Code",
-                                            style: TextStyle(
-                                              fontSize: AppTextSizes.button,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white
+                                        onPressed: null,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.share,
+                                              color: Colors.white,
                                             ),
-                                          ),
-                                        ],
+                                            SizedBox(width: 5,),
+                                            Flexible(
+                                              child: Text(
+                                                "Share Code",
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: AppTextSizes.label,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
                                       )
                                     )
                                   ],
