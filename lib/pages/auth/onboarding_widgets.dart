@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:jio_leh/theme.dart';
 
@@ -52,6 +53,7 @@ class WelcomeHeader extends StatelessWidget {
 class ProfileForm extends StatelessWidget {
   const ProfileForm({
     super.key,
+    required this.usernameController,
     required this.displayNameController,
     required this.dayController,
     required this.yearController,
@@ -60,6 +62,7 @@ class ProfileForm extends StatelessWidget {
     required this.onMonthChanged,
   });
 
+  final TextEditingController usernameController;
   final TextEditingController displayNameController;
   final TextEditingController dayController;
   final TextEditingController yearController;
@@ -80,7 +83,7 @@ class ProfileForm extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "USER ID · NOT AVAILABLE",
+              "USER ID",
               style: TextStyle(
                 fontSize: labelSize,
                 color: AppColors.onboardingSubtitle,
@@ -103,8 +106,9 @@ class ProfileForm extends StatelessWidget {
                 ]
               ),
               child: TextField(
+                controller: usernameController,
                 decoration: InputDecoration(
-                  hintText: "Pls don't enter anything yet",
+                  hintText: "3-10 lowercase letters or digits",
                   hintStyle: TextStyle(
                     fontSize: fieldSize,
                     color: Colors.grey,
@@ -113,6 +117,10 @@ class ProfileForm extends StatelessWidget {
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9]')),
+                  LengthLimitingTextInputFormatter(10),
+                ]
               ),
             ),
             SizedBox(height: 30),
