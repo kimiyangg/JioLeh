@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/theme.dart';
 
 import 'onboarding_widgets.dart';
@@ -21,6 +22,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   late final _account = Services.account;
 
   late final TextEditingController _displayNameController;
+  final _usernameController = TextEditingController();
   final _dayController = TextEditingController();
   final _yearController = TextEditingController();
   String? _selectedMonth;
@@ -54,6 +56,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void dispose() {
     _displayNameController.dispose();
+    _usernameController.dispose();
     _dayController.dispose();
     _yearController.dispose();
     super.dispose();
@@ -74,14 +77,30 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   Future<void> _submit() async {
+    // Authoritative client-side rule: 3–10 lowercase letters or digits.
+    final username = _usernameController.text.trim().toLowerCase();
+    if (!RegExp(r'^[a-z0-9]{3,10}$').hasMatch(username)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username must be 3–10 letters or digits.')),
+      );
+      return;
+    }
+
     setState(() => _submitting = true);
     try {
       await _account.createProfile(
+        username: username,
         displayName: _displayNameController.text.trim(),
         birthday: _buildBirthday(),
       );
       // Tell AuthGate to re-check; it will route on to the MapPage.
       await widget.onComplete?.call();
+    } on UsernameTaken {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('That username is taken — try another.')),
+        );
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,6 +155,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           ),
                         ),
                         ProfileForm(
+                          usernameController: _usernameController,
                           displayNameController: _displayNameController,
                           dayController: _dayController,
                           yearController: _yearController,
@@ -190,6 +210,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                         ),
                                       )
                                     : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Icon(Icons.check, size: 20),
                                         SizedBox(width: 8),

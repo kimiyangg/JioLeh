@@ -28,6 +28,7 @@ void main() {
       return MaterialApp(
         home: Scaffold(
           body: ProfileForm(
+            usernameController: TextEditingController(),
             displayNameController: TextEditingController(),
             dayController: TextEditingController(),
             yearController: TextEditingController(),
