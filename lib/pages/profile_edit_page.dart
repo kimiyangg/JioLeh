@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:jio_leh/models/user_profile.dart';
+import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/theme.dart';
 
 class ProfileEditPage extends StatefulWidget {
-  const ProfileEditPage({super.key});
+  const ProfileEditPage({
+    super.key,
+    required this.profile,
+  });
+
+  final UserProfile profile;
 
   @override
   State<ProfileEditPage> createState() => _ProfileEditPageState();
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {
+  late final TextEditingController _displayNameController;
+  late final TextEditingController _bioController;
+  late final TextEditingController _dayController;
+  late final TextEditingController _yearController;
   String? _selectedMonth;
+  bool _saving = false;
 
   static const _months = [
     "January",
@@ -27,6 +39,106 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     "November",
     "December",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final birthday = widget.profile.birthday;
+
+    _displayNameController = TextEditingController(
+      text: widget.profile.displayName,
+    );
+    _bioController = TextEditingController(text: widget.profile.bio ?? '');
+    _dayController = TextEditingController(
+      text: birthday == null ? '' : birthday.day.toString(),
+    );
+    _yearController = TextEditingController(
+      text: birthday == null ? '' : birthday.year.toString(),
+    );
+    _selectedMonth = birthday == null ? null : _months[birthday.month - 1];
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    _bioController.dispose();
+    _dayController.dispose();
+    _yearController.dispose();
+    super.dispose();
+  }
+
+  DateTime? _buildBirthday() {
+    final dayText = _dayController.text.trim();
+    final yearText = _yearController.text.trim();
+    final hasBirthdayInput =
+        dayText.isNotEmpty || yearText.isNotEmpty || _selectedMonth != null;
+
+    if (!hasBirthdayInput) return null;
+
+    final day = int.tryParse(dayText);
+    final year = int.tryParse(yearText);
+    final monthIndex = _selectedMonth == null
+        ? -1
+        : _months.indexOf(_selectedMonth!);
+
+    if (day == null || year == null || monthIndex < 0) {
+      throw const FormatException('Enter a full birthday or leave it empty.');
+    }
+
+    final birthday = DateTime(year, monthIndex + 1, day);
+    if (birthday.year != year ||
+        birthday.month != monthIndex + 1 ||
+        birthday.day != day) {
+      throw const FormatException('Enter a valid birthday.');
+    }
+
+    return birthday;
+  }
+
+  Future<void> _saveProfile() async {
+    final displayName = _displayNameController.text.trim();
+    final bio = _bioController.text.trim();
+
+    if (displayName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Display name cannot be empty.')),
+      );
+      return;
+    }
+
+    DateTime? birthday;
+    try {
+      birthday = _buildBirthday();
+    } on FormatException catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final updatedProfile = await Services.account.updateProfile(
+        displayName: displayName,
+        bio: bio.isEmpty ? null : bio,
+        birthday: birthday,
+      );
+
+      if (mounted) {
+        Navigator.pop(context, updatedProfile);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save profile: $error')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +234,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ]
                       ),
                       child: TextField(
+                        controller: _displayNameController,
                         decoration: InputDecoration(
                           hintText: "What should we call you?",
                           hintStyle: TextStyle(
@@ -162,8 +275,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ]
                       ),
                       child: TextField(
+                        controller: _bioController,
+                        maxLines: null,
+                        textInputAction: TextInputAction.newline,
                         decoration: InputDecoration(
-                          hintText: "What should we call you?",
+                          hintText: "Tell friends a little about you",
                           hintStyle: TextStyle(
                             fontSize: fieldSize,
                             color: Colors.grey,
@@ -203,6 +319,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             ],
                           ),
                           child: TextField(
+                            controller: _dayController,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
@@ -292,6 +409,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             ],
                           ),
                           child: TextField(
+                            controller: _yearController,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
@@ -390,13 +508,24 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          onPressed: () {},
-                          child: const Row(
+                          onPressed: _saving ? null : _saveProfile,
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.check, size: 20),
-                              SizedBox(width: 8),
-                              Text('All saved'),
+                              if (_saving) ...[
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ] else ...[
+                                const Icon(Icons.check, size: 20),
+                                const SizedBox(width: 8),
+                                const Text('All saved'),
+                              ],
                             ],
                           ),
                         ),

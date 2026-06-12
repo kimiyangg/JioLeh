@@ -115,6 +115,30 @@ class AccountService {
     return UserProfile.fromMap(profile);
   }
 
+  /// Updates the current user's profile with the given display name, bio, and birthday.
+  /// 
+  /// Returns the updated UserProfile after a successful update.
+  Future<UserProfile> updateProfile({
+    required String displayName,
+    String? bio,
+    DateTime? birthday,
+  }) async {
+    final userId = auth.getCurrentUserId();
+
+    final row = await _supabase
+        .from(_tableName)
+        .update({
+          'display_name': displayName,
+          'bio': bio,
+          'birthday': birthday?.toIso8601String().split('T').first,
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    return UserProfile.fromMap(row);
+  }
+
   /// Generates a random username consisting of 8 lowercase letters and digits.
   /// 
   /// Returns a string that can be used as a default username

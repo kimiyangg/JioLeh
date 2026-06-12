@@ -31,6 +31,22 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _profile = profile);
   }
 
+  Future<void> _editProfile() async {
+    final profile = _profile;
+    if (profile == null) return;
+
+    final updatedProfile = await Navigator.push<UserProfile>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileEditPage(profile: profile),
+      ),
+    );
+
+    if (updatedProfile != null && mounted) {
+      setState(() => _profile = updatedProfile);
+    }
+  }
+
   static const _monthNames = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -149,10 +165,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                             borderRadius: BorderRadius.circular(16),
                                           ),
                                         ),
-                                        onPressed: () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const ProfileEditPage()),
-                                        ),
+                                        onPressed: _profile == null
+                                            ? null
+                                            : _editProfile,
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
