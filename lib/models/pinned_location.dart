@@ -9,6 +9,7 @@ class PinnedLocation {
   final double longitude;
   final String name;
   final String emoji;
+  final int rating;
 
   const PinnedLocation({
     this.id,
@@ -16,6 +17,7 @@ class PinnedLocation {
     required this.longitude,
     required this.name,
     required this.emoji,
+    this.rating = 0,
   });
 
   factory PinnedLocation.fromMap(Map<String, dynamic> map) {
@@ -25,6 +27,7 @@ class PinnedLocation {
       longitude: (map['longitude'] as num).toDouble(),
       name:      map['name'] as String,
       emoji:     map['emoji'] as String,
+      rating: map['rating'] as int? ?? 0,  
     );
   }
 
@@ -35,6 +38,7 @@ class PinnedLocation {
       'emoji':     emoji,
       'latitude':  latitude,
       'longitude': longitude,
+      'rating': rating,
     };
   }
 }
