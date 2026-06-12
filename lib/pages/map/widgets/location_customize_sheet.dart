@@ -5,10 +5,12 @@ import 'package:jio_leh/pages/map/models/pin_type.dart';
 class LocationCustomization {
   final String name;
   final int rating;
+  final String review;
 
   const LocationCustomization({
     required this.name,
     required this.rating,
+    required this.review,
   });
 }
 
@@ -16,7 +18,8 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
   BuildContext context,
   PinType selectedType,
 ) async {
-  final controller = TextEditingController();
+  final nameController = TextEditingController();
+  final reviewController = TextEditingController();
   var rating = 0;
 
   return showModalBottomSheet<LocationCustomization>(
@@ -51,7 +54,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                       const SizedBox(height: 16),
 
                       TextField(
-                        controller: controller,
+                        controller: nameController,
                         autofocus: true,
                         textInputAction: TextInputAction.done,
                         decoration: const InputDecoration(
@@ -94,6 +97,22 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                         ],
                       ),
 
+                      const SizedBox(height: 20),
+
+                      TextField(
+                        controller: reviewController,
+                        minLines: 3,
+                        maxLines: 5,
+                        maxLength: 500,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: const InputDecoration(
+                          labelText: 'Review',
+                          hintText: 'What did you think about this place?',
+                          alignLabelWithHint: true,
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+
                       const SizedBox(height: 16),
 
                       FilledButton(
@@ -101,7 +120,8 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                           Navigator.pop(
                             context,
                             LocationCustomization(
-                              name: controller.text,
+                              name: nameController.text.trim(),
+                              review: reviewController.text.trim(),
                               rating: rating,
                             ),
                           );

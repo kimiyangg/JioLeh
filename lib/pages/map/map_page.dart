@@ -207,6 +207,8 @@ class _MapPageState extends State<MapPage> {
 
     if (!mounted) return; // in case user left page while sheet open
 
+    if (customization == null) return;
+    
     final position = _currentPosition; // save current location for pinning
 
     if (position == null) return; // stops if location unknown
@@ -215,10 +217,11 @@ class _MapPageState extends State<MapPage> {
       PinnedLocation(
         latitude: position.latitude,
         longitude: position.longitude,
-        name: customization?.name.trim() ?? '', // if user close page early, return ''
+        name: customization.name, // if user close page early, return ''
         // else, return wtv he typed in
         emoji: selectedType.emoji,
-        rating: customization?.rating ?? 0,
+        rating: customization.rating,
+        review: customization.review,
       ),
     ); // still save the emoji
 
