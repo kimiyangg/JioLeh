@@ -14,7 +14,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _auth = Services.auth;
   late final _account = Services.account;
 
   // The loaded profile. Null until it finishes loading.                                                                                                                                                                                                                                                                          
@@ -31,6 +30,16 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _profile = profile);
   }
 
+  static const _monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  String _formatBirthday(DateTime? birthday) {
+    if (birthday == null) return "";
+    return "Born ${birthday.day} ${_monthNames[birthday.month - 1]}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,12 +52,21 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Profile",
-                    style: TextStyle(
-                      fontSize: AppTextSizes.heading,
-                      fontWeight: FontWeight(1000),
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        "Profile",
+                        style: TextStyle(
+                          fontSize: AppTextSizes.heading+2,
+                          fontWeight: FontWeight(1000),
+                        ),
+                      ),
+                      SizedBox(width: 100),
+                      FilledButton(
+                        onPressed: () => Navigator.maybePop(context),
+                        child: Text("Back"),
+                      ),
+                    ],
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -77,13 +95,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "Kimi Yang",
+                                            _profile?.displayName ?? "",
                                             style: TextStyle(
                                               fontSize: AppTextSizes.button,
                                               fontWeight: FontWeight.w900
                                             ),
                                           ),
-                                          Text("@12345678")
+                                          Text("@${_profile?.username ?? ""}")
                                         ],
                                       ),
                                     )
@@ -95,7 +113,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "Always hunting the best wanton mee in SG. Will jio you for 11pm supper, no questions asked 🍜",
+                                        _profile?.bio ??
+                                            "New here and keen to meet some kakis. Always down for makan or a casual hang. Jio me la 🙂",
                                         style: TextStyle(
                                           fontSize: AppTextSizes.label
                                         ),
@@ -105,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                         children: [
                                           Icon(Icons.cake, size: 15,),
                                           SizedBox(width: 10,),
-                                          Text("Born 14 Jun"),
+                                          Text(_formatBirthday(_profile?.birthday)),
                                         ],
                                       ),
                                     ],
