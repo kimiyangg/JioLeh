@@ -5,6 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 
 class LocationCustomization {
+  // The official/formal name of the place (maps to places.name later).
+  final String formalName;
+  // The user's own preference name for the pin (maps to user_pins.custom_name).
   final String name;
   final int rating;
   final String review;
@@ -12,6 +15,7 @@ class LocationCustomization {
   final List<String> photoUrls;
 
   const LocationCustomization({
+    this.formalName = '',
     required this.name,
     required this.rating,
     required this.review,
@@ -27,6 +31,9 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
   bool isReadOnly = false,
   Future<void> Function(LocationCustomization customization)? onSave,
 }) async {
+  final formalNameController = TextEditingController(
+    text: initialCustomization?.formalName ?? '',
+  );
   final nameController = TextEditingController(
     text: initialCustomization?.name ?? '',
   );
@@ -133,12 +140,25 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                       const SizedBox(height: 16),
 
                       TextField(
-                        controller: nameController,
+                        controller: formalNameController,
                         readOnly: isReadOnly,
                         autofocus: !isReadOnly,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Formal location name',
+                          hintText: 'Example: Springleaf Prata Place',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      TextField(
+                        controller: nameController,
+                        readOnly: isReadOnly,
                         textInputAction: TextInputAction.done,
                         decoration: const InputDecoration(
-                          labelText: 'Location name',
+                          labelText: 'Your name for it',
                           hintText: 'Example: My favourite prata place',
                           border: OutlineInputBorder(),
                         ),
@@ -313,6 +333,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                                 }
 
                                 final customization = LocationCustomization(
+                                  formalName: formalNameController.text.trim(),
                                   name: nameController.text.trim(),
                                   review: reviewController.text.trim(),
                                   rating: rating,

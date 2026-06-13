@@ -7,6 +7,9 @@ class PinnedLocation {
   final String? id;
   final double latitude;
   final double longitude;
+  // The official/formal name of the place (destined for places.name).
+  final String formalName;
+  // The user's own preference name (destined for user_pins.custom_name).
   final String name;
   final String emoji;
   final int rating;
@@ -17,6 +20,7 @@ class PinnedLocation {
     this.id,
     required this.latitude,
     required this.longitude,
+    this.formalName = '',
     required this.name,
     required this.emoji,
     this.rating = 0,

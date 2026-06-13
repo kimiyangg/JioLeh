@@ -204,6 +204,7 @@ class _MapPageState extends State<MapPage> {
         context,
         pinType,
         initialCustomization: LocationCustomization(
+          formalName: location.formalName,
           name: location.name,
           rating: location.rating,
           review: location.review ?? '',
@@ -249,6 +250,7 @@ class _MapPageState extends State<MapPage> {
           PinnedLocation(
             latitude: position.latitude,
             longitude: position.longitude,
+            formalName: customization.formalName,
             name: customization.name, // if user close page early, return ''
             // else, return wtv he typed in
             emoji: selectedType.emoji,
