@@ -12,8 +12,11 @@ import 'package:jio_leh/models/pinned_location.dart';
 /// [map] is the MapboxMap instance that this class will interact with to render the pins.
 class MapPins {
 
-  MapPins(this._map);
-  
+  MapPins(this._map, {
+    required this.onPinTapped,
+  });
+  final void Function(PinnedLocation location) onPinTapped;
+
   // No need the nullable type as we definitely gonna pass in from constructor
   final MapboxMap _map;
 
@@ -26,11 +29,29 @@ class MapPins {
   // Mapbox Manager for map pins
   PointAnnotationManager? _pinsManager;
 
+  final Map<String, PinnedLocation> _locationsByAnnotationId = {};
+
   Future<void> render(List<PinnedLocation> locations) async {
 
-    _pinsManager ??= await _map.annotations.createPointAnnotationManager();
+
+    if (_pinsManager == null) {
+      _pinsManager = await _map.annotations.createPointAnnotationManager();
+
+      _pinsManager!.tapEvents(onTap: (annotation) {
+        final location = _locationsByAnnotationId[annotation.id];
+
+        if(location != null) {
+          onPinTapped(location);
+        }
+      },
+      );
+    }
 
     await _pinsManager!.deleteAll();
+    _locationsByAnnotationId.clear();
+
+
+    
 
     // Keeps track of pins alr shown on map
     final renderedLocations = <PinnedLocation>[]; 
@@ -49,7 +70,7 @@ class MapPins {
       final emojiImage = await _emojiImageFor(location.emoji);
       final name = location.name.trim();
 
-      await _pinsManager!.create(
+      final annotation = await _pinsManager!.create(
         PointAnnotationOptions(
           geometry: Point(
             coordinates: Position(location.longitude, location.latitude),
@@ -66,6 +87,7 @@ class MapPins {
           textHaloWidth: 2,
         ),
       );
+      _locationsByAnnotationId[annotation.id] = location;
     }
   }
 

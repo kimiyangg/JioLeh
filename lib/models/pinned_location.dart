@@ -11,6 +11,7 @@ class PinnedLocation {
   final String emoji;
   final int rating;
   final String? review;
+  final List<String> photoPaths;
 
   const PinnedLocation({
     this.id,
@@ -20,9 +21,13 @@ class PinnedLocation {
     required this.emoji,
     this.rating = 0,
     this.review = '',
+    this.photoPaths = const [],
   });
 
   factory PinnedLocation.fromMap(Map<String, dynamic> map) {
+
+    final rawPhotoPaths = map['photo_paths'] as List<dynamic>?;
+
     return PinnedLocation(
       id:        map['id'] as String?,
       latitude:  (map['latitude'] as num).toDouble(),
@@ -30,7 +35,9 @@ class PinnedLocation {
       name:      map['name'] as String,
       emoji:     map['emoji'] as String,
       rating: map['rating'] as int? ?? 0,
-      review: map['review'] as String? ?? '',  
+      review: map['review'] as String? ?? '',
+      photoPaths:
+        rawPhotoPaths?.map((path) => path.toString()).toList() ?? const [],
     );
   }
 
@@ -43,6 +50,7 @@ class PinnedLocation {
       'longitude': longitude,
       'rating': rating,
       'review': review,
+      'photo_paths': photoPaths,
     };
   }
 }

@@ -43,6 +43,12 @@
 	<true/>
 
 	<!-- Location Permissions -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app lets users attach photos to pinned locations.</string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>This app lets users photograph pinned locations.</string>
+	
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs your location to show your current position on the map and help users discover nearby activities.</string>
 
