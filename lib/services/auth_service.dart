@@ -22,6 +22,23 @@ class AuthService {
     return _getCurrentSession() != null;
   }
 
+  /// Function to check if the current session is still valid by attempting to fetch the user data.
+  /// 
+  /// Returns true if the session is valid and the user is authenticated, false otherwise.
+  Future<bool> hasValidSession() async {
+    if (!isSignedIn()) {
+      return false;
+    }
+
+    try {
+      final response = await _supabase.auth.getUser();
+      return response.user != null;
+    } on AuthException {
+      await signOut();
+      return false;
+    }
+  }
+
   String getCurrentUserId() {
     // Retrieves the current user's ID,
     // throwing an error if no user is signed in.
