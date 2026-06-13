@@ -6,6 +6,7 @@ import 'package:jio_leh/pages/auth/login_page.dart';
 import 'package:jio_leh/pages/map/map_page.dart';
 import 'package:jio_leh/pages/auth/onboarding_page.dart';
 
+import 'package:jio_leh/services/auth_gate_resolver.dart';
 import 'package:jio_leh/services/services.dart';
 
 class MyApp extends StatelessWidget {
@@ -57,11 +58,21 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     setState(() => _state = _GateState.loading);
+    // Check if the user session is valid and if a profile exists.
     try {
-      final exists = await _account.profileExists();
+      final result = await resolveAuthGateState(
+        isSignedIn: _auth.isSignedIn,
+        hasValidSession: _auth.hasValidSession,
+        profileExists: _account.profileExists,
+      );
       if (!mounted) return; // widget may be disposed during the await
-      setState(() =>
-          _state = exists ? _GateState.ready : _GateState.needsOnboarding);
+      if (result == AuthGateResult.signedOut) {
+        setState(() => _state = _GateState.signedOut);
+      } else if (result == AuthGateResult.needsOnboarding) {
+        setState(() => _state = _GateState.needsOnboarding);
+      } else {
+        setState(() => _state = _GateState.ready);
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() => _state = _GateState.error);
