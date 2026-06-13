@@ -57,7 +57,15 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     setState(() => _state = _GateState.loading);
+    // Check if the user session is valid and if a profile exists.
     try {
+      final hasValidSession = await _auth.hasValidSession();
+      if (!mounted) return;
+      if (!hasValidSession) {
+        setState(() => _state = _GateState.signedOut);
+        return;
+      }
+
       final exists = await _account.profileExists();
       if (!mounted) return; // widget may be disposed during the await
       setState(() =>
