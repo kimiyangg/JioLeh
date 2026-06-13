@@ -16,11 +16,18 @@ class LocationCustomization {
 
 Future<LocationCustomization?> showLocationCustomizeSheet(
   BuildContext context,
-  PinType selectedType,
+  PinType selectedType, {
+    LocationCustomization? initialCustomization,
+    bool isReadOnly = false,
+  }
 ) async {
-  final nameController = TextEditingController();
-  final reviewController = TextEditingController();
-  var rating = 0;
+  final nameController = TextEditingController(
+    text: initialCustomization?.name ?? '',
+  );
+  final reviewController = TextEditingController(
+    text: initialCustomization?.review ?? '',
+  );
+  var rating = initialCustomization?.rating ?? 0;
 
   return showModalBottomSheet<LocationCustomization>(
     context: context,
@@ -45,7 +52,9 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${selectedType.emoji} Customise location',
+                        isReadOnly
+                            ? '${selectedType.emoji} Location details'
+                            : '${selectedType.emoji} Customise location',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
@@ -55,7 +64,8 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
 
                       TextField(
                         controller: nameController,
-                        autofocus: true,
+                        readOnly: isReadOnly,
+                        autofocus: !isReadOnly,
                         textInputAction: TextInputAction.done,
                         decoration: const InputDecoration(
                           labelText: 'Location name',
@@ -81,7 +91,9 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                         children: [
                           for (var star = 1; star <= 5; star++)
                             IconButton(
-                              onPressed: () {
+                              onPressed: isReadOnly
+                              ? null
+                              : () {
                                 setModalState(() {
                                   rating = star;
                                 });
@@ -101,6 +113,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
 
                       TextField(
                         controller: reviewController,
+                        readOnly: isReadOnly,
                         minLines: 3,
                         maxLines: 5,
                         maxLength: 500,
@@ -117,6 +130,11 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
 
                       FilledButton(
                         onPressed: () {
+                          if (isReadOnly) {
+                            Navigator.pop(context);
+                            return;
+                          }
+
                           Navigator.pop(
                             context,
                             LocationCustomization(
@@ -126,7 +144,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                             ),
                           );
                         },
-                        child: const Text('Enter'),
+                        child: Text(isReadOnly ? 'Close' : 'Save'),
                       ),
                     ],
                   ),
