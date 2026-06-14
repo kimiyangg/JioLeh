@@ -22,13 +22,20 @@ The app currently includes:
 - An auth gate that routes users between sign-in, onboarding, and the map.
 - First-time onboarding to set up a user profile (username, display name,
   birthday).
-- A profile page showing the signed-in user's details.
-- Persistent pinned locations and user profiles stored in Supabase.
-- A simple map toolbar for recentering and adding pins.
+- Profile viewing, profile editing, and share-code access.
+- Friend search by username, friend requests, accept/reject flows, and friend
+  removal.
+- Persistent places, user pins, user profiles, and friendships stored in
+  Supabase.
+- Map pins with custom names, emoji, ratings, reviews, privacy, and up to three
+  photos per pin.
+- Nearby place loading around the current map area.
+- A map toolbar for recentering, adding pins, opening profile, and opening
+  friends.
 
 ## Product Direction
 
-The aims of our project includes but are not limited to:
+The aims of our project include but are not limited to:
 
 - Sharing real-world recommendations such as restaurants, entertainment venues,
   hotels, toilets, and memorable places.
@@ -43,11 +50,8 @@ The aims of our project includes but are not limited to:
 
 Planned features from the proposal include:
 
-- Location categories and custom emoji pins.
-- User-renamed pinned places.
-- Ratings, reviews, comments, and photos.
-- Friend invitations and private sharing.
-- Place-specific discussion or chat.
+- Location categories beyond emoji-based custom pins.
+- Comments and place-specific discussion or chat.
 - Social points and friend leaderboards.
 - Fog-of-map exploration.
 - Group chats, gatherings, and group location filters.
@@ -64,12 +68,13 @@ Planned features from the proposal include:
 | Backend | Supabase |
 | Auth | Supabase Auth with Google OAuth |
 | Database | Supabase PostgreSQL |
+| Photos | `image_picker`, Supabase Storage |
 | HTTP | Dart `http` package |
 | CI/CD | GitHub Actions |
 
 ## Getting Started
 
-Install Flutter, then fetch dependencies:
+Install Flutter, clone the repo, then fetch dependencies:
 
 ```bash
 flutter doctor
@@ -116,65 +121,21 @@ flutter run `
 
 Do not commit real secrets.
 
-## Development
+## Backend at a Glance
 
-Run local checks before opening a pull request:
+JioLeh! uses Supabase for authentication, storage, and data persistence. The
+current app flow is centered around:
 
-```bash
-flutter analyze
-flutter test
-```
+- `profiles`: user onboarding and profile data.
+- `places`: shared map places with coordinates and provider/user source data.
+- `user_pins`: a user's personal pin for a place, including custom name, emoji,
+  rating, review, privacy, and photo paths.
+- `friendships`: friend request and accepted-friend relationships.
+- Supabase Storage bucket `pin-photos`: uploaded pin photos.
 
-For platform build checks:
-
-```bash
-flutter build apk --debug
-flutter build ios --debug --no-codesign
-```
-
-Build commands may also need the same `--dart-define` values used by
-`flutter run`.
-
-The database schema is version-controlled with the Supabase CLI under
-`supabase/migrations/`. Change it through migration files (`supabase migration
-new`, `supabase db push`) rather than the dashboard. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the schema and migration workflow.
-
-## Store Deployment
-
-Release builds and store uploads are driven by GitHub Actions and triggered by a
-version tag matching `v*.*.*`. Unlike a manual setup, you do not edit version
-files by hand: the workflow derives the version name from the tag
-(`v1.2.0` -> `1.2.0`) and the build number from the CI run number.
-
-### Google Play (Android)
-
-[![Build (& Deploy to Google Play) Android APP](https://github.com/KimiYang951116/JioLeh/actions/workflows/android-ci.yml/badge.svg)](https://github.com/KimiYang951116/JioLeh/actions/workflows/android-ci.yml)
-
-1. From `main`, create and push a release tag, for example:
-
-   ```bash
-   git checkout main
-   git pull origin main
-   git tag v1.2.0
-   git push origin v1.2.0
-   ```
-
-2. The `android-ci.yml` workflow builds a signed AAB and APK, uploads the AAB to
-   the Google Play **internal** track, and attaches the build files to the
-   GitHub Release.
-
-### TestFlight (iOS)
-
-[![Build (& Deploy to TestFlight) iOS APP](https://github.com/KimiYang951116/JioLeh/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/KimiYang951116/JioLeh/actions/workflows/ios-ci.yml)
-
-1. Pushing the same `v*.*.*` tag also triggers the `ios-ci.yml` workflow.
-2. It builds a signed IPA, uploads it to **TestFlight**, and attaches the IPA to
-   the GitHub Release.
-
-Release workflows depend on GitHub Actions secrets for Mapbox, Supabase, Android
-signing, Google Play, Apple signing, and App Store Connect. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the full release and CI details.
+The database schema is version-controlled under `supabase/migrations/`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for schema, migration, build, continuous
+integration, and release workflows.
 
 ## Project Structure
 
@@ -183,15 +144,17 @@ signing, Google Play, Apple signing, and App Store Connect. See
 | `lib/main.dart` | App bootstrap and service initialization |
 | `lib/app.dart` | Root Flutter app and auth gate routing |
 | `lib/pages/` | App pages (auth, onboarding, map, profile) |
-| `lib/widgets/` | Reusable UI widgets |
-| `lib/services/` | Auth, account, location, geocoding, and pin services |
+| `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
+| `lib/services/` | Auth, account, friends, location, geocoding, and pin services |
 | `lib/config/` | Mapbox and Supabase environment config |
 | `lib/models/` | App data models |
 | `test/` | Flutter tests |
 | `supabase/migrations/` | Versioned database schema (Supabase CLI) |
 | `.github/workflows/` | CI and release workflows |
+| `docs/` | Code style, database, release, and software engineering references |
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, PR workflow,
-environment setup, CI behavior, and release notes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks, branch naming, pull
+request workflow, and Continuous Integration behavior. Detailed references live
+under `docs/`.
