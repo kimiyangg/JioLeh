@@ -20,6 +20,11 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late final _account = Services.account;
 
+  late final _friends = Services.friends;
+
+  bool _sendingFriendRequest = false;
+  bool _friendRequestSent = false;
+
   // The loaded profile. Null until it finishes loading.                                                                                                                                                                                                                                                                          
   UserProfile? _profile;
 
@@ -62,6 +67,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     setState(() => _profile = profile);
   }
+
+  
 
   Future<void> _editProfile() async {
     final profile = _profile;
