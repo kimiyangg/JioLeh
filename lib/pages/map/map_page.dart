@@ -12,7 +12,6 @@ import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
-import 'package:jio_leh/pages/map/widgets/pin_type_picker.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
@@ -245,21 +244,13 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _addPin() async {
-    // function runs when user press add pin button
-    final selectedType = await showPinTypePicker(
-      context,
-    ); // page comes up, wait for user to tap
-    if (selectedType == null) return; // if nvr choose, return nth
-
-    if (!mounted) return; // stops if page not active
-
     final position = _currentPosition; // save current location for pinning
 
     if (position == null) return; // stops if location unknown
 
     await showLocationCustomizeSheet(
       context,
-      selectedType,
+      PinType.restaurant,
       onSave: (customization) async {
         await _locationServicePins.saveUserInsertedPin(
           UserInsertedPin(
@@ -269,7 +260,7 @@ class _MapPageState extends State<MapPage> {
             customName:
                 customization.name, // if user close page early, return ''
             // else, return wtv he typed in
-            emoji: selectedType.emoji,
+            emoji: customization.pinType.emoji,
             rating: customization.rating == 0 ? null : customization.rating,
             review: customization.review,
           ),
