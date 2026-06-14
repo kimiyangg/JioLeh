@@ -1,79 +1,60 @@
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
+import 'package:jio_leh/models/place.dart';
+import 'package:jio_leh/models/user_pin.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
-import 'package:jio_leh/models/pinned_location.dart'; 
-
-/// This class is responsible for rendering the pinned locations on the map. 
-/// It manages the state of the pins and handles the logic for displaying them without overlap.
-/// 
-/// [map] is the MapboxMap instance that this class will interact with to render the pins.
+/// This class renders places on the map and links marker taps back to a place.
 class MapPins {
+  MapPins(this._map, {required this.onPinTapped});
 
-  MapPins(this._map, {
-    required this.onPinTapped,
-  });
-  final void Function(PinnedLocation location) onPinTapped;
-
-  // No need the nullable type as we definitely gonna pass in from constructor
+  final void Function(Place place) onPinTapped;
   final MapboxMap _map;
 
-  // Cache for pin images to avoid redundant conversions
-  // 
-  // Uint8List is the type for raw bytes of the image,
-  // which is what Mapbox needs for pin icons
   final Map<String, Uint8List> _emojiImageCache = {};
+  final Map<String, Place> _placesByAnnotationId = {};
 
-  // Mapbox Manager for map pins
   PointAnnotationManager? _pinsManager;
 
-  final Map<String, PinnedLocation> _locationsByAnnotationId = {};
-
-  Future<void> render(List<PinnedLocation> locations) async {
-
-
+  Future<void> render(List<Place> places) async {
     if (_pinsManager == null) {
       _pinsManager = await _map.annotations.createPointAnnotationManager();
 
-      _pinsManager!.tapEvents(onTap: (annotation) {
-        final location = _locationsByAnnotationId[annotation.id];
+      _pinsManager!.tapEvents(
+        onTap: (annotation) {
+          final place = _placesByAnnotationId[annotation.id];
 
-        if(location != null) {
-          onPinTapped(location);
-        }
-      },
+          if (place != null) {
+            onPinTapped(place);
+          }
+        },
       );
     }
 
     await _pinsManager!.deleteAll();
-    _locationsByAnnotationId.clear();
+    _placesByAnnotationId.clear();
 
+    final renderedPlaces = <Place>[];
 
-    
-
-    // Keeps track of pins alr shown on map
-    final renderedLocations = <PinnedLocation>[]; 
-
-    // Checks if this pin is close to another pin already drawn
-    for (final location in locations) {
-      final alreadyRenderedNearby = renderedLocations.any(
-        (renderedLocation) => _isNearbyLocation(location, renderedLocation),
+    for (final place in places) {
+      final alreadyRenderedNearby = renderedPlaces.any(
+        (renderedPlace) => _isNearbyPlace(place, renderedPlace),
       );
 
-      // If pins are nearby, skip pinning so no overlapping of names
       if (alreadyRenderedNearby) continue;
 
-      // Else, remember it and draw it
-      renderedLocations.add(location);
-      final emojiImage = await _emojiImageFor(location.emoji);
-      final name = location.name.trim();
+      renderedPlaces.add(place);
+
+      final pin = _primaryPinFor(place);
+      final emojiImage = await _emojiImageFor(pin?.emoji ?? '\u{1F4CD}');
+      final name = _displayNameFor(place, pin);
 
       final annotation = await _pinsManager!.create(
         PointAnnotationOptions(
           geometry: Point(
-            coordinates: Position(location.longitude, location.latitude),
+            coordinates: Position(place.longitude, place.latitude),
           ),
           image: emojiImage,
           iconSize: 0.55,
@@ -87,33 +68,36 @@ class MapPins {
           textHaloWidth: 2,
         ),
       );
-      _locationsByAnnotationId[annotation.id] = location;
+
+      _placesByAnnotationId[annotation.id] = place;
     }
   }
 
-  /// Helper method to determine if two locations are nearby (within 20 meters).
-  /// 
-  /// Returns true if the absolute difference in both latitude and longitude
-  /// is less than the defined tolerance.
-  bool _isNearbyLocation(
-    PinnedLocation firstLocation,
-    PinnedLocation secondLocation,
-  ) {
+  UserPin? _primaryPinFor(Place place) {
+    return place.pins.isEmpty ? null : place.pins.first;
+  }
+
+  String _displayNameFor(Place place, UserPin? pin) {
+    final customName = pin?.customName?.trim();
+
+    if (customName != null && customName.isNotEmpty) {
+      return customName;
+    }
+
+    return place.name.trim();
+  }
+
+  bool _isNearbyPlace(Place firstPlace, Place secondPlace) {
     const tolerance = 0.0002; // loc within 20m is the "same" place
 
-    final latitudeDifference =
-        (firstLocation.latitude - secondLocation.latitude).abs();
-
-    final longitudeDifference =
-        (firstLocation.longitude - secondLocation.longitude).abs();
+    final latitudeDifference = (firstPlace.latitude - secondPlace.latitude)
+        .abs();
+    final longitudeDifference = (firstPlace.longitude - secondPlace.longitude)
+        .abs();
 
     return latitudeDifference < tolerance && longitudeDifference < tolerance;
   }
 
-  /// Helper method that converts an emoji character into a Uint8List image that can be used
-  /// as a pin icon on the map. It uses a cache to avoid redundant conversions for the same emoji.
-  /// 
-  /// Returns a Uint8List representing the PNG image of the emoji.
   Future<Uint8List> _emojiImageFor(String emoji) async {
     final cachedImage = _emojiImageCache[emoji];
 
@@ -124,11 +108,9 @@ class MapPins {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
 
-    // emoji size. change fontSize to make bigger/smaller
     const imageSize = 128.0;
     const fontSize = 92.0;
 
-    // draw the emoji like a text
     final textPainter = TextPainter(
       text: TextSpan(
         text: emoji,
@@ -144,20 +126,14 @@ class MapPins {
       (imageSize - textPainter.height) / 2,
     );
 
-    // paints emoji onto invisible canvas
     textPainter.paint(canvas, offset);
 
     final picture = recorder.endRecording();
-    final image = await picture.toImage(
-      // the canvas turn into an image
-      imageSize.toInt(),
-      imageSize.toInt(),
-    );
+    final image = await picture.toImage(imageSize.toInt(), imageSize.toInt());
 
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
     final emojiImage = byteData!.buffer.asUint8List();
-    // converts image into the format Mapbox needs
+
     _emojiImageCache[emoji] = emojiImage;
 
     return emojiImage;

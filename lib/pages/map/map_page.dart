@@ -4,13 +4,14 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import 'package:jio_leh/config/map_env.dart';
 
-import 'package:jio_leh/models/pinned_location.dart';
+import 'package:jio_leh/models/place.dart';
+import 'package:jio_leh/models/user_inserted_pin.dart';
+import 'package:jio_leh/models/user_pin.dart';
 
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
-import 'package:jio_leh/pages/map/widgets/pin_type_picker.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
@@ -49,8 +50,8 @@ class _MapPageState extends State<MapPage> {
   // AreaName state and controls
   String _currentLocationName = 'Fetching location...';
 
-  // Pins state and controls
-  List<PinnedLocation> _pinnedLocations = [];
+  // Places state and controls
+  List<Place> _places = [];
 
   @override
   void initState() {
@@ -65,8 +66,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _booting() async {
-    // Main boot sequence to initialize location, map, and pins
-    await _reloadPins();
+    // Main boot sequence to initialize location, map, and nearby places
     await _startLocationTracking();
   }
 
@@ -145,6 +145,7 @@ class _MapPageState extends State<MapPage> {
       });
 
       _updateLocationName(position);
+      await _reloadPlaces();
       await _locationService.startLocationTracking(
         onLocationUpdate: _onLocationUpdate,
       );
@@ -187,15 +188,16 @@ class _MapPageState extends State<MapPage> {
         });
   }
 
-  Future<void> _showPinnedLocation(PinnedLocation location) async {
+  Future<void> _showPlace(Place place) async {
+    final pin = _primaryPinFor(place);
     final pinType = PinType.values.firstWhere(
-      (type) => type.emoji == location.emoji,
+      (type) => type.emoji == (pin?.emoji ?? '\u{1F4CD}'),
       orElse: () => PinType.restaurant,
     );
 
     try {
       final photoUrls = await _locationServicePins.createPhotoUrls(
-        location.photoPaths,
+        pin?.photoPaths ?? const [],
       );
 
       if (!mounted) return;
@@ -204,9 +206,10 @@ class _MapPageState extends State<MapPage> {
         context,
         pinType,
         initialCustomization: LocationCustomization(
-          name: location.name,
-          rating: location.rating,
-          review: location.review ?? '',
+          formalName: place.name,
+          name: pin?.customName ?? '',
+          rating: pin?.rating ?? 0,
+          review: pin?.review ?? '',
           photoUrls: photoUrls,
         ),
         isReadOnly: true,
@@ -220,45 +223,51 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  UserPin? _primaryPinFor(Place place) {
+    return place.pins.isEmpty ? null : place.pins.first;
+  }
+
   // Pin Helper Methods
-  Future<void> _reloadPins() async {
-    final pins = await _locationServicePins.loadPinnedLocations();
+  Future<void> _reloadPlaces() async {
+    final position = _currentPosition;
+    if (position == null) return;
+
+    final places = await _locationServicePins.loadPlacesNearLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+
     if (!mounted) return;
-    setState(() => _pinnedLocations = pins);
-    await _pins?.render(_pinnedLocations);
+
+    setState(() => _places = places);
+    await _pins?.render(_places);
   }
 
   Future<void> _addPin() async {
-    // function runs when user press add pin button
-    final selectedType = await showPinTypePicker(
-      context,
-    ); // page comes up, wait for user to tap
-    if (selectedType == null) return; // if nvr choose, return nth
-
-    if (!mounted) return; // stops if page not active
-
     final position = _currentPosition; // save current location for pinning
 
     if (position == null) return; // stops if location unknown
 
     await showLocationCustomizeSheet(
       context,
-      selectedType,
+      PinType.restaurant,
       onSave: (customization) async {
-        await _locationServicePins.savePinnedLocation(
-          PinnedLocation(
+        await _locationServicePins.saveUserInsertedPin(
+          UserInsertedPin(
             latitude: position.latitude,
             longitude: position.longitude,
-            name: customization.name, // if user close page early, return ''
+            formalName: customization.formalName,
+            customName:
+                customization.name, // if user close page early, return ''
             // else, return wtv he typed in
-            emoji: selectedType.emoji,
-            rating: customization.rating,
+            emoji: customization.pinType.emoji,
+            rating: customization.rating == 0 ? null : customization.rating,
             review: customization.review,
           ),
           customization.selectedPhotos,
         ); // still save the emoji
 
-        await _reloadPins();
+        await _reloadPlaces();
       },
     );
   }
@@ -279,14 +288,14 @@ class _MapPageState extends State<MapPage> {
               _map = controller;
               _pins = MapPins(
                 controller,
-                onPinTapped: (location) {
-                  _showPinnedLocation(location);
+                onPinTapped: (place) {
+                  _showPlace(place);
                 },
               );
 
               await _initMapStyleSettings();
               await _enableMapboxLocationComponent();
-              await _pins!.render(_pinnedLocations);
+              await _pins!.render(_places);
 
               if (_currentPosition != null) {
                 await _moveCameraToPos(_currentPosition!);
