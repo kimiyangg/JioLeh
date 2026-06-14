@@ -151,6 +151,16 @@ class AccountService {
     }
     return code;
   }
+  /// Retrieves a user profile by its unique ID. Returns null if no profile is found.
+  Future<UserProfile?> getProfileById(String userId) async {
+    final row = await _supabase
+      .from(_tableName)
+      .select()
+      .eq('id', userId)
+      .maybeSingle();
+
+    return row == null ? null : UserProfile.fromMap(row);
+  }
 }
 
 /// Base class for all account-related exceptions
