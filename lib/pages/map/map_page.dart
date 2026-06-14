@@ -206,10 +206,12 @@ class _MapPageState extends State<MapPage> {
         context,
         pinType,
         initialCustomization: LocationCustomization(
+          pinType: pinType,
           formalName: place.name,
           name: pin?.customName ?? '',
           rating: pin?.rating ?? 0,
           review: pin?.review ?? '',
+          isPrivate: pin?.isPrivate,
           photoUrls: photoUrls,
         ),
         isReadOnly: true,
@@ -263,6 +265,7 @@ class _MapPageState extends State<MapPage> {
             emoji: customization.pinType.emoji,
             rating: customization.rating == 0 ? null : customization.rating,
             review: customization.review,
+            isPrivate: customization.isPrivate!,
           ),
           customization.selectedPhotos,
         ); // still save the emoji

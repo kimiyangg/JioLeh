@@ -10,6 +10,7 @@ void main() {
         formalName: ' Marina Bay ',
         customName: 'My Bay',
         emoji: 'pin',
+        isPrivate: false,
       );
 
       final map = pin.placeToMap('user-123');
@@ -30,6 +31,7 @@ void main() {
         formalName: '   ',
         customName: ' My favorite spot ',
         emoji: 'pin',
+        isPrivate: false,
       );
 
       expect(() => pin.placeToMap('user-123'), throwsA(isA<ArgumentError>()));
@@ -42,6 +44,7 @@ void main() {
         formalName: ' Marina Bay ',
         customName: ' My favorite spot ',
         emoji: 'pin',
+        isPrivate: false,
       );
 
       final map = pin.placeToMap('user-123');
@@ -60,6 +63,7 @@ void main() {
         emoji: 'pin',
         rating: 4,
         review: ' Great view. ',
+        isPrivate: true,
       );
 
       final map = pin.pinToMap('user-123', 'place-123');
@@ -69,6 +73,7 @@ void main() {
       expect(map['custom_name'], 'My Bay');
       expect(map['emoji'], 'pin');
       expect(map['ratings'], 4);
+      expect(map['is_private'], isTrue);
       expect(map['reviews'], 'Great view.');
       expect(map.containsKey('rating'), isFalse);
       expect(map.containsKey('review'), isFalse);
@@ -83,6 +88,7 @@ void main() {
         customName: '   ',
         emoji: 'pin',
         review: '   ',
+        isPrivate: false,
       );
 
       final map = pin.pinToMap('user-123', 'place-123');
@@ -90,6 +96,7 @@ void main() {
       expect(map['custom_name'], isNull);
       expect(map['reviews'], isNull);
       expect(map['ratings'], isNull);
+      expect(map['is_private'], isFalse);
     });
 
     test('allows ratings from 1 to 5', () {
@@ -99,6 +106,7 @@ void main() {
         formalName: 'Marina Bay',
         emoji: 'pin',
         rating: 5,
+        isPrivate: false,
       );
 
       final map = pin.pinToMap('user-123', 'place-123');

@@ -14,6 +14,7 @@ class UserInsertedPin {
   final String emoji;
   final int? rating;
   final String? review;
+  final bool isPrivate;
 
   const UserInsertedPin({
     required this.latitude,
@@ -23,6 +24,7 @@ class UserInsertedPin {
     required this.emoji,
     this.rating,
     this.review,
+    required this.isPrivate,
   });
 
   // Creates the row for the places table.
@@ -66,6 +68,7 @@ class UserInsertedPin {
 
       'emoji': emoji,
       'ratings': rating,
+      'is_private': isPrivate,
 
       // Blank review means no review.
       'reviews': trimmedReview == null || trimmedReview.isEmpty

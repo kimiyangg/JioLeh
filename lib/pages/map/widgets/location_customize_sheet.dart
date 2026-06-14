@@ -12,6 +12,7 @@ class LocationCustomization {
   final String name;
   final int rating;
   final String review;
+  final bool? isPrivate;
   final List<XFile> selectedPhotos;
   final List<String> photoUrls;
 
@@ -21,6 +22,7 @@ class LocationCustomization {
     required this.name,
     required this.rating,
     required this.review,
+    this.isPrivate,
     this.selectedPhotos = const [],
     this.photoUrls = const [],
   });
@@ -44,6 +46,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
   );
   var currentType = selectedType;
   var rating = initialCustomization?.rating ?? 0;
+  var selectedIsPrivate = initialCustomization?.isPrivate;
   var isSaving = false;
 
   final imagePicker = ImagePicker();
@@ -232,6 +235,46 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
 
                       const SizedBox(height: 20),
 
+                      const Text(
+                        'Visibility',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Friends'),
+                            selected: selectedIsPrivate == false,
+                            onSelected: isReadOnly || isSaving
+                                ? null
+                                : (_) {
+                                    setModalState(() {
+                                      selectedIsPrivate = false;
+                                    });
+                                  },
+                          ),
+                          ChoiceChip(
+                            label: const Text('Private'),
+                            selected: selectedIsPrivate == true,
+                            onSelected: isReadOnly || isSaving
+                                ? null
+                                : (_) {
+                                    setModalState(() {
+                                      selectedIsPrivate = true;
+                                    });
+                                  },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
                       TextField(
                         controller: reviewController,
                         readOnly: isReadOnly,
@@ -365,12 +408,26 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                                   return;
                                 }
 
+                                if (selectedIsPrivate == null) {
+                                  ScaffoldMessenger.of(
+                                    sheetContext,
+                                  ).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Choose Friends or Private.',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 final customization = LocationCustomization(
                                   pinType: currentType,
                                   formalName: formalNameController.text.trim(),
                                   name: nameController.text.trim(),
                                   review: reviewController.text.trim(),
                                   rating: rating,
+                                  isPrivate: selectedIsPrivate,
                                   selectedPhotos: List.unmodifiable(
                                     selectedPhotos,
                                   ),
