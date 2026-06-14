@@ -9,13 +9,19 @@ import 'package:jio_leh/pages/auth/onboarding_page.dart';
 import 'package:jio_leh/services/auth_gate_resolver.dart';
 import 'package:jio_leh/services/services.dart';
 
+import 'package:app_links/app_links.dart';
+import 'package:jio_leh/pages/profile_page.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       home: AuthGate(),
     );
   }
@@ -35,10 +41,29 @@ class _AuthGateState extends State<AuthGate> {
   late final _account = Services.account;
   late final StreamSubscription<dynamic> _authSub;
   _GateState _state = _GateState.loading;
+  late final AppLinks _appLinks;
+  late final StreamSubscription<Uri> _linkSub;
+  String? _pendingProfileId;
+
+  void _handleLink(Uri uri) {
+    final validLink =
+        uri.scheme == 'com.gijios.jioleh' &&
+        uri.host == 'profile' &&
+        uri.pathSegments.length == 1;
+
+    if (!validLink) return;
+
+    _pendingProfileId = uri.pathSegments.first;
+    _openPendingProfile();
+  }
+
+  
 
   @override
   void initState() {
     super.initState();
+    _appLinks = AppLinks();
+    _linkSub = _appLinks.uriLinkStream.listen(_handleLink);
     // Re-resolve whenever the user signs in or out, then resolve once now
     // for the current session.
     _authSub = _auth.authStateChanges().listen((_) => _resolve());
@@ -48,6 +73,7 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void dispose() {
     _authSub.cancel();
+    _linkSub.cancel();
     super.dispose();
   }
 
@@ -72,12 +98,30 @@ class _AuthGateState extends State<AuthGate> {
         setState(() => _state = _GateState.needsOnboarding);
       } else {
         setState(() => _state = _GateState.ready);
+        _openPendingProfile();
       }
     } catch (_) {
       if (!mounted) return;
       setState(() => _state = _GateState.error);
     }
   }
+
+  void _openPendingProfile() {
+    final profileId = _pendingProfileId;
+
+    if (_state != _GateState.ready || profileId == null) return;
+
+    _pendingProfileId = null;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => ProfilePage(userId: profileId),
+        ),
+      );
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
