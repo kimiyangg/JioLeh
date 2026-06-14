@@ -68,7 +68,47 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _profile = profile);
   }
 
-  
+  // Sends a friend request to the loaded profile, if it's not the current user's own profile and a request isn't already being sent. 
+  //Shows a success message on success, or an error message on failure. 
+  //Updates the state to reflect whether a request is being sent or has been sent.
+
+  Future<void> _sendFriendRequest() async {
+    final profile = _profile;
+
+    if (profile == null || _isOwnProfile || _sendingFriendRequest) {
+      return;
+    }
+
+    setState(() => _sendingFriendRequest = true);
+
+    try {
+      await _friends.sendFriendRequest(profile);
+
+      if (!mounted) return;
+
+      setState(() => _friendRequestSent = true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Friend request sent to ${profile.displayName}',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _sendingFriendRequest = false);
+      }
+    }
+  }
+
+
 
   Future<void> _editProfile() async {
     final profile = _profile;
@@ -278,6 +318,39 @@ class _ProfilePageState extends State<ProfilePage> {
                                       )
                                     ],
                                   )
+                                  else if (!_isOwnProfile && _profile != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        child: FilledButton.icon(
+                                          onPressed: _sendingFriendRequest || _friendRequestSent
+                                              ? null
+                                              : _sendFriendRequest,
+                                          icon: _sendingFriendRequest
+                                              ? const SizedBox(
+                                                  width: 18,
+                                                  height: 18,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: Colors.white,
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  _friendRequestSent
+                                                      ? Icons.check
+                                                      : Icons.person_add,
+                                                ),
+                                          label: Text(
+                                            _friendRequestSent
+                                                ? 'Friend Request Sent'
+                                                : _sendingFriendRequest
+                                                    ? 'Sending...'
+                                                    : 'Add as Friend',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                               ],
                             ),
                           ],
