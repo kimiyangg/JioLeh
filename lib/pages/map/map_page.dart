@@ -206,6 +206,7 @@ class _MapPageState extends State<MapPage> {
         context,
         pinType,
         initialCustomization: LocationCustomization(
+          pinType: pinType,
           formalName: place.name,
           name: pin?.customName ?? '',
           rating: pin?.rating ?? 0,

@@ -36,17 +36,7 @@ class MapPins {
     await _pinsManager!.deleteAll();
     _placesByAnnotationId.clear();
 
-    final renderedPlaces = <Place>[];
-
     for (final place in places) {
-      final alreadyRenderedNearby = renderedPlaces.any(
-        (renderedPlace) => _isNearbyPlace(place, renderedPlace),
-      );
-
-      if (alreadyRenderedNearby) continue;
-
-      renderedPlaces.add(place);
-
       final pin = _primaryPinFor(place);
       final emojiImage = await _emojiImageFor(pin?.emoji ?? '\u{1F4CD}');
       final name = _displayNameFor(place, pin);
@@ -85,17 +75,6 @@ class MapPins {
     }
 
     return place.name.trim();
-  }
-
-  bool _isNearbyPlace(Place firstPlace, Place secondPlace) {
-    const tolerance = 0.0002; // loc within 20m is the "same" place
-
-    final latitudeDifference = (firstPlace.latitude - secondPlace.latitude)
-        .abs();
-    final longitudeDifference = (firstPlace.longitude - secondPlace.longitude)
-        .abs();
-
-    return latitudeDifference < tolerance && longitudeDifference < tolerance;
   }
 
   Future<Uint8List> _emojiImageFor(String emoji) async {
