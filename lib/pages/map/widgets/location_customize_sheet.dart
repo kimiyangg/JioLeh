@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 
 class LocationCustomization {
+  final PinType pinType;
   // The official/formal name of the place (maps to places.name later).
   final String formalName;
   // The user's own preference name for the pin (maps to user_pins.custom_name).
@@ -15,6 +16,7 @@ class LocationCustomization {
   final List<String> photoUrls;
 
   const LocationCustomization({
+    this.pinType = PinType.restaurant,
     this.formalName = '',
     required this.name,
     required this.rating,
@@ -40,6 +42,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
   final reviewController = TextEditingController(
     text: initialCustomization?.review ?? '',
   );
+  var currentType = selectedType;
   var rating = initialCustomization?.rating ?? 0;
   var isSaving = false;
 
@@ -130,14 +133,44 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                     children: [
                       Text(
                         isReadOnly
-                            ? '${selectedType.emoji} Location details'
-                            : '${selectedType.emoji} Customise location',
+                            ? '${currentType.emoji} Location details'
+                            : '${currentType.emoji} Customise location',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      if (!isReadOnly) ...[
+                        const Text(
+                          'Location type',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final option in PinType.values)
+                              ChoiceChip(
+                                label: Text('${option.emoji} ${option.label}'),
+                                selected: currentType == option,
+                                onSelected: isSaving
+                                    ? null
+                                    : (_) {
+                                        setModalState(() {
+                                          currentType = option;
+                                        });
+                                      },
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                      ],
 
                       TextField(
                         controller: formalNameController,
@@ -333,6 +366,7 @@ Future<LocationCustomization?> showLocationCustomizeSheet(
                                 }
 
                                 final customization = LocationCustomization(
+                                  pinType: currentType,
                                   formalName: formalNameController.text.trim(),
                                   name: nameController.text.trim(),
                                   review: reviewController.text.trim(),
