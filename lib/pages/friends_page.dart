@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/pages/profile_page.dart';
 
 class FriendsPage extends StatefulWidget {
   const FriendsPage({super.key});
@@ -207,11 +208,33 @@ class _FriendsPageState extends State<FriendsPage> {
                 ListTile(
                   title: Text(f.userProfile.displayName),
                   subtitle: Text('@${f.userProfile.username}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.person_remove, color: Colors.red),
-                    onPressed: () => _runAction(
-                      () => _friends.removeFriend(f.userProfile),
-                    ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProfilePage(
+                                userId: f.userProfile.id,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('View Profile'),
+                      ),
+                      IconButton(
+                        tooltip: 'Remove friend',
+                        icon: const Icon(
+                          Icons.person_remove,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _runAction(
+                          () => _friends.removeFriend(f.userProfile),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
           ],
