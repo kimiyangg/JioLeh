@@ -55,6 +55,29 @@ class AccountService {
       throw const ProfileAlreadyExists();
     }
 
+    String? avatarUrl;
+
+    if (profilePhoto != null) {
+      final extension =
+          profilePhoto.path.split('.').last.toLowerCase();
+      final path = '$userId/avatar.$extension';
+      final bytes = await profilePhoto.readAsBytes();
+
+      await _supabase.storage.from('profile-photos').uploadBinary(
+        path,
+        bytes,
+        fileOptions: FileOptions(
+          upsert: true,
+          contentType: profilePhoto.mimeType,
+        ),
+      );
+      await _supabase.storage.from('profile-photos').remove([path]);
+
+      avatarUrl = _supabase.storage
+          .from('profile-photos')
+          .getPublicUrl(path);
+    }
+    
     // A generated username can randomly collide with an existing one, so keep
     // generating a fresh code and retrying until the insert succeeds.
     while (true) {
@@ -66,9 +89,11 @@ class AccountService {
           'username': inputUserName,
           'display_name': displayName,
           'bio': _defaultBio,
+          'avatar_url': avatarUrl,
           if (birthday != null)
             'birthday': birthday.toIso8601String().split('T').first,
         });
+
         return;
       } on PostgrestException catch (e) {
         // PostgrestException with code '23505' indicates a unique constraint violation
@@ -87,6 +112,8 @@ class AccountService {
         rethrow;
       }
     }
+    //
+    
   }
 
   /// Looks up a profile by its username. Returns null if no user has it.
