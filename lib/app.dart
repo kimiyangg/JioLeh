@@ -78,11 +78,6 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _resolve() async {
-    if (!_auth.isSignedIn()) {
-      setState(() => _state = _GateState.signedOut);
-      return;
-    }
-
     setState(() => _state = _GateState.loading);
     // Check if the user session is valid and if a profile exists.
     try {
