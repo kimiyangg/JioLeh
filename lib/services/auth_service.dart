@@ -62,7 +62,6 @@ class AuthService {
           : _supabase.auth.getUser());
       return response.user != null;
     } on AuthException {
-      await signOut();
       return false;
     }
   }
@@ -107,8 +106,7 @@ class AuthService {
 
   Future<void> signOut() async {
     if (_signOut != null) {
-      // TODO: mv this to the caller instead, making this a pure query function
-      // await _signOut();
+      await _signOut();
       return;
     }
 
