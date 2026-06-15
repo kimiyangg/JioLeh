@@ -32,6 +32,7 @@ Useful paths:
 | [`docs/DATABASE.md`](docs/DATABASE.md) | Supabase schema, Row-Level Security, storage, and migration workflow |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | Version tags, Android release, iOS release, and release secrets |
 | [`docs/SWE_principles_and_practices.md`](docs/SWE_principles_and_practices.md) | Software engineering study/reference notes |
+| [`docs/UI_UX_PRINCIPLES.md`](docs/UI_UX_PRINCIPLES.md) | Usability, accessibility, and review principles for user interface changes |
 
 ## Local Setup
 
