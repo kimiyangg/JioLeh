@@ -71,7 +71,7 @@ class AccountService {
           contentType: profilePhoto.mimeType,
         ),
       );
-      await _supabase.storage.from('profile-photos').remove([path]);
+
 
       avatarUrl = _supabase.storage
           .from('profile-photos')
