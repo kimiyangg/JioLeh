@@ -3,18 +3,44 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
-  late final SupabaseClient _supabase = Supabase.instance.client;
+  // Fields used for authentication and database operations.
+  // This can be provided via the constructor for testing purposes.
+  AuthService({
+    SupabaseClient? client,
+    Session? Function()? currentSession,
+    User? Function()? currentUser,
+    Future<UserResponse> Function()? getUser,
+    Future<void> Function()? signOut,
+  }) : _client = client,
+       _currentSession = currentSession,
+       _currentUser = currentUser,
+       _getUser = getUser,
+       _signOut = signOut;
 
-  AuthService();
-  
+  final SupabaseClient? _client;
+  final Session? Function()? _currentSession;
+  final User? Function()? _currentUser;
+  final Future<UserResponse> Function()? _getUser;
+  final Future<void> Function()? _signOut;
+
+  SupabaseClient get _supabase => _client ?? Supabase.instance.client;
+
   SupabaseClient get client => _supabase;
 
   User? getCurrentUser() {
+    if (_currentUser != null) {
+      return _currentUser();
+    }
+
     return _supabase.auth.currentUser;
   }
-  
+
   Session? _getCurrentSession() {
     // Helper method to retrieve the current session from the Supabase client.
+    if (_currentSession != null) {
+      return _currentSession();
+    }
+
     return _supabase.auth.currentSession;
   }
 
@@ -23,7 +49,7 @@ class AuthService {
   }
 
   /// Function to check if the current session is still valid by attempting to fetch the user data.
-  /// 
+  ///
   /// Returns true if the session is valid and the user is authenticated, false otherwise.
   Future<bool> hasValidSession() async {
     if (!isSignedIn()) {
@@ -31,7 +57,9 @@ class AuthService {
     }
 
     try {
-      final response = await _supabase.auth.getUser();
+      final response = await (_getUser != null
+          ? _getUser()
+          : _supabase.auth.getUser());
       return response.user != null;
     } on AuthException {
       await signOut();
@@ -71,12 +99,18 @@ class AuthService {
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: kIsWeb ? null : 'com.gijios.jioleh://login-callback/',
-      authScreenLaunchMode:
-          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+      authScreenLaunchMode: kIsWeb
+          ? LaunchMode.platformDefault
+          : LaunchMode.externalApplication,
     );
   }
 
   Future<void> signOut() async {
+    if (_signOut != null) {
+      await _signOut();
+      return;
+    }
+
     await _supabase.auth.signOut();
   }
 }

@@ -5,8 +5,13 @@ import 'geocoding_service.dart';
 import 'account_service.dart';
 import 'friends_service.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 class Services {
-  static final auth = AuthService();
+  static final _client = Supabase.instance.client;
+
+  static final auth = AuthService(client: _client);
+
   static final pins = PinService(auth);
   static final location = LocationService();
   static final geocoding = GeocodingService();
