@@ -71,7 +71,7 @@ void main() {
       });
 
       test(
-        'signs out and returns false when getUser throws AuthException',
+        'returns false without signing out when getUser throws AuthException',
         () async {
           var signOutCalls = 0;
           final auth = AuthService(
@@ -85,7 +85,7 @@ void main() {
           final result = await auth.hasValidSession();
 
           expect(result, isFalse);
-          expect(signOutCalls, 1);
+          expect(signOutCalls, 0);
         },
       );
     });

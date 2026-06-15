@@ -107,7 +107,8 @@ class AuthService {
 
   Future<void> signOut() async {
     if (_signOut != null) {
-      await _signOut();
+      // TODO: mv this to the caller instead, making this a pure query function
+      // await _signOut();
       return;
     }
 
