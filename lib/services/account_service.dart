@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/services/auth_service.dart';
@@ -45,6 +46,7 @@ class AccountService {
     String? username,
     required String displayName,
     DateTime? birthday,
+    XFile? profilePhoto,
   }) async {
     // Inserts the current user's profile row
     final userId = auth.getCurrentUserId();
@@ -122,6 +124,7 @@ class AccountService {
     required String displayName,
     String? bio,
     DateTime? birthday,
+    XFile? profilePhoto,
   }) async {
     final userId = auth.getCurrentUserId();
 

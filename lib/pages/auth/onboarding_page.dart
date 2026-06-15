@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/services/account_service.dart';
@@ -20,6 +22,22 @@ class OnboardingPage extends StatefulWidget {
 class _OnboardingPageState extends State<OnboardingPage> {
   final _auth = Services.auth;
   late final _account = Services.account;
+
+  final _imagePicker = ImagePicker();
+  XFile? _profilePhoto;
+
+  Future<void> _pickProfilePhoto() async {
+    final photo = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1000,
+      maxHeight: 1000,
+      imageQuality: 80,
+    );
+
+    if (photo != null && mounted) {
+      setState(() => _profilePhoto = photo);
+    }
+  }
 
   late final TextEditingController _displayNameController;
   final _usernameController = TextEditingController();
@@ -92,6 +110,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         username: username,
         displayName: _displayNameController.text.trim(),
         birthday: _buildBirthday(),
+        profilePhoto: _profilePhoto,
       );
       // Tell AuthGate to re-check; it will route on to the MapPage.
       await widget.onComplete?.call();
@@ -147,11 +166,23 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           ),
                         ),
                         WelcomeHeader(),
-                        SizedBox(
+                        // Profile photo picker
+                        SizedBox( 
                           width: double.infinity,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundColor: AppColors.darkWidgetBackground,
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: _submitting ? null : _pickProfilePhoto,
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundColor: AppColors.darkWidgetBackground,
+                                foregroundImage: _profilePhoto == null 
+                                    ? null
+                                    : FileImage(File(_profilePhoto!.path)),
+                                child: _profilePhoto == null
+                                    ? const Icon(Icons.add_a_photo, color: Colors.white)
+                                    : null,
+                              ),
+                          ),
                           ),
                         ),
                         ProfileForm(
