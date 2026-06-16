@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jio_leh/services/auth_gate_resolver.dart';
+import 'package:jio_leh/routing/auth_gate_resolver.dart';
 
 void main() {
   group('resolveAuthGateState', () {
@@ -24,27 +24,29 @@ void main() {
       expect(profileExistsCalls, 0);
     });
 
-    test('stale deleted account resolves to signedOut instead of onboarding',
-        () async {
-      var hasValidSessionCalls = 0;
-      var profileExistsCalls = 0;
+    test(
+      'stale deleted account resolves to signedOut instead of onboarding',
+      () async {
+        var hasValidSessionCalls = 0;
+        var profileExistsCalls = 0;
 
-      final result = await resolveAuthGateState(
-        isSignedIn: () => true,
-        hasValidSession: () async {
-          hasValidSessionCalls++;
-          return false;
-        },
-        profileExists: () async {
-          profileExistsCalls++;
-          return false;
-        },
-      );
+        final result = await resolveAuthGateState(
+          isSignedIn: () => true,
+          hasValidSession: () async {
+            hasValidSessionCalls++;
+            return false;
+          },
+          profileExists: () async {
+            profileExistsCalls++;
+            return false;
+          },
+        );
 
-      expect(result, AuthGateResult.signedOut);
-      expect(hasValidSessionCalls, 1);
-      expect(profileExistsCalls, 0);
-    });
+        expect(result, AuthGateResult.signedOut);
+        expect(hasValidSessionCalls, 1);
+        expect(profileExistsCalls, 0);
+      },
+    );
 
     test('valid session without profile resolves to needsOnboarding', () async {
       var profileExistsCalls = 0;
