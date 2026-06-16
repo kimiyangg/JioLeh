@@ -25,6 +25,12 @@ class AuthGateModel extends ChangeNotifier {
 
   StreamSubscription? _authChanges;
 
+  // Each check() takes the next ticket number. Only the call holding the
+  // latest ticket may write its result, so a slower older check can't overwrite
+  // a newer one. _disposed stops us notifying after the model is thrown away.
+  int _latestCheck = 0;
+  bool _disposed = false;
+
   /// Listen for login changes and do the first check.
   void start() {
     _authChanges = auth.authStateChanges().listen((_) => check());
@@ -33,6 +39,7 @@ class AuthGateModel extends ChangeNotifier {
 
   /// Check the login state and update which screen to show.
   Future<void> check() async {
+    final myCheck = ++_latestCheck; // claim the newest ticket
     _setScreen(AuthGateScreen.loading);
     try {
       final result = await resolveAuthGateState(
@@ -40,13 +47,18 @@ class AuthGateModel extends ChangeNotifier {
         hasValidSession: auth.hasValidSession,
         profileExists: account.profileExists,
       );
+      // A newer check started, or check disposed, then drop stale result.
+      if (_disposed || myCheck != _latestCheck) return;
       _setScreen(switch (result) {
         AuthGateResult.signedOut => AuthGateScreen.login,
         AuthGateResult.needsOnboarding => AuthGateScreen.onboarding,
         AuthGateResult.ready => AuthGateScreen.map,
       });
+    // catch(_) means catch whatever error without caring what is the error
     } catch (_) {
-      // Network / lookup errors show a retry screen instead of forcing login.
+      // No need to switch the screen to error is not the triggering ticket
+      if (_disposed || myCheck != _latestCheck) return;
+      // Errors show a retry screen instead of forcing login.
       _setScreen(AuthGateScreen.error);
     }
   }
@@ -58,6 +70,7 @@ class AuthGateModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _authChanges?.cancel();
     super.dispose();
   }
