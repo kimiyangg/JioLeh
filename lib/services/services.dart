@@ -1,4 +1,5 @@
 import 'auth_service.dart';
+import 'supabase_auth_service.dart';
 import 'pin_service.dart';
 import 'location_service.dart';
 import 'geocoding_service.dart';
@@ -14,7 +15,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class Services {
   static final _client = Supabase.instance.client;
 
-  static final auth = AuthService(client: _client);
+  // Pick the real worker here, ONCE. The type stays AuthService, so the rest
+  // of the app never mentions Supabase.
+  static final AuthService auth = SupabaseAuthService(client: _client);
 
   static final pins = PinService(client: _client, auth: auth);
   static final location = LocationService();
