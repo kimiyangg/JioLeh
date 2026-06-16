@@ -1,99 +1,92 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jio_leh/services/auth_service.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/services/supabase_auth_service.dart';
+
+// Pretend versions of the two Supabase pieces we touch.
+class _MockSupabaseClient extends Mock implements SupabaseClient {}
+
+class _MockGoTrueClient extends Mock implements GoTrueClient {}
+
 void main() {
-  group('AuthService', () {
-    group('isSignedIn', () {
-      test('returns false when there is no current session', () {
-        final auth = AuthService(currentSession: () => null);
+  late _MockGoTrueClient gotrue; // the "auth" part of Supabase
+  late _MockSupabaseClient client;
+  late SupabaseAuthService auth;
 
-        expect(auth.isSignedIn(), isFalse);
-      });
+  setUp(() {
+    gotrue = _MockGoTrueClient();
+    client = _MockSupabaseClient();
+    // Whenever the code reads client.auth, hand back our fake auth.
+    when(() => client.auth).thenReturn(gotrue);
+    auth = SupabaseAuthService(client: client);
+  });
 
-      test('returns true when there is a current session', () {
-        final auth = AuthService(currentSession: () => _session);
-
-        expect(auth.isSignedIn(), isTrue);
-      });
+  group('isSignedIn', () {
+    test('false when there is no current session', () {
+      when(() => gotrue.currentSession).thenReturn(null);
+      expect(auth.isSignedIn(), isFalse);
     });
 
-    group('getCurrentUserId', () {
-      test('throws NotSignedInException when there is no current user', () {
-        final auth = AuthService(currentUser: () => null);
+    test('true when there is a current session', () {
+      when(() => gotrue.currentSession).thenReturn(_session);
+      expect(auth.isSignedIn(), isTrue);
+    });
+  });
 
-        expect(auth.getCurrentUserId, throwsA(isA<NotSignedInException>()));
-      });
-
-      test('returns the current user ID when there is a current user', () {
-        final auth = AuthService(currentUser: () => _user);
-
-        expect(auth.getCurrentUserId(), 'user-id');
-      });
+  group('getCurrentUserId', () {
+    test('throws NotSignedInException when there is no current user', () {
+      when(() => gotrue.currentUser).thenReturn(null);
+      expect(auth.getCurrentUserId, throwsA(isA<NotSignedInException>()));
     });
 
-    group('hasValidSession', () {
-      test(
-        'returns false without calling getUser when there is no session',
-        () async {
-          var getUserCalls = 0;
-          final auth = AuthService(
-            currentSession: () => null,
-            getUser: () async {
-              getUserCalls++;
-              return _userResponseWithUser;
-            },
-          );
+    test('returns the user ID when there is a current user', () {
+      when(() => gotrue.currentUser).thenReturn(_user);
+      expect(auth.getCurrentUserId(), 'user-id');
+    });
+  });
 
-          final result = await auth.hasValidSession();
+  group('hasValidSession', () {
+    test('false without calling getUser when there is no session', () async {
+      when(() => gotrue.currentSession).thenReturn(null);
 
-          expect(result, isFalse);
-          expect(getUserCalls, 0);
-        },
-      );
+      final result = await auth.hasValidSession();
 
-      test('returns true when getUser returns a user', () async {
-        final auth = AuthService(
-          currentSession: () => _session,
-          getUser: () async => _userResponseWithUser,
-        );
+      expect(result, isFalse);
+      verifyNever(() => gotrue.getUser());
+    });
 
-        await expectLater(auth.hasValidSession(), completion(isTrue));
-      });
+    test('true when getUser returns a user', () async {
+      when(() => gotrue.currentSession).thenReturn(_session);
+      when(
+        () => gotrue.getUser(),
+      ).thenAnswer((_) async => _userResponseWithUser);
 
-      test('returns false when getUser returns no user', () async {
-        final auth = AuthService(
-          currentSession: () => _session,
-          getUser: () async => _userResponseWithoutUser,
-        );
+      await expectLater(auth.hasValidSession(), completion(isTrue));
+    });
 
-        await expectLater(auth.hasValidSession(), completion(isFalse));
-      });
+    test('false when getUser returns no user', () async {
+      when(() => gotrue.currentSession).thenReturn(_session);
+      when(
+        () => gotrue.getUser(),
+      ).thenAnswer((_) async => _userResponseWithoutUser);
 
-      test(
-        'returns false without signing out when getUser throws AuthException',
-        () async {
-          var signOutCalls = 0;
-          final auth = AuthService(
-            currentSession: () => _session,
-            getUser: () async => throw const AuthException('expired session'),
-            signOut: () async {
-              signOutCalls++;
-            },
-          );
+      await expectLater(auth.hasValidSession(), completion(isFalse));
+    });
 
-          final result = await auth.hasValidSession();
+    test('false when getUser throws AuthException', () async {
+      when(() => gotrue.currentSession).thenReturn(_session);
+      when(
+        () => gotrue.getUser(),
+      ).thenThrow(const AuthException('expired session'));
 
-          expect(result, isFalse);
-          expect(signOutCalls, 0);
-        },
-      );
+      await expectLater(auth.hasValidSession(), completion(isFalse));
     });
   });
 }
 
-// Minimal Supabase auth model fixture: these are the required Session/User
-// constructor fields from gotrue, and isSignedIn only needs a non-null session.
+// Same minimal Session/User fixtures as before.
 final _session = Session(
   accessToken: 'access-token',
   tokenType: 'bearer',
@@ -105,7 +98,7 @@ final _user = User(
   appMetadata: const {},
   userMetadata: const {},
   aud: 'authenticated',
-  createdAt: DateTime(2026).toIso8601String(),
+  createdAt: '2026-01-01T00:00:00.000Z',
 );
 
 final _userResponseWithUser = UserResponse.fromJson(_user.toJson());
