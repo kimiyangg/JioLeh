@@ -19,6 +19,13 @@ class AppColors {
   static const lightSubtitle = Color(0xFF897568);
 
   static const disabledButton = Color(0xFF4B443B);
+
+  // Near-black face of the dark buttons (Google sign-in, etc.).
+  static const darkButton = Color(0xFF211D18);
+
+  // Muted greys for secondary text on the auth screens.
+  static const taglineText = Color(0xFF776F65);
+  static const authBodyText = Color(0xFF7A736A);
 }
 
 class LogoColors {
