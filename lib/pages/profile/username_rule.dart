@@ -7,7 +7,7 @@ class UsernameRule {
   const UsernameRule._();
 
   static const minLength = 3;
-  static const maxLength = 10;
+  static const maxLength = 15;
   static const _charClass = '[a-z0-9]';
 
   /// Matches a single allowed character (used by the input formatter).
