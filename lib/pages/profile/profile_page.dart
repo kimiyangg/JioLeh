@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/pages/profile/profile_edit_page.dart';
 
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/services/account_service.dart';
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/services/friends_service.dart';
 
 import "package:jio_leh/theme.dart";
 import 'package:jio_leh/pages/profile/share_code_page.dart';
@@ -18,9 +21,10 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late final _account = Services.account;
-
-  late final _friends = Services.friends;
+  late final AccountService _account;
+  late final FriendsService _friends;
+  late final AuthService _auth;
+  bool _didInit = false;
 
   bool _sendingFriendRequest = false;
   bool _friendRequestSent = false;
@@ -29,8 +33,18 @@ class _ProfilePageState extends State<ProfilePage> {
   UserProfile? _profile;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Services come from the provider, which can't be read in initState. Do the
+    // one-time setup here (didChangeDependencies can fire more than once).
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _account = services.account;
+    _friends = services.friends;
+    _auth = services.auth;
+
     _loadProfile();
   }
 
@@ -40,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final profile = _profile;
     if (profile == null) return false;
 
-    return profile.id == Services.auth.getCurrentUserId();
+    return profile.id == _auth.getCurrentUserId();
   }
 
   // Loads the profile from the database and updates the state. If the profile
