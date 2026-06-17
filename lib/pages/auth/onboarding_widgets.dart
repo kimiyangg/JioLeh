@@ -41,7 +41,7 @@ class WelcomeHeader extends StatelessWidget {
                 maxLines: 1,
                 style: TextStyle(
                   fontSize: subtitleSize,
-                  color: AppColors.onboardingSubtitle,
+                  color: AppColors.lightSubtitle,
                 ),
               ),
             ),
@@ -91,7 +91,7 @@ class ProfileForm extends StatelessWidget {
               "USER ID",
               style: TextStyle(
                 fontSize: labelSize,
-                color: AppColors.onboardingSubtitle,
+                color: AppColors.lightSubtitle,
                 fontWeight: FontWeight.bold
               ),
             ),
@@ -133,7 +133,7 @@ class ProfileForm extends StatelessWidget {
               "YOUR NAME",
               style: TextStyle(
                 fontSize: labelSize,
-                color: AppColors.onboardingSubtitle,
+                color: AppColors.lightSubtitle,
                 fontWeight: FontWeight.bold
               ),
             ),
@@ -171,7 +171,7 @@ class ProfileForm extends StatelessWidget {
               "BIRTHDAY · OPTIONAL",
               style: TextStyle(
                 fontSize: labelSize,
-                color: AppColors.onboardingSubtitle,
+                color: AppColors.lightSubtitle,
                 fontWeight: FontWeight.bold
               ),
             ),

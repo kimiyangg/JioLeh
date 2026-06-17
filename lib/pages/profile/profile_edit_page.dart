@@ -176,7 +176,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       "PROFILE PHOTO",
                       style: TextStyle(
                         fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
+                        color: AppColors.lightSubtitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -209,7 +209,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       "DISPLAY NAME",
                       style: TextStyle(
                         fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
+                        color: AppColors.lightSubtitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -253,7 +253,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       "BIO",
                       style: TextStyle(
                         fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
+                        color: AppColors.lightSubtitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -299,7 +299,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       "BIRTHDAY",
                       style: TextStyle(
                         fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
+                        color: AppColors.lightSubtitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
