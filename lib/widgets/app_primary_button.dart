@@ -2,38 +2,48 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/theme.dart';
 
-/// The app's main call-to-action button: a forest-green "lifted" button with a
-/// solid drop shadow. Shows a spinner and blocks taps while [isLoading].
+/// The app's main call-to-action button: a lifted button with a solid drop
+/// shadow. Defaults to the forest-green theme; pass [backgroundColor]/[liftColor]
+/// for other skins. Shows a spinner and blocks taps while [isLoading].
 ///
 /// * [label]: The button text.
 /// * [onPressed]: Called on tap. Pass null to disable; ignored while loading.
-/// * [icon]: Optional leading icon shown before the label.
+/// * [icon]: Optional leading icon (font glyph) shown before the label.
+/// * [leading]: Optional leading widget; takes precedence over [icon] when set.
 /// * [isLoading]: When true, shows a spinner instead of the label and disables taps.
+/// * [backgroundColor]: The button face colour.
+/// * [liftColor]: The solid drop-shadow colour that gives the lifted look.
 class AppPrimaryButton extends StatelessWidget {
   const AppPrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.icon,
+    this.leading,
     this.isLoading = false,
+    this.backgroundColor = AppColors.lightWidgetBackground,
+    this.liftColor = LogoColors.forestLogo,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+  final Widget? leading;
   final bool isLoading;
+  final Color backgroundColor;
+  final Color liftColor;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: LogoColors.forestLogo,
+        color: liftColor,
         borderRadius: BorderRadius.circular(AppRadii.elements),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: LogoColors.forestLogo,
+            color: liftColor,
             blurRadius: 0,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -42,7 +52,7 @@ class AppPrimaryButton extends StatelessWidget {
         height: AppButtonHeights.primary,
         child: FilledButton(
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.lightWidgetBackground,
+            backgroundColor: backgroundColor,
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppColors.disabledButton,
             shape: RoundedRectangleBorder(
@@ -64,7 +74,10 @@ class AppPrimaryButton extends StatelessWidget {
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (icon != null) ...[
+                    if (leading != null) ...[
+                      leading!,
+                      const SizedBox(width: 8),
+                    ] else if (icon != null) ...[
                       Icon(icon, size: 20),
                       const SizedBox(width: 8),
                     ],

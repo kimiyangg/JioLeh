@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_primary_button.dart';
 
 class BrandLockup extends StatelessWidget {
   const BrandLockup({super.key});
@@ -84,9 +85,13 @@ class SignInPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _GoogleSignInButton(
-            isSigningIn: isSigningIn,
+          AppPrimaryButton(
+            label: 'Continue with Google',
             onPressed: onGooglePressed,
+            leading: const _GoogleLogoDisc(),
+            isLoading: isSigningIn,
+            backgroundColor: AppColors.darkButton,
+            liftColor: Colors.black,
           ),
           const SizedBox(height: 16),
           Text.rich(
@@ -117,64 +122,6 @@ class SignInPanel extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({
-    required this.isSigningIn,
-    required this.onPressed,
-  });
-
-  final bool isSigningIn;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final buttonTextSize = context.scaledFont(AppTextSizes.button);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(AppRadii.elements),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 0,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        height: AppButtonHeights.primary,
-        child: FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.darkButton,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: AppColors.disabledButton,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadii.elements),
-            ),
-            elevation: 0,
-            textStyle: TextStyle(
-              fontSize: buttonTextSize,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          child:
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _GoogleLogoDisc(),
-                SizedBox(width: 11),
-                Text('Continue with Google'),
-              ],
-            ),
-        ),
       ),
     );
   }

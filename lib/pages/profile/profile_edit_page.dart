@@ -104,7 +104,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final titleSize = context.scaledFont(AppTextSizes.heading);
+    final titleSize = context.scaledFont(AppTextSizes.heading) + 2;
     final labelSize = context.scaledFont(AppTextSizes.label);
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -124,7 +124,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         Text(
                           "Edit Profile",
                           style: TextStyle(
-                            fontSize: titleSize + 2,
+                            fontSize: titleSize,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
