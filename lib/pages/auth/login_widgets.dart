@@ -52,7 +52,6 @@ class SignInPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final headingSize = context.scaledFont(AppTextSizes.caption);
-    final termsSize = context.scaledFont(AppTextSizes.caption);
 
     return Container(
       width: double.infinity,
@@ -94,35 +93,59 @@ class SignInPanel extends StatelessWidget {
             liftColor: Colors.black,
           ),
           const SizedBox(height: 16),
-          Text.rich(
-            TextSpan(
-              text: "By continuing you agree to our ",
-              style: TextStyle(
-                color: AppColors.authBodyText,
-                fontSize: termsSize,
-                fontWeight: FontWeight.w500,
-              ),
-              children: [
-                TextSpan(
-                  text: "Terms & Privacy",
-                  style: TextStyle(
-                    color: AppColors.authBodyText,
-                    fontSize: termsSize,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(
-                      Uri.parse('https://jio-leh-website.vercel.app/privacy'),
-                      mode: LaunchMode.inAppBrowserView,
-                    ),
-                ),
-              ],
+          const _TermsText(),
+        ],
+      ),
+    );
+  }
+}
+
+class _TermsText extends StatefulWidget {
+  const _TermsText();
+
+  @override
+  State<_TermsText> createState() => _TermsTextState();
+}
+
+class _TermsTextState extends State<_TermsText> {
+  late final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer()
+    ..onTap = () => launchUrl(
+          Uri.parse('https://jio-leh-website.vercel.app/privacy'),
+          mode: LaunchMode.inAppBrowserView,
+        );
+
+  @override
+  void dispose() {
+    _privacyRecognizer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final termsSize = context.scaledFont(AppTextSizes.caption);
+
+    return Text.rich(
+      TextSpan(
+        text: "By continuing you agree to our ",
+        style: TextStyle(
+          color: AppColors.authBodyText,
+          fontSize: termsSize,
+          fontWeight: FontWeight.w500,
+        ),
+        children: [
+          TextSpan(
+            text: "Terms & Privacy",
+            style: TextStyle(
+              color: AppColors.authBodyText,
+              fontSize: termsSize,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.underline,
             ),
-            textAlign: TextAlign.center,
+            recognizer: _privacyRecognizer,
           ),
         ],
       ),
+      textAlign: TextAlign.center,
     );
   }
 }
