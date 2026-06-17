@@ -16,7 +16,9 @@ class AppColors {
   static const lightWidgetText = Color(0xFF16271B);
   static const darkWidgetText = Color(0xFFFFFFFF);
 
-  static const onboardingSubtitle = Color(0xFF897568);
+  static const lightSubtitle = Color(0xFF897568);
+
+  static const disabledButton = Color(0xFF4B443B);
 }
 
 class LogoColors {
@@ -24,11 +26,27 @@ class LogoColors {
   static const forestLogo = Color(0xFF0B3D2E);
 }
 
+class AppRadii {
+  static const elements = 16.0;
+}
+
+class AppShadows {
+  static const field = [
+    BoxShadow(color: Color(0x0F1E1B16), blurRadius: 24, offset: Offset(0, 8)),
+  ];
+}
+
+// Standard height for a single-line input field box.
+class AppFieldHeights {
+  static const single = 55.0;
+}
+
 // The text sizes used in the app, defined as constants for consistency and easy maintenance.
 class AppTextSizes {
   static const heading = 26.0;
   static const subtitle = 18.0;
   static const body = 16.0;
+  static const textFieldHint = 16.0;
   static const label = 13.0;
   static const button = 17.0;
   static const caption = 12.0;
