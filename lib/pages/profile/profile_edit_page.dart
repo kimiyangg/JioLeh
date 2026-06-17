@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/models/user_profile.dart';
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
@@ -78,9 +78,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       return;
     }
 
+    // Read the service from the provider before the first await (context is
+    // valid here because this runs from a button tap after build).
+    final account = ServiceProvider.of(context)!.account;
+
     setState(() => _saving = true);
     try {
-      final updatedProfile = await Services.account.updateProfile(
+      final updatedProfile = await account.updateProfile(
         displayName: displayName,
         bio: bio.isEmpty ? null : bio,
         birthday: birthday,
