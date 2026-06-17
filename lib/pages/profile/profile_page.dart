@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/models/user_profile.dart';
-import 'package:jio_leh/pages/profile_edit_page.dart';
+import 'package:jio_leh/pages/profile/profile_edit_page.dart';
 
 import 'package:jio_leh/services/services.dart';
 
 import "package:jio_leh/theme.dart";
-import 'package:jio_leh/pages/share_code_page.dart';
+import 'package:jio_leh/pages/profile/share_code_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? userId;

@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/services/account_service.dart';
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 
 import 'onboarding_widgets.dart';
@@ -20,8 +21,9 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
-  final _auth = Services.auth;
-  late final _account = Services.account;
+  late final AuthService _auth;
+  late final AccountService _account;
+  bool _didInit = false;
 
   final _imagePicker = ImagePicker();
   XFile? _profilePhoto;
@@ -62,8 +64,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Services come from the provider, which can't be read in initState. Do the
+    // one-time setup here (didChangeDependencies can fire more than once).
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _auth = services.auth;
+    _account = services.account;
+
     // Prefill the display name with the name Google gave us.
     final metadata = _auth.getCurrentUser()?.userMetadata;
     final googleName =

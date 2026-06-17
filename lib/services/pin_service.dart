@@ -8,15 +8,12 @@ import 'package:jio_leh/services/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PinService {
-  PinService(this.auth);
+  // `required this.auth` stores the injected AuthService in the auth field.
+  PinService({required SupabaseClient client, required this.auth})
+    : _supabase = client;
+
   final AuthService auth;
-
-  // The Supabase client is shared from AuthService so there is a single
-  // source of truth for which client this app talks to.
-
-  // This getter exists purely as a convenience alias so the method bodies can write
-  // _supabase.from(...) instead of the noisier auth.client.from(...)
-  SupabaseClient get _supabase => auth.client;
+  final SupabaseClient _supabase;
 
   static const _placesTable = 'places';
   static const _userPinsTable = 'user_pins';

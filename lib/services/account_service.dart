@@ -8,13 +8,7 @@ import 'package:jio_leh/models/user_profile.dart';
 
 class AccountService {
   final AuthService auth;
-
-  // The Supabase client is shared from AuthService so there is a single
-  // source of truth for which client this app talks to.
-
-  // This getter exists purely as a convenience alias so the method bodies can write
-  // _supabase.from(...) instead of the noisier auth.client.from(...)
-  SupabaseClient get _supabase => auth.client;
+  final SupabaseClient _supabase;
 
   // Static table name for user profiles in the database
   static const _tableName = 'profiles';
@@ -23,10 +17,9 @@ class AccountService {
   static const _defaultBio =
       "New here and keen to meet some kakis. Always down for makan or a casual hang. Jio me la 🙂";
 
-  // auth is required so the shared AuthService (from the Services composition
-  // root) is always injected. There is no silent fallback, so a stray second
-  // AuthService can never be created here.
-  AccountService(this.auth);
+  // `required this.auth` stores the injected AuthService in the auth field.
+  AccountService({required SupabaseClient client, required this.auth})
+    : _supabase = client;
 
   Future<bool> profileExists() async {
     // Returns whether the current user has a profile row
@@ -58,26 +51,24 @@ class AccountService {
     String? avatarUrl;
 
     if (profilePhoto != null) {
-      final extension =
-          profilePhoto.path.split('.').last.toLowerCase();
+      final extension = profilePhoto.path.split('.').last.toLowerCase();
       final path = '$userId/avatar.$extension';
       final bytes = await profilePhoto.readAsBytes();
 
-      await _supabase.storage.from('profile-photos').uploadBinary(
-        path,
-        bytes,
-        fileOptions: FileOptions(
-          upsert: true,
-          contentType: profilePhoto.mimeType,
-        ),
-      );
-
-
-      avatarUrl = _supabase.storage
+      await _supabase.storage
           .from('profile-photos')
-          .getPublicUrl(path);
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(
+              upsert: true,
+              contentType: profilePhoto.mimeType,
+            ),
+          );
+
+      avatarUrl = _supabase.storage.from('profile-photos').getPublicUrl(path);
     }
-    
+
     // A generated username can randomly collide with an existing one, so keep
     // generating a fresh code and retrying until the insert succeeds.
     while (true) {
@@ -113,7 +104,6 @@ class AccountService {
       }
     }
     //
-    
   }
 
   /// Looks up a profile by its username. Returns null if no user has it.
@@ -145,7 +135,7 @@ class AccountService {
   }
 
   /// Updates the current user's profile with the given display name, bio, and birthday.
-  /// 
+  ///
   /// Returns the updated UserProfile after a successful update.
   Future<UserProfile> updateProfile({
     required String displayName,
@@ -170,24 +160,25 @@ class AccountService {
   }
 
   /// Generates a random username consisting of 8 lowercase letters and digits.
-  /// 
+  ///
   /// Returns a string that can be used as a default username
   String generateUserName() {
     final random = Random();
     final letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
     String code = '';
     for (int i = 0; i < 8; i++) {
-        code += letters[random.nextInt(letters.length)];
+      code += letters[random.nextInt(letters.length)];
     }
     return code;
   }
+
   /// Retrieves a user profile by its unique ID. Returns null if no profile is found.
   Future<UserProfile?> getProfileById(String userId) async {
     final row = await _supabase
-      .from(_tableName)
-      .select()
-      .eq('id', userId)
-      .maybeSingle();
+        .from(_tableName)
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
 
     return row == null ? null : UserProfile.fromMap(row);
   }
@@ -203,12 +194,10 @@ class AccountException implements Exception {
 
 /// Exception thrown when Username already taken
 class UsernameTaken extends AccountException {
-  const UsernameTaken()
-    : super('Username Taken');
+  const UsernameTaken() : super('Username Taken');
 }
 
 /// Exception thrown when the user already has a profile
 class ProfileAlreadyExists extends AccountException {
-  const ProfileAlreadyExists()
-    : super('Profile already exists');
+  const ProfileAlreadyExists() : super('Profile already exists');
 }
