@@ -27,7 +27,7 @@ class BrandLockup extends StatelessWidget {
           'Pin, drop, and jio - all on one map.',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: const Color(0xFF776F65),
+            color: AppColors.taglineText,
             fontSize: taglineSize,
             fontWeight: FontWeight.w500,
             height: 1.45,
@@ -77,7 +77,7 @@ class SignInPanel extends StatelessWidget {
               maxLines: 1,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: const Color(0xFF7A736A),
+                color: AppColors.authBodyText,
                 fontSize: headingSize,
                 fontWeight: FontWeight.w600,
               ),
@@ -93,7 +93,7 @@ class SignInPanel extends StatelessWidget {
             TextSpan(
               text: "By continuing you agree to our ",
               style: TextStyle(
-                color: const Color(0xFF7A736A),
+                color: AppColors.authBodyText,
                 fontSize: termsSize,
                 fontWeight: FontWeight.w500,
               ),
@@ -101,7 +101,7 @@ class SignInPanel extends StatelessWidget {
                 TextSpan(
                   text: "Terms & Privacy",
                   style: TextStyle(
-                    color: const Color(0xFF7A736A),
+                    color: AppColors.authBodyText,
                     fontSize: termsSize,
                     fontWeight: FontWeight.w500,
                     decoration: TextDecoration.underline,
@@ -138,7 +138,7 @@ class _GoogleSignInButton extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.black,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.elements),
         boxShadow: const [
           BoxShadow(
             color: Colors.black,
@@ -148,15 +148,15 @@ class _GoogleSignInButton extends StatelessWidget {
         ],
       ),
       child: SizedBox(
-        height: 54,
+        height: AppButtonHeights.primary,
         child: FilledButton(
           onPressed: onPressed,
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF211D18),
+            backgroundColor: AppColors.darkButton,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: const Color(0xFF4B443B),
+            disabledBackgroundColor: AppColors.disabledButton,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.elements),
             ),
             elevation: 0,
             textStyle: TextStyle(
