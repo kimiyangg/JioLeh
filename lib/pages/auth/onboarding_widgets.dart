@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_section_label.dart';
+import 'package:jio_leh/widgets/app_text_field.dart';
+import 'package:jio_leh/widgets/birthday_row.dart';
 
 class WelcomeHeader extends StatelessWidget {
   const WelcomeHeader({super.key});
@@ -52,9 +55,17 @@ class WelcomeHeader extends StatelessWidget {
   }
 }
 
-// TODO: Containing way too much params and overcomplicated
-// shld change method of feeding params or seperate to smaller widgets
-// Kimi 2026/06/09
+/// The onboarding profile form: user id, display name, and an optional
+/// birthday. Each field is built from the shared design-system widgets
+/// ([AppSectionLabel], [AppTextField], [BirthdayRow]).
+///
+/// * [usernameController]: Controller for the user id field.
+/// * [displayNameController]: Controller for the display name field.
+/// * [dayController]: Controller for the birthday day (DD) field.
+/// * [yearController]: Controller for the birthday year (YYYY) field.
+/// * [selectedMonth]: The currently selected birthday month, or null.
+/// * [months]: The month names shown in the birthday dropdown.
+/// * [onMonthChanged]: Called when the user picks a different month.
 class ProfileForm extends StatelessWidget {
   const ProfileForm({
     super.key,
@@ -77,220 +88,40 @@ class ProfileForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelSize = context.scaledFont(AppTextSizes.label);
-    final fieldSize = context.scaledFont(AppTextSizes.body);
-
     return SizedBox(
       width: double.infinity,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(30, 20, 30, 30),
+        padding: const EdgeInsets.fromLTRB(30, 20, 30, 30),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "USER ID",
-              style: TextStyle(
-                fontSize: labelSize,
-                color: AppColors.lightSubtitle,
-                fontWeight: FontWeight.bold
-              ),
-            ),
-            SizedBox(height: 10,),
-            Container(
-              width: double.infinity,
-              height: 55,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0F1E1B16),
-                    blurRadius: 24,
-                    offset: Offset(0, 8),
-                  ),
-                ]
-              ),
-              child: TextField(
-                controller: usernameController,
-                decoration: InputDecoration(
-                  hintText: "3-10 lowercase letters or digits",
-                  hintStyle: TextStyle(
-                    fontSize: fieldSize,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9]')),
-                  LengthLimitingTextInputFormatter(10),
-                ]
-              ),
-            ),
-            SizedBox(height: 30),
-            Text(
-              "YOUR NAME",
-              style: TextStyle(
-                fontSize: labelSize,
-                color: AppColors.lightSubtitle,
-                fontWeight: FontWeight.bold
-              ),
-            ),
-            SizedBox(height: 10,),
-            Container(
-              width: double.infinity,
-              height: 55,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0F1E1B16),
-                    blurRadius: 24,
-                    offset: Offset(0, 8),
-                  ),
-                ]
-              ),
-              child: TextField(
-                controller: displayNameController,
-                decoration: InputDecoration(
-                  hintText: "What should we call you?",
-                  hintStyle: TextStyle(
-                    fontSize: fieldSize,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                ),
-              ),
-            ),
-            SizedBox(height: 30),
-            Text(
-              "BIRTHDAY · OPTIONAL",
-              style: TextStyle(
-                fontSize: labelSize,
-                color: AppColors.lightSubtitle,
-                fontWeight: FontWeight.bold
-              ),
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0F1E1B16),
-                          blurRadius: 24,
-                          offset: Offset(0, 8),
-                        ),
-                      ]
-                    ),
-                    child: TextField(
-                      controller: dayController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: "DD",
-                        hintStyle: TextStyle(
-                          fontSize: fieldSize,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  flex: 4,
-                  child: Container(
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0F1E1B16),
-                          blurRadius: 24,
-                          offset: Offset(0, 8),
-                        ),
-                      ]
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: DropdownButton<String>(
-                        value: selectedMonth,
-                        hint: Text(
-                          "Month",
-                          style: TextStyle(
-                            fontSize: fieldSize,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        isExpanded: true,
-                        style: TextStyle(
-                          fontSize: fieldSize,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold
-                        ),
-                        dropdownColor: AppColors.lightBackground,
-                        borderRadius: BorderRadius.circular(18),
-                        items: months.map((String month) {
-                          return DropdownMenuItem<String>(
-                            value: month,
-                            child: Text(month, overflow: TextOverflow.ellipsis),
-                          );
-                        }).toList(),
-                        onChanged: onMonthChanged,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0F1E1B16),
-                          blurRadius: 24,
-                          offset: Offset(0, 8),
-                        ),
-                      ]
-                    ),
-                    child: TextField(
-                      controller: yearController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: "YYYY",
-                        hintStyle: TextStyle(
-                          fontSize: fieldSize,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                      ),
-                    ),
-                  ),
-                ),
+            const AppSectionLabel("USER ID"),
+            const SizedBox(height: 10),
+            AppTextField(
+              controller: usernameController,
+              hintText: "3-10 lowercase letters or digits",
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9]')),
+                LengthLimitingTextInputFormatter(10),
               ],
             ),
-
+            const SizedBox(height: 30),
+            const AppSectionLabel("YOUR NAME"),
+            const SizedBox(height: 10),
+            AppTextField(
+              controller: displayNameController,
+              hintText: "What should we call you?",
+            ),
+            const SizedBox(height: 30),
+            const AppSectionLabel("BIRTHDAY · OPTIONAL"),
+            const SizedBox(height: 10),
+            BirthdayRow(
+              dayController: dayController,
+              yearController: yearController,
+              selectedMonth: selectedMonth,
+              months: months,
+              onMonthChanged: onMonthChanged,
+            ),
           ],
         ),
       ),
