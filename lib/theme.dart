@@ -41,6 +41,11 @@ class AppFieldHeights {
   static const single = 55.0;
 }
 
+// Height of the main call-to-action buttons.
+class AppButtonHeights {
+  static const primary = 54.0;
+}
+
 // The text sizes used in the app, defined as constants for consistency and easy maintenance.
 class AppTextSizes {
   static const heading = 26.0;

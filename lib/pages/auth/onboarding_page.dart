@@ -6,6 +6,7 @@ import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_primary_button.dart';
 
 import 'onboarding_widgets.dart';
 
@@ -210,57 +211,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         Spacer(),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(30, 0, 30, 20),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: LogoColors.forestLogo,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: LogoColors.forestLogo,
-                                  blurRadius: 0,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 54,
-                              child: FilledButton(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor:
-                                      AppColors.lightWidgetBackground,
-                                  foregroundColor: Colors.white,
-                                  disabledBackgroundColor: const Color(
-                                    0xFF4B443B,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                  textStyle: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                onPressed: _submitting ? null : _submit,
-                                child: _submitting
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.check, size: 20),
-                                        SizedBox(width: 8),
-                                        Text('Start exploring'),
-                                      ],
-                                    ),
-                              ),
-                            ),
+                          child: AppPrimaryButton(
+                            label: 'Start exploring',
+                            icon: Icons.check,
+                            isLoading: _submitting,
+                            onPressed: _submit,
                           ),
                         ),
                       ],
