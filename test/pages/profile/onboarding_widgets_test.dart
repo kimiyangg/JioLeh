@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jio_leh/pages/auth/onboarding_widgets.dart';
+import 'package:jio_leh/pages/profile/onboarding_widgets.dart';
 
 void main() {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
-
   void setScreenSize(WidgetTester tester, Size size) {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
@@ -33,7 +28,6 @@ void main() {
             dayController: TextEditingController(),
             yearController: TextEditingController(),
             selectedMonth: 'September',
-            months: months,
             onMonthChanged: (_) {},
           ),
         ),
