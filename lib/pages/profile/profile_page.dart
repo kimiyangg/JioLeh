@@ -138,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final titleSize = context.scaledFont(AppTextSizes.heading);
+    final titleSize = context.scaledFont(AppTextSizes.heading) + 2;
     final nameSize = context.scaledFont(AppTextSizes.button);
     final labelSize = context.scaledFont(AppTextSizes.label);
 
@@ -157,7 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         "Profile",
                         style: TextStyle(
-                          fontSize: titleSize + 2,
+                          fontSize: titleSize,
                           fontWeight: FontWeight.w900,
                         ),
                       ),

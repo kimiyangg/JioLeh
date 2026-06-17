@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_primary_button.dart';
 
 class BrandLockup extends StatelessWidget {
   const BrandLockup({super.key});
@@ -51,7 +52,6 @@ class SignInPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final headingSize = context.scaledFont(AppTextSizes.caption);
-    final termsSize = context.scaledFont(AppTextSizes.caption);
 
     return Container(
       width: double.infinity,
@@ -84,98 +84,68 @@ class SignInPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _GoogleSignInButton(
-            isSigningIn: isSigningIn,
+          AppPrimaryButton(
+            label: 'Continue with Google',
             onPressed: onGooglePressed,
+            leading: const _GoogleLogoDisc(),
+            isLoading: isSigningIn,
+            backgroundColor: AppColors.darkButton,
+            liftColor: Colors.black,
           ),
           const SizedBox(height: 16),
-          Text.rich(
-            TextSpan(
-              text: "By continuing you agree to our ",
-              style: TextStyle(
-                color: AppColors.authBodyText,
-                fontSize: termsSize,
-                fontWeight: FontWeight.w500,
-              ),
-              children: [
-                TextSpan(
-                  text: "Terms & Privacy",
-                  style: TextStyle(
-                    color: AppColors.authBodyText,
-                    fontSize: termsSize,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(
-                      Uri.parse('https://jio-leh-website.vercel.app/privacy'),
-                      mode: LaunchMode.inAppBrowserView,
-                    ),
-                ),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
+          const _TermsText(),
         ],
       ),
     );
   }
 }
 
-class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({
-    required this.isSigningIn,
-    required this.onPressed,
-  });
+class _TermsText extends StatefulWidget {
+  const _TermsText();
 
-  final bool isSigningIn;
-  final VoidCallback? onPressed;
+  @override
+  State<_TermsText> createState() => _TermsTextState();
+}
+
+class _TermsTextState extends State<_TermsText> {
+  late final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer()
+    ..onTap = () => launchUrl(
+          Uri.parse('https://jio-leh-website.vercel.app/privacy'),
+          mode: LaunchMode.inAppBrowserView,
+        );
+
+  @override
+  void dispose() {
+    _privacyRecognizer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final buttonTextSize = context.scaledFont(AppTextSizes.button);
+    final termsSize = context.scaledFont(AppTextSizes.caption);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(AppRadii.elements),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 0,
-            offset: Offset(0, 4),
+    return Text.rich(
+      TextSpan(
+        text: "By continuing you agree to our ",
+        style: TextStyle(
+          color: AppColors.authBodyText,
+          fontSize: termsSize,
+          fontWeight: FontWeight.w500,
+        ),
+        children: [
+          TextSpan(
+            text: "Terms & Privacy",
+            style: TextStyle(
+              color: AppColors.authBodyText,
+              fontSize: termsSize,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: _privacyRecognizer,
           ),
         ],
       ),
-      child: SizedBox(
-        height: AppButtonHeights.primary,
-        child: FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.darkButton,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: AppColors.disabledButton,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadii.elements),
-            ),
-            elevation: 0,
-            textStyle: TextStyle(
-              fontSize: buttonTextSize,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          child:
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _GoogleLogoDisc(),
-                SizedBox(width: 11),
-                Text('Continue with Google'),
-              ],
-            ),
-        ),
-      ),
+      textAlign: TextAlign.center,
     );
   }
 }

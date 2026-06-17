@@ -5,6 +5,7 @@ import 'package:jio_leh/app/service_provider.dart';
 import 'login_widgets.dart';
 
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_snack_bar.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -30,30 +31,16 @@ class _AuthPageState extends State<AuthPage> {
       // honest, actionable message instead of a generic "unexpected" one.
       debugPrint('Google sign-in failed: $error\n$stackTrace');
       if (mounted) {
-        _showSnackBar('Could not start sign-in. Check your connection and try again.');
+        context.showAppSnackBar(
+          'Could not start sign-in. Check your connection and try again.',
+          kind: SnackBarKind.error,
+        );
       }
     } finally {
       if (mounted) {
         setState(() => _isSigningIn = false);
       }
     }
-  }
-
-  void _showSnackBar(String message) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
-      content: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: AppTextSizes.subtitle,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ));
   }
 
   @override
