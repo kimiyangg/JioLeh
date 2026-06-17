@@ -47,12 +47,12 @@ class _AuthPageState extends State<AuthPage> {
         message,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 18,
+          fontSize: AppTextSizes.subtitle,
           fontWeight: FontWeight.w600,
         ),
       ),
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: .circular(10.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ));
   }
 

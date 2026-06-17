@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/pages/auth/login_page.dart';
 import 'package:jio_leh/pages/map/map_page.dart';
-import 'package:jio_leh/pages/auth/onboarding_page.dart';
+import 'package:jio_leh/pages/profile/onboarding_page.dart';
 
 import 'package:jio_leh/pages/auth/gate/auth_gate_model.dart';
 import 'package:jio_leh/pages/auth/gate/profile_link_holder.dart';

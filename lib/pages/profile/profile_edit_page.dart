@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/util/birthday.dart';
+import 'package:jio_leh/widgets/app_primary_button.dart';
+import 'package:jio_leh/widgets/app_section_label.dart';
+import 'package:jio_leh/widgets/app_text_field.dart';
+import 'package:jio_leh/widgets/birthday_row.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({super.key, required this.profile});
@@ -22,21 +26,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   String? _selectedMonth;
   bool _saving = false;
 
-  static const _months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -52,7 +41,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     _yearController = TextEditingController(
       text: birthday == null ? '' : birthday.year.toString(),
     );
-    _selectedMonth = birthday == null ? null : _months[birthday.month - 1];
+    _selectedMonth = birthday == null ? null : kMonthNames[birthday.month - 1];
   }
 
   @override
@@ -62,34 +51,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     _dayController.dispose();
     _yearController.dispose();
     super.dispose();
-  }
-
-  DateTime? _buildBirthday() {
-    final dayText = _dayController.text.trim();
-    final yearText = _yearController.text.trim();
-    final hasBirthdayInput =
-        dayText.isNotEmpty || yearText.isNotEmpty || _selectedMonth != null;
-
-    if (!hasBirthdayInput) return null;
-
-    final day = int.tryParse(dayText);
-    final year = int.tryParse(yearText);
-    final monthIndex = _selectedMonth == null
-        ? -1
-        : _months.indexOf(_selectedMonth!);
-
-    if (day == null || year == null || monthIndex < 0) {
-      throw const FormatException('Enter a full birthday or leave it empty.');
-    }
-
-    final birthday = DateTime(year, monthIndex + 1, day);
-    if (birthday.year != year ||
-        birthday.month != monthIndex + 1 ||
-        birthday.day != day) {
-      throw const FormatException('Enter a valid birthday.');
-    }
-
-    return birthday;
   }
 
   Future<void> _saveProfile() async {
@@ -105,7 +66,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
     DateTime? birthday;
     try {
-      birthday = _buildBirthday();
+      birthday = parseBirthday(
+        day: _dayController.text,
+        year: _yearController.text,
+        month: _selectedMonth,
+      );
     } on FormatException catch (error) {
       ScaffoldMessenger.of(
         context,
@@ -141,7 +106,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Widget build(BuildContext context) {
     final titleSize = context.scaledFont(AppTextSizes.heading);
     final labelSize = context.scaledFont(AppTextSizes.label);
-    final fieldSize = context.scaledFont(AppTextSizes.body);
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: GestureDetector(
@@ -172,27 +136,19 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       ],
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      "PROFILE PHOTO",
-                      style: TextStyle(
-                        fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const AppSectionLabel("PROFILE PHOTO"),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       height: 150,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(AppRadii.elements),
                         ),
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Icon(Icons.camera_alt, size: 40),
                               Text(
@@ -205,249 +161,41 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      "DISPLAY NAME",
-                      style: TextStyle(
-                        fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const AppSectionLabel("DISPLAY NAME"),
                     const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Container(
-                        width: double.infinity,
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x0F1E1B16),
-                              blurRadius: 24,
-                              offset: Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _displayNameController,
-                          decoration: InputDecoration(
-                            hintText: "What should we call you?",
-                            hintStyle: TextStyle(
-                              fontSize: fieldSize,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 15,
-                            ),
-                          ),
-                        ),
-                      ),
+                    AppTextField(
+                      controller: _displayNameController,
+                      hintText: "What should we call you?",
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      "BIO",
-                      style: TextStyle(
-                        fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const AppSectionLabel("BIO"),
                     const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Container(
-                        width: double.infinity,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x0F1E1B16),
-                              blurRadius: 24,
-                              offset: Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _bioController,
-                          maxLines: null,
-                          textInputAction: TextInputAction.newline,
-                          decoration: InputDecoration(
-                            hintText: "Tell friends a little about you",
-                            hintStyle: TextStyle(
-                              fontSize: fieldSize,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 15,
-                            ),
-                          ),
-                        ),
-                      ),
+                    AppTextField(
+                      controller: _bioController,
+                      hintText: "Tell friends a little about you",
+                      height: 110,
+                      maxLines: null,
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      "BIRTHDAY",
-                      style: TextStyle(
-                        fontSize: labelSize,
-                        color: AppColors.onboardingSubtitle,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const AppSectionLabel("BIRTHDAY"),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            height: 55,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x0F1E1B16),
-                                  blurRadius: 24,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              controller: _dayController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(2),
-                              ],
-                              decoration: InputDecoration(
-                                hintText: "DD",
-                                hintStyle: TextStyle(
-                                  fontSize: fieldSize,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          flex: 4,
-                          child: Container(
-                            height: 55,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x0F1E1B16),
-                                  blurRadius: 24,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: DropdownButton<String>(
-                                value: _selectedMonth,
-                                hint: Text(
-                                  "Month",
-                                  style: TextStyle(
-                                    fontSize: fieldSize,
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                isExpanded: true,
-                                style: TextStyle(
-                                  fontSize: fieldSize,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                dropdownColor: AppColors.lightBackground,
-                                borderRadius: BorderRadius.circular(18),
-                                items: _months.map((String month) {
-                                  return DropdownMenuItem<String>(
-                                    value: month,
-                                    child: Text(
-                                      month,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (value) =>
-                                    setState(() => _selectedMonth = value),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          flex: 3,
-                          child: Container(
-                            height: 55,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x0F1E1B16),
-                                  blurRadius: 24,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              controller: _yearController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(4),
-                              ],
-                              decoration: InputDecoration(
-                                hintText: "YYYY",
-                                hintStyle: TextStyle(
-                                  fontSize: fieldSize,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                    BirthdayRow(
+                      dayController: _dayController,
+                      yearController: _yearController,
+                      selectedMonth: _selectedMonth,
+                      onMonthChanged: (value) =>
+                          setState(() => _selectedMonth = value),
                     ),
                     const SizedBox(height: 20),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF9E2F24),
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppColors.dangerShadow,
+                          borderRadius: BorderRadius.circular(AppRadii.elements),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0xFF9E2F24),
+                              color: AppColors.dangerShadow,
                               blurRadius: 0,
                               offset: Offset(0, 4),
                             ),
@@ -457,10 +205,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                           height: 46,
                           child: FilledButton(
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFFD84B3A),
+                              backgroundColor: AppColors.danger,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadii.elements),
                               ),
                               elevation: 0,
                               textStyle: const TextStyle(
@@ -481,60 +230,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ),
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: LogoColors.forestLogo,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: LogoColors.forestLogo,
-                              blurRadius: 0,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.lightWidgetBackground,
-                              foregroundColor: Colors.white,
-                              disabledBackgroundColor: const Color(0xFF4B443B),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            onPressed: _saving ? null : _saveProfile,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (_saving) ...[
-                                  const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ] else ...[
-                                  const Icon(Icons.check, size: 20),
-                                  const SizedBox(width: 8),
-                                  const Text('All saved'),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
+                      child: AppPrimaryButton(
+                        label: 'All saved',
+                        icon: Icons.check,
+                        isLoading: _saving,
+                        onPressed: _saveProfile,
                       ),
                     ),
                   ],
