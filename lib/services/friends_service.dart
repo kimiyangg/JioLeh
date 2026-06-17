@@ -9,23 +9,18 @@ import 'package:jio_leh/models/user_profile.dart';
 /// including fetching friends and their statuses.
 class FriendsService {
   final AuthService auth;
-
-  // The Supabase client is shared from AuthService so there is a single
-  // source of truth for which client this app talks to.
-
-  // This getter exists purely as a convenience alias so the method bodies can write
-  // _supabase.from(...) instead of the noisier auth.client.from(...)
-  SupabaseClient get _supabase => auth.client;
+  final SupabaseClient _supabase;
 
   static const _tableName = 'friendships';
 
-  FriendsService(this.auth);
+  // `required this.auth` stores the injected AuthService in the auth field.
+  FriendsService({required SupabaseClient client, required this.auth})
+    : _supabase = client;
 
   /// Fetches the list of friends for the current user, including their profiles and friendship statuses.
-  /// 
+  ///
   /// Returns a list of [UserFriend] objects representing each friend and their status.
   Future<List<UserFriend>> getUserFriends() async {
-
     final userId = auth.getCurrentUserId();
 
     final friends = <UserFriend>[];
@@ -44,7 +39,7 @@ class FriendsService {
         .from(_tableName)
         .select('profiles!requester_id(*), status')
         .eq('addressee_id', userId);
-    
+
     for (final row in sentFriends) {
       friends.add(UserFriend.fromMap(row, FriendDirection.outgoing));
     }
@@ -55,11 +50,11 @@ class FriendsService {
 
     return friends;
   }
-  
+
   /// Sends a friend request from the current user to the specified [toUser].
-  /// 
+  ///
   /// Returns a Future that completes when the friend request is successfully sent.
-  /// 
+  ///
   /// Throws a [FriendAlreadyExists] exception if a friend request already exists between the users
   Future<void> sendFriendRequest(UserProfile toUser) async {
     final userId = auth.getCurrentUserId();
@@ -81,49 +76,49 @@ class FriendsService {
   }
 
   /// Accepts a pending friend request from the specified [fromUser].
-  /// 
+  ///
   /// Returns a Future that completes when the friend request is successfully accepted.
-  /// 
+  ///
   /// Throws a [FriendsRequestNotFound] exception if there is no pending friend request from the specified user.
   Future<void> acceptFriendRequest(UserProfile fromUser) async {
     final userId = auth.getCurrentUserId();
     final updated = await _supabase
-      .from(_tableName)
-      .update({'status': FriendshipStatus.accepted.name,})
-      .eq('requester_id', fromUser.id)
-      .eq('addressee_id', userId)
-      .eq('status', FriendshipStatus.pending.name)
-      .select();
-    
+        .from(_tableName)
+        .update({'status': FriendshipStatus.accepted.name})
+        .eq('requester_id', fromUser.id)
+        .eq('addressee_id', userId)
+        .eq('status', FriendshipStatus.pending.name)
+        .select();
+
     if (updated.isEmpty) {
       throw const FriendsRequestNotFound();
     }
   }
 
   /// Rejects a pending friend request from the specified [fromUser].
-  /// 
+  ///
   /// Returns a Future that completes when the friend request is successfully rejected.
-  /// 
+  ///
   /// Throws a [FriendsRequestNotFound] exception if there is no pending friend request from the specified user.
   Future<void> rejectFriendRequest(UserProfile fromUser) async {
     final userId = auth.getCurrentUserId();
     final deleted = await _supabase
-      .from(_tableName)
-      .delete()
-      .eq('requester_id', fromUser.id)
-      .eq('addressee_id', userId)
-      .eq('status', FriendshipStatus.pending.name)
-      .select();
-    
+        .from(_tableName)
+        .delete()
+        .eq('requester_id', fromUser.id)
+        .eq('addressee_id', userId)
+        .eq('status', FriendshipStatus.pending.name)
+        .select();
+
     if (deleted.isEmpty) {
       throw const FriendsRequestNotFound();
     }
   }
 
   /// Removes an existing friend relationship with the specified [friend].
-  /// 
+  ///
   /// Returns a Future that completes when the friend relationship is successfully removed.
-  /// 
+  ///
   /// Throws a [FriendNotFound] exception if there is no existing friendship with the specified user.
   Future<void> removeFriend(UserProfile friend) async {
     final userId = auth.getCurrentUserId();
@@ -145,7 +140,7 @@ class FriendsService {
         .eq('requester_id', friend.id)
         .eq('addressee_id', userId)
         .select();
-    
+
     if (orgSent.isEmpty && orgReceived.isEmpty) {
       throw const FriendNotFound();
     }
@@ -162,8 +157,7 @@ class FriendsException implements Exception {
 
 /// Exception thrown when a friend request already exists between the users.
 class FriendAlreadyExists extends FriendsException {
-  const FriendAlreadyExists()
-    : super('Friend request already exists.');
+  const FriendAlreadyExists() : super('Friend request already exists.');
 }
 
 /// Exception thrown when a friend request is not found.
@@ -174,6 +168,5 @@ class FriendsRequestNotFound extends FriendsException {
 
 /// Exception thrown when attempting to fetch a friend that does not exist.
 class FriendNotFound extends FriendsException {
-  const FriendNotFound()
-    : super('No existing friendship with this user.');
+  const FriendNotFound() : super('No existing friendship with this user.');
 }

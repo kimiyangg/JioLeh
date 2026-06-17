@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
 
 import 'login_widgets.dart';
 
@@ -14,18 +14,23 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final _auth = Services.auth;
-
   bool _isSigningIn = false;
 
   Future<void> _signInWithGoogle() async {
+    // Read the service from the provider before the first await (context is
+    // valid here because this runs after the widget is built).
+    final auth = ServiceProvider.of(context)!.auth;
+
     setState(() => _isSigningIn = true);
 
     try {
-      await _auth.signInWithGoogle();
-    } catch (error) {
+      await auth.signInWithGoogle();
+    } catch (error, stackTrace) {
+      // Log the real cause so failures are diagnosable, then show the user an
+      // honest, actionable message instead of a generic "unexpected" one.
+      debugPrint('Google sign-in failed: $error\n$stackTrace');
       if (mounted) {
-        _showSnackBar('Unexpected Error.');
+        _showSnackBar('Could not start sign-in. Check your connection and try again.');
       }
     } finally {
       if (mounted) {

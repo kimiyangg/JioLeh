@@ -15,8 +15,8 @@ import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
-import 'package:jio_leh/pages/profile_page.dart';
-import 'package:jio_leh/pages/friends_page.dart';
+import 'package:jio_leh/pages/profile/profile_page.dart';
+import 'package:jio_leh/pages/friends/friends_page.dart';
 
 import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';

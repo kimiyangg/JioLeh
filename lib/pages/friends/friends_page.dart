@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/services/services.dart';
-import 'package:jio_leh/pages/profile_page.dart';
+import 'package:jio_leh/pages/profile/profile_page.dart';
 
 class FriendsPage extends StatefulWidget {
   const FriendsPage({super.key});
