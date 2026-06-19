@@ -16,10 +16,6 @@ class SupabaseAccountService extends AccountService {
   // Static table name for user profiles in the database
   static const _tableName = 'profiles';
 
-  // Default bio assigned to new accounts that don't provide one during onboarding.
-  static const _defaultBio =
-      "New here and keen to meet some kakis. Always down for makan or a casual hang. Jio me la 🙂";
-
   // `required this.auth` stores the injected AuthService in the auth field.
   SupabaseAccountService({required SupabaseClient client, required this.auth})
     : _supabase = client;
@@ -67,7 +63,7 @@ class SupabaseAccountService extends AccountService {
           'id': userId,
           'username': inputUserName,
           'display_name': displayName,
-          'bio': _defaultBio,
+          'bio': UserProfile.defaultBio,
           'avatar_url': avatarUrl,
           if (birthday != null)
             'birthday': birthday.toIso8601String().split('T').first,

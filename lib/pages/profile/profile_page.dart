@@ -234,8 +234,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _profile?.bio ??
-                                            "New here and keen to meet some kakis. Always down for makan or a casual hang. Jio me la 🙂",
+                                        _profile?.bio ?? UserProfile.defaultBio,
                                         style: TextStyle(
                                           fontSize: labelSize
                                         ),
