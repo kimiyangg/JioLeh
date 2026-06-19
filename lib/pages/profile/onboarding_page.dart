@@ -29,9 +29,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   bool _didInit = false;
 
   final _imagePicker = ImagePicker();
-  XFile? _profilePhoto;
+  XFile? _avatarFile;
 
-  Future<void> _pickProfilePhoto() async {
+  Future<void> _pickAvatar() async {
     final photo = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1000,
@@ -40,7 +40,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
 
     if (photo != null && mounted) {
-      setState(() => _profilePhoto = photo);
+      setState(() => _avatarFile = photo);
     }
   }
 
@@ -109,7 +109,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         username: username,
         displayName: _displayNameController.text.trim(),
         birthday: birthday,
-        profilePhoto: _profilePhoto,
+        avatarFile: _avatarFile,
       );
       // Tell AuthGate to re-check; it will route on to the MapPage.
       await widget.onComplete?.call();
@@ -170,14 +170,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           width: double.infinity,
                           child: Center(
                             child: GestureDetector(
-                              onTap: _submitting ? null : _pickProfilePhoto,
+                              onTap: _submitting ? null : _pickAvatar,
                               child: CircleAvatar(
                                 radius: 50,
                                 backgroundColor: AppColors.darkWidgetBackground,
-                                foregroundImage: _profilePhoto == null 
+                                foregroundImage: _avatarFile == null 
                                     ? null
-                                    : FileImage(File(_profilePhoto!.path)),
-                                child: _profilePhoto == null
+                                    : FileImage(File(_avatarFile!.path)),
+                                child: _avatarFile == null
                                     ? const Icon(Icons.add_a_photo, color: Colors.white)
                                     : null,
                               ),
