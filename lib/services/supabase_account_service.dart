@@ -1,11 +1,10 @@
-import 'dart:math';
-
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/models/user_profile.dart';
+import 'package:jio_leh/util/username_rule.dart';
 
 /// The real [AccountService] used in production, backed by Supabase.
 /// Write a sibling class if a new backend is needed in the future.
@@ -57,7 +56,7 @@ class SupabaseAccountService extends AccountService {
     // generating a fresh code and retrying until the insert succeeds.
     while (true) {
       // Fall back to a generated username when the caller doesn't supply one.
-      final inputUserName = username ?? generateUserName();
+      final inputUserName = username ?? UsernameRule.generate();
       try {
         await _supabase.from(_tableName).insert({
           'id': userId,
@@ -161,19 +160,6 @@ class SupabaseAccountService extends AccountService {
         .single();
 
     return UserProfile.fromMap(row);
-  }
-
-  /// Generates a random username consisting of 8 lowercase letters and digits.
-  ///
-  /// Returns a string that can be used as a default username
-  String generateUserName() {
-    final random = Random();
-    final letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    String code = '';
-    for (int i = 0; i < 8; i++) {
-      code += letters[random.nextInt(letters.length)];
-    }
-    return code;
   }
 
   @override

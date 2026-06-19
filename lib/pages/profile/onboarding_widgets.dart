@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/pages/profile/username_rule.dart';
+import 'package:jio_leh/util/username_rule.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
