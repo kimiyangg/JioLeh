@@ -4,6 +4,7 @@ import 'pin_service.dart';
 import 'location_service.dart';
 import 'geocoding_service.dart';
 import 'account_service.dart';
+import 'supabase_account_service.dart';
 import 'friends_service.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,6 +23,9 @@ class Services {
   static final pins = PinService(client: _client, auth: auth);
   static final location = LocationService();
   static final geocoding = GeocodingService();
-  static final account = AccountService(client: _client, auth: auth);
+  static final AccountService account = SupabaseAccountService(
+    client: _client,
+    auth: auth,
+  );
   static final friends = FriendsService(client: _client, auth: auth);
 }
