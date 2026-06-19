@@ -21,6 +21,8 @@ import 'package:jio_leh/pages/friends/friends_page.dart';
 import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 
+import 'package:jio_leh/pages/invitations/invitations_page.dart';
+
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
 
@@ -363,6 +365,25 @@ class _MapPageState extends State<MapPage> {
                   MaterialPageRoute(builder: (_) => const FriendsPage()),
                 ),
                 child: const Icon(Icons.people),
+              ),
+            ),
+          ),
+          // Left Top: Invitations button
+          Positioned(
+            top: 210,
+            left: 10,
+            child: SafeArea(
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'invitations',
+                tooltip: 'Invitations',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const InvitationsPage()),
+                ),
+                child: const Icon(Icons.markunread_mailbox),
               ),
             ),
           ),
