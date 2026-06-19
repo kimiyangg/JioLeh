@@ -51,7 +51,7 @@ class FakeAccountService extends AccountService {
     String? username,
     required String displayName,
     DateTime? birthday,
-    XFile? profilePhoto,
+    XFile? avatarFile,
   }) async {
     createProfileCalls++;
     if (throwUsernameTaken) throw const UsernameTaken();
@@ -63,7 +63,7 @@ class FakeAccountService extends AccountService {
     required String displayName,
     String? bio,
     DateTime? birthday,
-    XFile? profilePhoto,
+    XFile? avatarFile,
   }) async {
     updateProfileCalls++;
     final current = profile;

@@ -43,7 +43,7 @@ class SupabaseAccountService extends AccountService {
     String? username,
     required String displayName,
     DateTime? birthday,
-    XFile? profilePhoto,
+    XFile? avatarFile,
   }) async {
     // Inserts the current user's profile row
     final userId = auth.getCurrentUserId();
@@ -53,24 +53,8 @@ class SupabaseAccountService extends AccountService {
     }
 
     String? avatarUrl;
-
-    if (profilePhoto != null) {
-      final extension = profilePhoto.path.split('.').last.toLowerCase();
-      final path = '$userId/avatar.$extension';
-      final bytes = await profilePhoto.readAsBytes();
-
-      await _supabase.storage
-          .from('profile-photos')
-          .uploadBinary(
-            path,
-            bytes,
-            fileOptions: FileOptions(
-              upsert: true,
-              contentType: profilePhoto.mimeType,
-            ),
-          );
-
-      avatarUrl = _supabase.storage.from('profile-photos').getPublicUrl(path);
+    if (avatarFile != null) {
+      avatarUrl = await _uploadAvatar(avatarFile, userId);
     }
 
     // A generated username can randomly collide with an existing one, so keep
@@ -91,23 +75,44 @@ class SupabaseAccountService extends AccountService {
 
         return;
       } on PostgrestException catch (e) {
-        // PostgrestException with code '23505' indicates a unique constraint violation
-        // https://www.postgresql.org/docs/current/errcodes-appendix.html for more details
-
-        // Only a generated username can be retried, a caller-supplied one
-        // would collide forever, so the UsernameTaken exception will be thrown.
-        if (e.code == '23505') {
-          if (username == null) {
-            continue;
-          } else {
-            throw const UsernameTaken();
-          }
+        // What to do depends only on the error code + whether the user gave a
+        // username. That decision lives in [decideInsertAction] so it can be
+        // unit-tested without a database.
+        final action = decideInsertAction(
+          errorCode: e.code,
+          usernameGiven: username != null,
+        );
+        if (action == InsertAction.nameTaken) {
+          throw const UsernameTaken();
         }
-        // Any other PostgrestException is rethrown for the caller to handle.
-        rethrow;
+        if (action == InsertAction.unknownError) {
+          rethrow;
+        }
+        // InsertAction.retry: loop again with a fresh generated username.
       }
     }
     //
+  }
+
+  /// Uploads [photo] to the profile-photos bucket under the user's own folder
+  /// and returns its public URL.
+  Future<String> _uploadAvatar(XFile photo, String userId) async {
+    final extension = photo.path.split('.').last.toLowerCase();
+    final path = '$userId/avatar.$extension';
+    final bytes = await photo.readAsBytes();
+
+    await _supabase.storage
+        .from('profile-photos')
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(
+            upsert: true,
+            contentType: photo.mimeType,
+          ),
+        );
+
+    return _supabase.storage.from('profile-photos').getPublicUrl(path);
   }
 
   @override
@@ -144,7 +149,7 @@ class SupabaseAccountService extends AccountService {
     required String displayName,
     String? bio,
     DateTime? birthday,
-    XFile? profilePhoto,
+    XFile? avatarFile,
   }) async {
     final userId = auth.getCurrentUserId();
 
@@ -185,4 +190,21 @@ class SupabaseAccountService extends AccountService {
 
     return row == null ? null : UserProfile.fromMap(row);
   }
+}
+
+/// What [SupabaseAccountService.createProfile] should do when an insert fails.
+enum InsertAction { retry, nameTaken, unknownError }
+
+/// Decides what to do when a profile insert fails, from the Postgres
+/// [errorCode] and whether the user gave their own username.
+///
+/// A duplicate (23505) on a generated name → try again with a new one; on a
+/// user-chosen name → the name is taken; anything else → an unknown error.
+InsertAction decideInsertAction({
+  required String? errorCode,
+  required bool usernameGiven,
+}) {
+  const duplicateCode = '23505';
+  if (errorCode != duplicateCode) return InsertAction.unknownError;
+  return usernameGiven ? InsertAction.nameTaken : InsertAction.retry;
 }

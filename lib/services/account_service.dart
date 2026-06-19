@@ -19,7 +19,7 @@ abstract class AccountService {
     String? username,
     required String displayName,
     DateTime? birthday,
-    XFile? profilePhoto,
+    XFile? avatarFile,
   });
 
   /// Looks up a profile by its username. Returns null if no user has it.
@@ -33,7 +33,7 @@ abstract class AccountService {
     required String displayName,
     String? bio,
     DateTime? birthday,
-    XFile? profilePhoto,
+    XFile? avatarFile,
   });
 
   /// Retrieves a user profile by its unique ID. Returns null if none is found.
