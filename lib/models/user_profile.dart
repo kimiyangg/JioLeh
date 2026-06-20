@@ -1,5 +1,10 @@
 // Model class representing a user profile with its details
 class UserProfile {
+  /// Bio seeded onto new accounts that don't provide one, and shown as the
+  /// fallback when a profile has no bio set.
+  static const defaultBio =
+      "New here and keen to meet some kakis. Always down for makan or a casual hang. Jio me la 🙂";
+
   final String id;
   final String username;
   final String displayName;

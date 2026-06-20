@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/models/user_profile.dart';
-import 'package:jio_leh/pages/profile/profile_edit_page.dart';
 
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/routing/app_routing.dart';
+import 'package:jio_leh/services/account_service.dart';
+import 'package:jio_leh/services/auth_service.dart';
+import 'package:jio_leh/services/friends_service.dart';
 
 import "package:jio_leh/theme.dart";
-import 'package:jio_leh/pages/profile/share_code_page.dart';
+
+import 'package:jio_leh/widgets/app_page_header.dart';
+import 'package:jio_leh/widgets/app_snack_bar.dart';
+import 'package:jio_leh/pages/profile/widgets/profile_card.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? userId;
@@ -18,19 +24,30 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late final _account = Services.account;
-
-  late final _friends = Services.friends;
+  late final AccountService _account;
+  late final FriendsService _friends;
+  late final AuthService _auth;
+  bool _didInit = false;
 
   bool _sendingFriendRequest = false;
   bool _friendRequestSent = false;
 
-  // The loaded profile. Null until it finishes loading.                                                                                                                                                                                                                                                                          
+  // The loaded profile. Null until it finishes loading.
   UserProfile? _profile;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Services come from the provider, which can't be read in initState. Do the
+    // one-time setup here (didChangeDependencies can fire more than once).
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _account = services.account;
+    _friends = services.friends;
+    _auth = services.auth;
+
     _loadProfile();
   }
 
@@ -40,7 +57,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final profile = _profile;
     if (profile == null) return false;
 
-    return profile.id == Services.auth.getCurrentUserId();
+    return profile.id == _auth.getCurrentUserId();
   }
 
   // Loads the profile from the database and updates the state. If the profile
@@ -58,9 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!mounted) return;
 
     if (profile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile not found')),
-      );
+      context.showAppSnackBar('Profile not found', kind: SnackBarKind.error);
       Navigator.maybePop(context);
       return;
     }
@@ -68,10 +83,9 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _profile = profile);
   }
 
-  // Sends a friend request to the loaded profile, if it's not the current user's own profile and a request isn't already being sent. 
-  //Shows a success message on success, or an error message on failure. 
-  //Updates the state to reflect whether a request is being sent or has been sent.
-
+  // Sends a friend request to the loaded profile, if it's not the current
+  // user's own profile and a request isn't already being sent. Shows a success
+  // or error message, and updates the state to reflect the request's status.
   Future<void> _sendFriendRequest() async {
     final profile = _profile;
 
@@ -88,19 +102,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
       setState(() => _friendRequestSent = true);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Friend request sent to ${profile.displayName}',
-          ),
-        ),
+      context.showAppSnackBar(
+        'Friend request sent to ${profile.displayName}',
+        kind: SnackBarKind.success,
       );
     } catch (error) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error')),
-      );
+      context.showAppSnackBar('$error', kind: SnackBarKind.error);
     } finally {
       if (mounted) {
         setState(() => _sendingFriendRequest = false);
@@ -108,17 +117,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-
-
   Future<void> _editProfile() async {
     final profile = _profile;
     if (profile == null) return;
 
-    final updatedProfile = await Navigator.push<UserProfile>(
+    final updatedProfile = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ProfileEditPage(profile: profile),
-      ),
+      AppRoutes.profileEdit(profile),
     );
 
     if (updatedProfile != null && mounted) {
@@ -126,22 +131,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  static const _monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  String _formatBirthday(DateTime? birthday) {
-    if (birthday == null) return "";
-    return "Born ${birthday.day} ${_monthNames[birthday.month - 1]}";
-  }
-
   @override
   Widget build(BuildContext context) {
-    final titleSize = context.scaledFont(AppTextSizes.heading) + 2;
-    final nameSize = context.scaledFont(AppTextSizes.button);
-    final labelSize = context.scaledFont(AppTextSizes.label);
-
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: SafeArea(
@@ -152,217 +143,21 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        "Profile",
-                        style: TextStyle(
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      SizedBox(width: 100),
-                      FilledButton(
-                        onPressed: () => Navigator.maybePop(context),
-                        child: Text("Back"),
-                      ),
-                    ],
-                  ),
+                  const AppPageHeader(title: "Profile"),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        borderRadius: BorderRadius.circular(16)
+                    child: ProfileCard(
+                      profile: _profile,
+                      isOwnProfile: _isOwnProfile,
+                      onEdit: _editProfile,
+                      onShare: () => Navigator.push(
+                        context,
+                        // ! operator is need to ensure that profile is loaded and throw errors if profile is null
+                        AppRoutes.shareCode(_profile!)
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.all(15),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: AppColors.darkWidgetBackground,
-                                      foregroundImage:
-                                        _profile?.avatarUrl == null || _profile!.avatarUrl!.isEmpty
-                                            ? null
-                                            : NetworkImage(_profile!.avatarUrl!),
-                                      child: _profile?.avatarUrl == null || _profile!.avatarUrl!.isEmpty
-                                        ? const Icon(Icons.person, color: Colors.white)
-                                        : null,
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _profile?.displayName ?? "",
-                                            style: TextStyle(
-                                              fontSize: nameSize,
-                                              fontWeight: FontWeight.w900
-                                            ),
-                                          ),
-                                          Text("@${_profile?.username ?? ""}")
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _profile?.bio ??
-                                            "New here and keen to meet some kakis. Always down for makan or a casual hang. Jio me la 🙂",
-                                        style: TextStyle(
-                                          fontSize: labelSize
-                                        ),
-                                      ),
-                                      SizedBox(height: 15,),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.cake, size: 15,),
-                                          SizedBox(width: 10,),
-                                          Text(_formatBirthday(_profile?.birthday)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (_isOwnProfile)
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: FilledButton(
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xFF211D18),
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor: const Color(0xFF211D18),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          onPressed: _profile == null || !_isOwnProfile // prevet others editing another user's profile
-                                              ? null
-                                              : _editProfile,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.edit,
-                                                color: Colors.white,
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Flexible(
-                                                child: Text(
-                                                  "Edit Profile",
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: labelSize,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 20),
-                                      Expanded(
-                                        child: FilledButton(
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                AppColors.lightWidgetBackground,
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor: AppColors.lightWidgetBackground,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          onPressed: _profile == null || !_isOwnProfile // prevent others sharing another user's profile
-                                              ? null
-                                              : () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) => ShareCodePage(profile: _profile!),
-                                                    ),
-                                                  );
-                                                },  
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.share,
-                                                color: Colors.white,
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Flexible(
-                                                child: Text(
-                                                  "Share Code",
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: labelSize,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        )
-                                      )
-                                    ],
-                                  )
-                                  else if (!_isOwnProfile && _profile != null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 12),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        child: FilledButton.icon(
-                                          onPressed: _sendingFriendRequest || _friendRequestSent
-                                              ? null
-                                              : _sendFriendRequest,
-                                          icon: _sendingFriendRequest
-                                              ? const SizedBox(
-                                                  width: 18,
-                                                  height: 18,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    color: Colors.white,
-                                                  ),
-                                                )
-                                              : Icon(
-                                                  _friendRequestSent
-                                                      ? Icons.check
-                                                      : Icons.person_add,
-                                                ),
-                                          label: Text(
-                                            _friendRequestSent
-                                                ? 'Friend Request Sent'
-                                                : _sendingFriendRequest
-                                                    ? 'Sending...'
-                                                    : 'Add as Friend',
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      isSendingRequest: _sendingFriendRequest,
+                      requestSent: _friendRequestSent,
+                      onAddFriend: _sendFriendRequest,
                     ),
                   ),
                 ],

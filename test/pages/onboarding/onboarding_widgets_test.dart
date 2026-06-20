@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jio_leh/pages/profile/onboarding_widgets.dart';
+import 'package:jio_leh/pages/onboarding/widgets/welcome_header.dart';
+import 'package:jio_leh/pages/onboarding/widgets/profile_form.dart';
 
 void main() {
   void setScreenSize(WidgetTester tester, Size size) {

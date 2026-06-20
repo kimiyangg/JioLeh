@@ -49,6 +49,9 @@ issues to fix rather than noise to ignore.
 - Pages should focus on layout, user interaction, and screen-level state.
 - Extract widgets when a page becomes difficult to scan or a user interface
   section has its own clear purpose.
+- Give each public widget its own file, named after it in `snake_case`
+  (`SignInPanel` → `sign_in_panel.dart`). Keep private (`_`-prefixed)
+  sub-widgets in the file of the public widget that uses them.
 - Keep long asynchronous workflows out of `build` methods.
 - Avoid putting raw Supabase queries directly inside widgets.
 - Prefer passing callbacks and values into widgets instead of making widgets

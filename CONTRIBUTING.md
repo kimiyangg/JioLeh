@@ -28,6 +28,7 @@ Useful paths:
 
 | Document | What it covers |
 |---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | App layers, the service contract/impl/fake pattern, frontend (Atomic Design + MVVM), and folder structure, with diagrams |
 | [`docs/CODE_STYLE.md`](docs/CODE_STYLE.md) | Dart, Flutter, naming, structure, testing, and documentation style |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | Supabase schema, Row-Level Security, storage, and migration workflow |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | Version tags, Android release, iOS release, and release secrets |

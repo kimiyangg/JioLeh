@@ -1,14 +1,23 @@
+import 'dart:math';
+
 import 'package:flutter/services.dart';
 
-/// Single source of truth for the username rule: 3–10 lowercase letters or
-/// digits. The field's hint, input formatters, and submit-time validation all
-/// derive from here, so the rule can never drift across the three places.
+/// Helping class for full username rules and texts to display during error handling
 class UsernameRule {
+  // When using DONT create an instance (don't do UsernameRule())
+  // Private Constructor: no other file can call it to create instance obj
   const UsernameRule._();
 
   static const minLength = 3;
   static const maxLength = 15;
   static const _charClass = '[a-z0-9]';
+
+  /// The characters an auto-generated username is built from — the explicit
+  /// form of [_charClass], kept beside it so the two can't drift.
+  static const _alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+
+  /// Length of an auto-generated username (within [minLength]–[maxLength]).
+  static const generatedLength = 8;
 
   /// Matches a single allowed character (used by the input formatter).
   static final allowedChars = RegExp(_charClass);
@@ -18,7 +27,18 @@ class UsernameRule {
 
   static bool isValid(String username) => _full.hasMatch(username);
 
-  /// Hint copy, built from the numbers so it never goes stale.
+  /// Generates a random username, used as a fallback method for default usernames
+  /// 
+  /// Returns an 8 character String password that follows the username rules
+  static String generate() {
+    final random = Random();
+    String code = '';
+    for (var i = 0; i < generatedLength; i++) {
+      code += _alphabet[random.nextInt(_alphabet.length)];
+    }
+    return code;
+  }
+
   static const hint = '$minLength-$maxLength lowercase letters or digits';
 
   /// Error shown when validation fails.

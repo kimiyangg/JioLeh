@@ -55,16 +55,20 @@ class AppFieldHeights {
 // Height of the main call-to-action buttons.
 class AppButtonHeights {
   static const primary = 54.0;
+  // Shorter height for secondary / paired actions (e.g. Edit + Share).
+  static const compact = 44.0;
 }
 
 // The text sizes used in the app, defined as constants for consistency and easy maintenance.
 class AppTextSizes {
-  static const heading = 26.0;
+  static const heading = 28.0; // page titles (AppPageHeader)
+  static const onboardingHeading = 26.0;
   static const subtitle = 18.0;
   static const body = 16.0;
   static const textFieldHint = 16.0;
   static const label = 13.0;
   static const button = 17.0;
+  static const secButton = 15.0;
   static const caption = 12.0;
 }
 

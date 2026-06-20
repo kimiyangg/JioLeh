@@ -1,28 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 import 'package:jio_leh/pages/auth/gate/auth_gate_model.dart';
-import 'package:jio_leh/services/account_service.dart';
 
+import '../../../services/fakes/fake_account_service.dart';
 import '../../../services/fakes/fake_auth_service.dart';
 
-// AccountService isn't an interface, but mocktail can still fake it so we can
-// control what profileExists() returns.
-class _MockAccountService extends Mock implements AccountService {}
-
 void main() {
-  late _MockAccountService account;
-
-  setUp(() {
-    account = _MockAccountService();
-  });
-
   test('starts on the loading screen', () {
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: false),
-      account: account,
+      account: FakeAccountService(),
     );
 
     expect(model.screen, AuthGateScreen.loading);
@@ -31,7 +20,7 @@ void main() {
   test('not signed in -> login screen', () async {
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: false),
-      account: account,
+      account: FakeAccountService(),
     );
 
     await model.check();
@@ -42,7 +31,7 @@ void main() {
   test('signed in but session invalid -> login screen', () async {
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: true, validSession: false),
-      account: account,
+      account: FakeAccountService(),
     );
 
     await model.check();
@@ -51,10 +40,9 @@ void main() {
   });
 
   test('signed in, valid session, no profile -> onboarding screen', () async {
-    when(() => account.profileExists()).thenAnswer((_) async => false);
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: true, validSession: true),
-      account: account,
+      account: FakeAccountService(hasProfile: false),
     );
 
     await model.check();
@@ -63,10 +51,9 @@ void main() {
   });
 
   test('signed in, valid session, has profile -> map screen', () async {
-    when(() => account.profileExists()).thenAnswer((_) async => true);
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: true, validSession: true),
-      account: account,
+      account: FakeAccountService(hasProfile: true),
     );
 
     await model.check();
@@ -75,7 +62,8 @@ void main() {
   });
 
   test('profile lookup failure -> error screen', () async {
-    when(() => account.profileExists()).thenThrow(Exception('network down'));
+    final account = FakeAccountService()
+      ..profileExistsHandler = () => Future.error(Exception('network down'));
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: true, validSession: true),
       account: account,
@@ -90,11 +78,12 @@ void main() {
     // Hand out a fresh Completer each time profileExists() is called, so the
     // test controls exactly when each check() finishes.
     final completers = <Completer<bool>>[];
-    when(() => account.profileExists()).thenAnswer((_) {
-      final completer = Completer<bool>();
-      completers.add(completer);
-      return completer.future;
-    });
+    final account = FakeAccountService()
+      ..profileExistsHandler = () {
+        final completer = Completer<bool>();
+        completers.add(completer);
+        return completer.future;
+      };
 
     final model = AuthGateModel(
       auth: FakeAuthService(signedIn: true, validSession: true),
@@ -121,5 +110,4 @@ void main() {
     await older;
     await newer;
   });
-
 }
