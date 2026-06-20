@@ -51,3 +51,12 @@ DateTime? parseBirthday({
   }
   return birthday;
 }
+
+/// Formats a [birthday] for display, e.g. "Born 3 Apr". Returns an empty string
+/// when [birthday] is null. The 3-letter month abbreviation is derived from
+/// [kMonthNames] so the calendar lives in exactly one place.
+String formatBirthday(DateTime? birthday) {
+  if (birthday == null) return "";
+  final month = kMonthNames[birthday.month - 1].substring(0, 3);
+  return "Born ${birthday.day} $month";
+}

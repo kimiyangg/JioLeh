@@ -11,6 +11,7 @@ import 'package:jio_leh/services/friends_service.dart';
 import "package:jio_leh/theme.dart";
 import 'package:jio_leh/pages/profile/share_code_page.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
+import 'package:jio_leh/pages/profile/widgets/profile_card.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? userId;
@@ -30,7 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _sendingFriendRequest = false;
   bool _friendRequestSent = false;
 
-  // The loaded profile. Null until it finishes loading.                                                                                                                                                                                                                                                                          
+  // The loaded profile. Null until it finishes loading.
   UserProfile? _profile;
 
   @override
@@ -83,10 +84,9 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _profile = profile);
   }
 
-  // Sends a friend request to the loaded profile, if it's not the current user's own profile and a request isn't already being sent. 
-  //Shows a success message on success, or an error message on failure. 
-  //Updates the state to reflect whether a request is being sent or has been sent.
-
+  // Sends a friend request to the loaded profile, if it's not the current
+  // user's own profile and a request isn't already being sent. Shows a success
+  // or error message, and updates the state to reflect the request's status.
   Future<void> _sendFriendRequest() async {
     final profile = _profile;
 
@@ -123,8 +123,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-
-
   Future<void> _editProfile() async {
     final profile = _profile;
     if (profile == null) return;
@@ -141,21 +139,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  static const _monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  String _formatBirthday(DateTime? birthday) {
-    if (birthday == null) return "";
-    return "Born ${birthday.day} ${_monthNames[birthday.month - 1]}";
-  }
-
   @override
   Widget build(BuildContext context) {
-    final nameSize = context.scaledFont(AppTextSizes.button);
-    final labelSize = context.scaledFont(AppTextSizes.label);
-
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: SafeArea(
@@ -169,198 +154,19 @@ class _ProfilePageState extends State<ProfilePage> {
                   const AppPageHeader(title: "Profile"),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        borderRadius: BorderRadius.circular(16)
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(15),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: AppColors.darkWidgetBackground,
-                                      foregroundImage:
-                                        _profile?.avatarUrl == null || _profile!.avatarUrl!.isEmpty
-                                            ? null
-                                            : NetworkImage(_profile!.avatarUrl!),
-                                      child: _profile?.avatarUrl == null || _profile!.avatarUrl!.isEmpty
-                                        ? const Icon(Icons.person, color: Colors.white)
-                                        : null,
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _profile?.displayName ?? "",
-                                            style: TextStyle(
-                                              fontSize: nameSize,
-                                              fontWeight: FontWeight.w900
-                                            ),
-                                          ),
-                                          Text("@${_profile?.username ?? ""}")
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _profile?.bio ?? UserProfile.defaultBio,
-                                        style: TextStyle(
-                                          fontSize: labelSize
-                                        ),
-                                      ),
-                                      SizedBox(height: 15,),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.cake, size: 15,),
-                                          SizedBox(width: 10,),
-                                          Text(_formatBirthday(_profile?.birthday)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (_isOwnProfile)
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: FilledButton(
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xFF211D18),
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor: const Color(0xFF211D18),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          onPressed: _profile == null || !_isOwnProfile // prevet others editing another user's profile
-                                              ? null
-                                              : _editProfile,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.edit,
-                                                color: Colors.white,
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Flexible(
-                                                child: Text(
-                                                  "Edit Profile",
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: labelSize,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 20),
-                                      Expanded(
-                                        child: FilledButton(
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                AppColors.lightWidgetBackground,
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor: AppColors.lightWidgetBackground,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          onPressed: _profile == null || !_isOwnProfile // prevent others sharing another user's profile
-                                              ? null
-                                              : () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) => ShareCodePage(profile: _profile!),
-                                                    ),
-                                                  );
-                                                },  
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.share,
-                                                color: Colors.white,
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Flexible(
-                                                child: Text(
-                                                  "Share Code",
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: labelSize,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        )
-                                      )
-                                    ],
-                                  )
-                                  else if (!_isOwnProfile && _profile != null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 12),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        child: FilledButton.icon(
-                                          onPressed: _sendingFriendRequest || _friendRequestSent
-                                              ? null
-                                              : _sendFriendRequest,
-                                          icon: _sendingFriendRequest
-                                              ? const SizedBox(
-                                                  width: 18,
-                                                  height: 18,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    color: Colors.white,
-                                                  ),
-                                                )
-                                              : Icon(
-                                                  _friendRequestSent
-                                                      ? Icons.check
-                                                      : Icons.person_add,
-                                                ),
-                                          label: Text(
-                                            _friendRequestSent
-                                                ? 'Friend Request Sent'
-                                                : _sendingFriendRequest
-                                                    ? 'Sending...'
-                                                    : 'Add as Friend',
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                              ],
-                            ),
-                          ],
+                    child: ProfileCard(
+                      profile: _profile,
+                      isOwnProfile: _isOwnProfile,
+                      onEdit: _editProfile,
+                      onShare: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ShareCodePage(profile: _profile!),
                         ),
                       ),
+                      isSendingRequest: _sendingFriendRequest,
+                      requestSent: _friendRequestSent,
+                      onAddFriend: _sendFriendRequest,
                     ),
                   ),
                 ],
