@@ -6,6 +6,7 @@ import 'geocoding_service.dart';
 import 'account_service.dart';
 import 'supabase_account_service.dart';
 import 'friends_service.dart';
+import 'supabase_friends_service.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -27,5 +28,8 @@ class Services {
     client: _client,
     auth: auth,
   );
-  static final friends = FriendsService(client: _client, auth: auth);
+  static final FriendsService friends = SupabaseFriendsService(
+    client: _client,
+    auth: auth,
+  );
 }
