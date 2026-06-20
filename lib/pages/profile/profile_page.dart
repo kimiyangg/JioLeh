@@ -10,6 +10,7 @@ import 'package:jio_leh/services/friends_service.dart';
 
 import "package:jio_leh/theme.dart";
 import 'package:jio_leh/pages/profile/share_code_page.dart';
+import 'package:jio_leh/widgets/app_page_header.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? userId;
@@ -152,7 +153,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final titleSize = context.scaledFont(AppTextSizes.heading) + 2;
     final nameSize = context.scaledFont(AppTextSizes.button);
     final labelSize = context.scaledFont(AppTextSizes.label);
 
@@ -166,22 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        "Profile",
-                        style: TextStyle(
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      SizedBox(width: 100),
-                      FilledButton(
-                        onPressed: () => Navigator.maybePop(context),
-                        child: Text("Back"),
-                      ),
-                    ],
-                  ),
+                  const AppPageHeader(title: "Profile"),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                     child: DecoratedBox(
