@@ -3,6 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/pages/invitations/widgets/friend_selection_list.dart';
+
+import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_primary_button.dart';
+import 'package:jio_leh/widgets/app_section_label.dart';
+import 'package:jio_leh/widgets/app_text_field.dart';
+
+import 'package:jio_leh/widgets/app_field_box.dart';
+
+
 
 class OpenJioFormPage extends StatefulWidget {
   const OpenJioFormPage({super.key});
@@ -14,13 +24,43 @@ class OpenJioFormPage extends StatefulWidget {
 class _OpenJioFormPageState extends State<OpenJioFormPage> {
   final _friends = Services.friends;
   final Set<String> _selectedFriendIds = {};
+  DateTime? _selectedDateTime;
+  final TextEditingController _captionController = TextEditingController();
 
   late Future<List<UserFriend>> _future;
+
+  @override
+  void dispose() {
+    _captionController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
     _future = _friends.getUserFriends();
+  }
+
+  Future<void> _pickDateTime() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (time == null) return;
+
+    setState(() {
+      _selectedDateTime = DateTime(
+        date.year, date.month, date.day, time.hour, time.minute,
+      );
+    });
   }
 
   void _toggleFriend(UserFriend friend) {
@@ -42,12 +82,31 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
 
     Navigator.pop(
       context,
-      OpenJioEvent(invitedFriends: selectedFriends),
+      OpenJioEvent(invitedFriends: selectedFriends,
+       dateTime: _selectedDateTime!,
+        caption: _captionController.text.trim()),
     );
+  } 
+
+  String _formatDateTime(DateTime dt) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final day = days[dt.weekday - 1];
+    final month = months[dt.month - 1];
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final period = dt.hour < 12 ? 'AM' : 'PM';
+    return '$day, ${dt.day} $month · $hour:$minute $period';
   }
 
   @override
   Widget build(BuildContext context) {
+    final canSubmit =
+        _selectedFriendIds.isNotEmpty && _selectedDateTime != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Open a Jio'),
@@ -68,47 +127,63 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
               .toList();
 
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: friends.isEmpty
-                    ? const Center(child: Text('No friends yet'))
-                    : ListView.builder(
-                        itemCount: friends.length,
-                        itemBuilder: (context, index) {
-                          final friend = friends[index];
-                          final isSelected = _selectedFriendIds.contains(
-                            friend.userProfile.id,
-                          );
-
-                          return ListTile(
-                            onTap: () => _toggleFriend(friend),
-                            title: Text(friend.userProfile.displayName),
-                            subtitle: Text('@${friend.userProfile.username}'),
-                            trailing: IconButton(
-                              tooltip: isSelected
-                                  ? 'Remove from OpenJio'
-                                  : 'Add to OpenJio',
-                              onPressed: () => _toggleFriend(friend),
-                              icon: Icon(
-                                isSelected
-                                    ? Icons.radio_button_checked
-                                    : Icons.radio_button_unchecked,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppSectionLabel('Date & Time'),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _pickDateTime,
+                      child: AppFieldBox(
+                        height: AppFieldHeights.single,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              _selectedDateTime != null
+                                  ? _formatDateTime(_selectedDateTime!)
+                                  : 'Pick a date and time',
+                              style: TextStyle(
+                                fontSize: AppTextSizes.textFieldHint,
+                                color: _selectedDateTime != null ? Colors.black : Colors.grey,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    const AppSectionLabel('Caption'),
+                    const SizedBox(height: 8),
+                    AppTextField(
+                      controller: _captionController,
+                      hintText: 'Add a short caption…',
+                    ),
+                    const SizedBox(height: 16),
+                    const AppSectionLabel('Invite Friends'),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: FriendSelectionList(
+                  friends: friends,
+                  selectedFriendIds: _selectedFriendIds,
+                  onToggle: _toggleFriend,
+                ),
               ),
               SafeArea(
                 minimum: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _selectedFriendIds.isEmpty
-                        ? null
-                        : () => _openJio(friends),
-                    child: const Text('OpenJio'),
-                  ),
+                child: AppPrimaryButton(
+                  label: 'OpenJio',
+                  onPressed: canSubmit ? () => _openJio(friends) : null,
                 ),
               ),
             ],
