@@ -66,9 +66,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     _account = services.account;
 
     // Prefill the display name with the name Google gave us.
-    final metadata = _auth.getCurrentUser()?.userMetadata;
-    final googleName =
-        metadata?['full_name'] as String? ?? metadata?['name'] as String?;
+    final googleName = _auth.getCurrentUserName();
     _displayNameController = TextEditingController(text: googleName ?? '');
   }
 
