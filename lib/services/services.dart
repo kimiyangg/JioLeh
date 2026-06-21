@@ -7,6 +7,7 @@ import 'account_service.dart';
 import 'friends_service.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:jio_leh/services/open_jio_service.dart';
 
 /// A singleton class that provides access to all application services.
 ///
@@ -18,10 +19,16 @@ class Services {
   // Pick the real worker here, ONCE. The type stays AuthService, so the rest
   // of the app never mentions Supabase.
   static final AuthService auth = SupabaseAuthService(client: _client);
+  static late OpenJioService openJio;
 
   static final pins = PinService(client: _client, auth: auth);
   static final location = LocationService();
   static final geocoding = GeocodingService();
   static final account = AccountService(client: _client, auth: auth);
   static final friends = FriendsService(client: _client, auth: auth);
+
+  static void init(SupabaseClient client) {
+    openJio = OpenJioService(client);
+  }
+
 }
