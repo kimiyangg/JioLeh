@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
+import 'package:jio_leh/widgets/app_field_box.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
@@ -27,6 +30,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   late final TextEditingController _yearController;
   String? _selectedMonth;
   bool _saving = false;
+
+  
+  final _imagePicker = ImagePicker();
+  XFile? _avatarFile;
 
   @override
   void initState() {
@@ -53,6 +60,46 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     _dayController.dispose();
     _yearController.dispose();
     super.dispose();
+  }
+
+    Future<void> _pickAvatar() async {
+    final photo = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1000,
+      maxHeight: 1000,
+      imageQuality: 80,
+    );
+
+    if (photo != null && mounted) {
+      setState(() => _avatarFile = photo);
+    }
+  }
+
+  /// Preview shown inside the photo box: a circular avatar of the freshly-picked
+  /// image if there is one, otherwise the saved avatar, otherwise a placeholder.
+  Widget _buildAvatarPreview() {
+    final avatarFile = _avatarFile;
+    final existingUrl = widget.profile.avatarUrl;
+
+    final ImageProvider? image;
+    if (avatarFile != null) {
+      image = FileImage(File(avatarFile.path));
+    } else if (existingUrl != null && existingUrl.isNotEmpty) {
+      image = NetworkImage(existingUrl);
+    } else {
+      image = null;
+    }
+
+    return Center(
+      child: CircleAvatar(
+        radius: 50,
+        backgroundColor: AppColors.darkWidgetBackground,
+        foregroundImage: image,
+        child: image == null
+            ? const Icon(Icons.add_a_photo, color: Colors.white)
+            : null,
+      ),
+    );
   }
 
   Future<void> _saveProfile() async {
@@ -89,6 +136,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         displayName: displayName,
         bio: bio.isEmpty ? null : bio,
         birthday: birthday,
+        avatarFile: _avatarFile,
       );
 
       if (mounted) {
@@ -110,7 +158,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final labelSize = context.scaledFont(AppTextSizes.label);
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: GestureDetector(
@@ -128,28 +175,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     const SizedBox(height: 5),
                     const AppSectionLabel(text: "PROFILE PHOTO"),
                     const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 150,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(AppRadii.elements),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.camera_alt, size: 40),
-                              Text(
-                                "Add a photo",
-                                style: TextStyle(fontSize: labelSize),
-                              ),
-                            ],
-                          ),
-                        ),
+                    GestureDetector(
+                      onTap: _saving ? null : _pickAvatar,
+                      child: AppFieldBox(
+                        height: AppFieldHeights.photo,
+                        child: _buildAvatarPreview(),
                       ),
-                    ),
+                    ),     
                     const SizedBox(height: 20),
                     const AppSectionLabel(text: "DISPLAY NAME"),
                     const SizedBox(height: 10),
