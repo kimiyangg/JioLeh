@@ -107,7 +107,11 @@ class SupabaseAccountService extends AccountService {
           ),
         );
 
-    return _supabase.storage.from('profile-photos').getPublicUrl(path);
+    // Re-uploads reuse this path, so the public URL is unchanged and image
+    // caches keep serving the old photo. A changing query param busts them.
+    final publicUrl =
+        _supabase.storage.from('profile-photos').getPublicUrl(path);
+    return '$publicUrl?v=${DateTime.now().millisecondsSinceEpoch}';
   }
 
   @override
@@ -148,12 +152,20 @@ class SupabaseAccountService extends AccountService {
   }) async {
     final userId = auth.getCurrentUserId();
 
+    // Only touch avatar_url when the caller supplies a new image, so a name- or
+    // bio-only edit doesn't wipe the existing photo.
+    String? avatarUrl;
+    if (avatarFile != null) {
+      avatarUrl = await _uploadAvatar(avatarFile, userId);
+    }
+
     final row = await _supabase
         .from(_tableName)
         .update({
           'display_name': displayName,
           'bio': bio,
           'birthday': birthday?.toIso8601String().split('T').first,
+          if (avatarFile != null) 'avatar_url': avatarUrl,
         })
         .eq('id', userId)
         .select()
