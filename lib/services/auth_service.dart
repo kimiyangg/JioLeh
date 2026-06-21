@@ -13,6 +13,12 @@ abstract class AuthService {
   // Derived helpers — shared by every implementation, so they live here once.
   String? getCurrentUserEmail() => getCurrentUser()?.email;
 
+  String? getCurrentUserName() {
+    // ?. to indicate currentUser might be null
+    final metadata = getCurrentUser()?.userMetadata;
+    return metadata?['full_name'] as String? ?? metadata?['name'] as String?;
+  }
+
   String getCurrentUserId() {
     final userId = getCurrentUser()?.id;
     if (userId == null) {

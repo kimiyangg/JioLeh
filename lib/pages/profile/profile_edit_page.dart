@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/models/user_profile.dart';
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
+import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
+import 'package:jio_leh/widgets/app_snack_bar.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
 import 'package:jio_leh/widgets/birthday_row.dart';
 
@@ -58,8 +60,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final bio = _bioController.text.trim();
 
     if (displayName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Display name cannot be empty.')),
+      context.showAppSnackBar(
+        'Display name cannot be empty.',
+        kind: SnackBarKind.error,
       );
       return;
     }
@@ -72,15 +75,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         month: _selectedMonth,
       );
     } on FormatException catch (error) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      context.showAppSnackBar(error.message, kind: SnackBarKind.error);
       return;
     }
 
+    // Read the service from the provider before the first await (context is
+    // valid here because this runs from a button tap after build).
+    final account = ServiceProvider.of(context)!.account;
+
     setState(() => _saving = true);
     try {
-      final updatedProfile = await Services.account.updateProfile(
+      final updatedProfile = await account.updateProfile(
         displayName: displayName,
         bio: bio.isEmpty ? null : bio,
         birthday: birthday,
@@ -91,8 +96,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save profile: $error')),
+        context.showAppSnackBar(
+          'Could not save profile: $error',
+          kind: SnackBarKind.error,
         );
       }
     } finally {
@@ -104,7 +110,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final titleSize = context.scaledFont(AppTextSizes.heading) + 2;
     final labelSize = context.scaledFont(AppTextSizes.label);
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -119,22 +124,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          "Edit Profile",
-                          style: TextStyle(
-                            fontSize: titleSize,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(width: 100),
-                        FilledButton(
-                          onPressed: () => Navigator.maybePop(context),
-                          child: const Text("Back"),
-                        ),
-                      ],
-                    ),
+                    const AppPageHeader(title: "Edit Profile"),
                     const SizedBox(height: 5),
                     const AppSectionLabel(text: "PROFILE PHOTO"),
                     const SizedBox(height: 10),

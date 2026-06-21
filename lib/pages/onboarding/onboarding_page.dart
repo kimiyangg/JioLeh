@@ -2,15 +2,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:jio_leh/pages/profile/username_rule.dart';
+import 'package:jio_leh/util/username_rule.dart';
 import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
+import 'package:jio_leh/widgets/app_snack_bar.dart';
 
-import 'onboarding_widgets.dart';
+import 'widgets/welcome_header.dart';
+import 'widgets/profile_form.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key, this.onComplete});
@@ -29,9 +31,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   bool _didInit = false;
 
   final _imagePicker = ImagePicker();
-  XFile? _profilePhoto;
+  XFile? _avatarFile;
 
-  Future<void> _pickProfilePhoto() async {
+  Future<void> _pickAvatar() async {
     final photo = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1000,
@@ -40,7 +42,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
 
     if (photo != null && mounted) {
-      setState(() => _profilePhoto = photo);
+      setState(() => _avatarFile = photo);
     }
   }
 
@@ -64,9 +66,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     _account = services.account;
 
     // Prefill the display name with the name Google gave us.
-    final metadata = _auth.getCurrentUser()?.userMetadata;
-    final googleName =
-        metadata?['full_name'] as String? ?? metadata?['name'] as String?;
+    final googleName = _auth.getCurrentUserName();
     _displayNameController = TextEditingController(text: googleName ?? '');
   }
 
@@ -83,9 +83,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     // Authoritative client-side rule lives in UsernameRule.
     final username = _usernameController.text.trim().toLowerCase();
     if (!UsernameRule.isValid(username)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(UsernameRule.errorMessage)),
-      );
+      context.showAppSnackBar(UsernameRule.errorMessage, kind: SnackBarKind.error);
       return;
     }
 
@@ -97,9 +95,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         month: _selectedMonth,
       );
     } on FormatException catch (error) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      context.showAppSnackBar(error.message, kind: SnackBarKind.error);
       return;
     }
 
@@ -109,20 +105,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
         username: username,
         displayName: _displayNameController.text.trim(),
         birthday: birthday,
-        profilePhoto: _profilePhoto,
+        avatarFile: _avatarFile,
       );
       // Tell AuthGate to re-check; it will route on to the MapPage.
       await widget.onComplete?.call();
     } on UsernameTaken {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('That username is taken — try another.')),
+        context.showAppSnackBar(
+          'That username is taken — try another.',
+          kind: SnackBarKind.error,
         );
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save profile: $error')),
+        context.showAppSnackBar(
+          'Could not save profile: $error',
+          kind: SnackBarKind.error,
         );
       }
     } finally {
@@ -170,14 +168,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           width: double.infinity,
                           child: Center(
                             child: GestureDetector(
-                              onTap: _submitting ? null : _pickProfilePhoto,
+                              onTap: _submitting ? null : _pickAvatar,
                               child: CircleAvatar(
                                 radius: 50,
                                 backgroundColor: AppColors.darkWidgetBackground,
-                                foregroundImage: _profilePhoto == null 
+                                foregroundImage: _avatarFile == null 
                                     ? null
-                                    : FileImage(File(_profilePhoto!.path)),
-                                child: _profilePhoto == null
+                                    : FileImage(File(_avatarFile!.path)),
+                                child: _avatarFile == null
                                     ? const Icon(Icons.add_a_photo, color: Colors.white)
                                     : null,
                               ),

@@ -46,3 +46,6 @@ app.*.map.json
 upload-keystore.jks
 gi_jios/build/
 gi_jios/build/
+
+# Local scripts (not committed)
+/scripts/

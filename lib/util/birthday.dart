@@ -1,8 +1,5 @@
-// Shared birthday helpers used by the onboarding and profile-edit forms, so
-// the month list and the parsing rules live in exactly one place.
-
-/// Full month names, index 0 = January. The dropdown shows these and
-/// [parseBirthday] maps a name back to its 1-based month number.
+// Shared birthday helpers used by the onboarding and profile-edit forms,
+// so the month list and the parsing rules live in exactly one place.
 const kMonthNames = [
   "January",
   "February",
@@ -18,11 +15,11 @@ const kMonthNames = [
   "December",
 ];
 
-/// Builds a [DateTime] from the day / month / year inputs.
+/// Builds a [DateTime] from the inputs
 ///
-/// Returns null when every field is empty (birthday is optional). Throws a
-/// [FormatException] with a user-facing message when the input is partial
-/// (some fields filled, some not) or not a real calendar date (e.g. day 99).
+/// Returns null when every field is empty (birthday is optional)
+/// 
+/// Throws a [FormatException] with a user-facing message when the input is partial or not a real calendar date
 DateTime? parseBirthday({
   required String day,
   required String year,
@@ -42,12 +39,21 @@ DateTime? parseBirthday({
   }
 
   final birthday = DateTime(yearValue, monthIndex + 1, dayValue);
-  // DateTime silently rolls overflow over (e.g. day 99 -> next month), so
-  // reject anything that didn't round-trip to the exact values entered.
+  // fixing the problem of DateTime silently rolls overflow over
+  // reject anything that didn't round-trip to the exact values entered
   if (birthday.year != yearValue ||
       birthday.month != monthIndex + 1 ||
       birthday.day != dayValue) {
     throw const FormatException('Enter a valid birthday.');
   }
   return birthday;
+}
+
+/// Formats a [birthday] for display
+/// 
+/// Returns an empty string when [birthday] is null.
+String formatBirthday(DateTime? birthday) {
+  if (birthday == null) return "";
+  final month = kMonthNames[birthday.month - 1].substring(0, 3);
+  return "Born ${birthday.day} $month";
 }
