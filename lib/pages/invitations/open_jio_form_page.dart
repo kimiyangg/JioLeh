@@ -137,7 +137,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const AppSectionLabel('Date & Time'),
+                    const AppSectionLabel(text: 'Date & Time'),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _pickDateTime,
@@ -163,20 +163,20 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                     ),
 
                     const SizedBox(height: 16),
-                    const AppSectionLabel('Caption'),
+                    const AppSectionLabel(text: 'Caption'),
                     const SizedBox(height: 8),
                     AppTextField(
                       controller: _captionController,
                       hintText: 'Add a short caption…',
                     ),
                     const SizedBox(height: 16),
-                    const AppSectionLabel('Location'),
+                    const AppSectionLabel(text: 'Location'),
                     const SizedBox(height: 8),
                     AppTextField(
                       controller: _locationController,
                       hintText: 'Enter a location name…',), 
                       const SizedBox(height: 16),
-                    const AppSectionLabel('Invite Friends'),
+                    const AppSectionLabel(text: 'Invite Friends'),
                     const SizedBox(height: 8),
                   ],
                 ),
