@@ -50,6 +50,9 @@ class AppShadows {
 // Standard height for a single-line input field box.
 class AppFieldHeights {
   static const single = 55.0;
+
+  // Taller box used for the profile photo picker.
+  static const photo = 150.0;
 }
 
 // Height of the main call-to-action buttons.
