@@ -26,12 +26,14 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   final Set<String> _selectedFriendIds = {};
   DateTime? _selectedDateTime;
   final TextEditingController _captionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
 
   late Future<List<UserFriend>> _future;
 
   @override
   void dispose() {
     _captionController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -84,7 +86,8 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
       context,
       OpenJioEvent(invitedFriends: selectedFriends,
        dateTime: _selectedDateTime!,
-        caption: _captionController.text.trim()),
+        caption: _captionController.text.trim(),
+        locationName: _locationController.text.trim()),
     );
   } 
 
@@ -167,6 +170,12 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                       hintText: 'Add a short caption…',
                     ),
                     const SizedBox(height: 16),
+                    const AppSectionLabel('Location'),
+                    const SizedBox(height: 8),
+                    AppTextField(
+                      controller: _locationController,
+                      hintText: 'Enter a location name…',), 
+                      const SizedBox(height: 16),
                     const AppSectionLabel('Invite Friends'),
                     const SizedBox(height: 8),
                   ],
