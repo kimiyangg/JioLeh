@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/pages/invitations/open_jio_form_page.dart';
+import 'package:jio_leh/services/services.dart';
 
 class InvitationsPage extends StatefulWidget {
   const InvitationsPage({super.key});
@@ -11,7 +12,41 @@ class InvitationsPage extends StatefulWidget {
 }
 
 class _InvitationsPageState extends State<InvitationsPage> {
-  final List<OpenJioEvent> _events = [];
+  late List<OpenJioEvent> _events;
+  bool _isLoading = true;
+
+  @override 
+  void initState() {
+    super.initState();
+    _events = [];
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    try {
+      final userId = Services.auth.getCurrentUserId();
+      final allFriends = await Services.friends.getUserFriends();
+      
+      final events = await Services.openJio.getUserOpenJioEvents(
+        userId,
+        allFriends,
+      );
+      
+      if (mounted) {
+        setState(() {
+          _events = events;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading events: $e')),
+        );
+      }
+    }
+  }
 
   Future<void> _openJioForm() async {
     final event = await Navigator.push<OpenJioEvent>(
@@ -21,7 +56,20 @@ class _InvitationsPageState extends State<InvitationsPage> {
 
     if (event == null || !mounted) return;
 
-    setState(() => _events.insert(0, event));
+    try {
+      final userId = Services.auth.getCurrentUserId();
+      await Services.openJio.saveOpenJioEvent(event, userId);
+      
+      if (mounted) {
+        setState(() => _events.insert(0, event));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving event: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -50,28 +98,30 @@ class _InvitationsPageState extends State<InvitationsPage> {
             ),
           ),
           Expanded(
-            child: _events.isEmpty
-                ? const Center(child: Text('No OpenJio events yet'))
-                : ListView.builder(
-                    itemCount: _events.length,
-                    itemBuilder: (context, index) {
-                      final event = _events[index];
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _events.isEmpty
+                    ? const Center(child: Text('No OpenJio events yet'))
+                    : ListView.builder(
+                        itemCount: _events.length,
+                        itemBuilder: (context, index) {
+                          final event = _events[index];
 
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: ListTile(
-                          title: Text(
-                            'OpenJio sent to ${event.invitedFriends.length} friend(s)',
-                          ),
-                          subtitle: Text(event.friendNames),
-                          leading: const Icon(Icons.markunread_mailbox),
-                        ),
-                      );
-                    },
-                  ),
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: ListTile(
+                              title: Text(
+                                'OpenJio sent to ${event.invitedFriends.length} friend(s)',
+                              ),
+                              subtitle: Text(event.friendNames),
+                              leading: const Icon(Icons.markunread_mailbox),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
