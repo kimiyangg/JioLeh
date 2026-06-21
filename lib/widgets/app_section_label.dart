@@ -6,7 +6,7 @@ import 'package:jio_leh/theme.dart';
 /// 
 /// * [text]: The string to be displayed as the label.
 class AppSectionLabel extends StatelessWidget {
-  const AppSectionLabel(this.text, {super.key});
+  const AppSectionLabel({super.key, required this.text});
 
   final String text;
 
