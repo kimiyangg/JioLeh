@@ -71,7 +71,7 @@ class SupabaseAccountService extends AccountService {
         return;
       } on PostgrestException catch (e) {
         // What to do depends only on the error code + whether the user gave a
-        // username. That decision lives in [decideInsertAction] so it can be
+        // username. That decision lives in [decideAccountInsertAction] so it can be
         // unit-tested without a database.
         final action = decideAccountInsertAction(
           errorCode: e.code,
