@@ -5,11 +5,13 @@ class OpenJioEvent {
     required this.invitedFriends,
     required this.dateTime, 
     required this.caption,
+    required this.locationName,
   });
 
   final List<UserFriend> invitedFriends;
   final DateTime dateTime;
   final String caption;
+  final String locationName;
 
   String get friendNames {
     return invitedFriends
