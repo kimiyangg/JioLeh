@@ -73,7 +73,7 @@ class SupabaseAccountService extends AccountService {
         // What to do depends only on the error code + whether the user gave a
         // username. That decision lives in [decideInsertAction] so it can be
         // unit-tested without a database.
-        final action = decideInsertAction(
+        final action = decideAccountInsertAction(
           errorCode: e.code,
           usernameGiven: username != null,
         );
@@ -182,7 +182,7 @@ enum InsertAction { retry, nameTaken, unknownError }
 ///
 /// A duplicate (23505) on a generated name → try again with a new one; on a
 /// user-chosen name → the name is taken; anything else → an unknown error.
-InsertAction decideInsertAction({
+InsertAction decideAccountInsertAction({
   required String? errorCode,
   required bool usernameGiven,
 }) {

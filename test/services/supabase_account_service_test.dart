@@ -6,14 +6,14 @@ void main() {
   group('decideInsertAction', () {
     test('duplicate on a generated username -> retry', () {
       expect(
-        decideInsertAction(errorCode: '23505', usernameGiven: false),
+        decideAccountInsertAction(errorCode: '23505', usernameGiven: false),
         InsertAction.retry,
       );
     });
 
     test('duplicate on a user-chosen username -> name taken', () {
       expect(
-        decideInsertAction(errorCode: '23505', usernameGiven: true),
+        decideAccountInsertAction(errorCode: '23505', usernameGiven: true),
         InsertAction.nameTaken,
       );
     });

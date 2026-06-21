@@ -60,12 +60,13 @@ class SupabaseFriendsService extends FriendsService {
         'status': FriendshipStatus.pending.name,
       });
     } on PostgrestException catch (e) {
-      // PostgrestException with code '23505' indicates a unique constraint violation
-      // https://www.postgresql.org/docs/current/errcodes-appendix.html for more details
-      if (e.code == '23505') {
+      // The 23505 -> "already exists" decision lives in [decideFriendInsertAction]
+      // so it can be unit-tested without a database.
+      if (decideFriendInsertAction(errorCode: e.code) ==
+          FriendInsertAction.alreadyExists) {
         throw const FriendAlreadyExists();
       }
-      // For any other PostgrestException, we rethrow it to be handled by the caller.
+      // Any other PostgrestException is unexpected — rethrow for the caller.
       rethrow;
     }
   }
@@ -128,4 +129,17 @@ class SupabaseFriendsService extends FriendsService {
       throw const FriendNotFound();
     }
   }
+}
+
+/// What [SupabaseFriendsService.sendFriendRequest] should do when the insert fails.
+enum FriendInsertAction { alreadyExists, unknownError }
+
+/// Decides what a failed friend-request insert means, from the Postgres [errorCode]
+/// 23505 (a unique-constraint violation) means the friendship already exists
+/// anything else is rethrown
+FriendInsertAction decideFriendInsertAction({required String? errorCode}) {
+  const duplicateCode = '23505';
+  return errorCode == duplicateCode
+      ? FriendInsertAction.alreadyExists
+      : FriendInsertAction.unknownError;
 }
