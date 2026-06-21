@@ -136,7 +136,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       ],
                     ),
                     const SizedBox(height: 5),
-                    const AppSectionLabel("PROFILE PHOTO"),
+                    const AppSectionLabel(text: "PROFILE PHOTO"),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
@@ -161,14 +161,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const AppSectionLabel("DISPLAY NAME"),
+                    const AppSectionLabel(text: "DISPLAY NAME"),
                     const SizedBox(height: 10),
                     AppTextField(
                       controller: _displayNameController,
                       hintText: "What should we call you?",
                     ),
                     const SizedBox(height: 20),
-                    const AppSectionLabel("BIO"),
+                    const AppSectionLabel(text: "BIO"),
                     const SizedBox(height: 10),
                     AppTextField(
                       controller: _bioController,
@@ -177,7 +177,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       maxLines: null,
                     ),
                     const SizedBox(height: 20),
-                    const AppSectionLabel("BIRTHDAY"),
+                    const AppSectionLabel(text: "BIRTHDAY"),
                     const SizedBox(height: 10),
                     BirthdayRow(
                       dayController: _dayController,

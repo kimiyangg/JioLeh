@@ -92,7 +92,7 @@ class ProfileForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AppSectionLabel("USER ID"),
+            const AppSectionLabel(text: "USER ID"),
             const SizedBox(height: 10),
             AppTextField(
               controller: usernameController,
@@ -100,14 +100,14 @@ class ProfileForm extends StatelessWidget {
               inputFormatters: UsernameRule.inputFormatters,
             ),
             const SizedBox(height: 30),
-            const AppSectionLabel("YOUR NAME"),
+            const AppSectionLabel(text: "YOUR NAME"),
             const SizedBox(height: 10),
             AppTextField(
               controller: displayNameController,
               hintText: "What should we call you?",
             ),
             const SizedBox(height: 30),
-            const AppSectionLabel("BIRTHDAY · OPTIONAL"),
+            const AppSectionLabel(text: "BIRTHDAY · OPTIONAL"),
             const SizedBox(height: 10),
             BirthdayRow(
               dayController: dayController,
