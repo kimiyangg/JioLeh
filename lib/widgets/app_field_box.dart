@@ -17,7 +17,7 @@ class AppFieldBox extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.lightSection,
         borderRadius: BorderRadius.circular(AppRadii.elements),
         boxShadow: AppShadows.field,
       ),

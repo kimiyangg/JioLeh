@@ -7,6 +7,9 @@ class AppColors {
   static const lightBackground = Color(0xfff6e7da);
   static const darkBackground = Color(0xFF1A1212);
 
+  // White surface for raised sections: field boxes, the nav bar pill, cards.
+  static const lightSection = Color(0xFFFFFFFF);
+
   static const lightWidgetBackground = Color(0xFF3E9F6B);
   static const darkWidgetBackground = Color(0xFFE7D5B2);
 
@@ -60,6 +63,24 @@ class AppButtonHeights {
   static const primary = 54.0;
   // Shorter height for secondary / paired actions (e.g. Edit + Share).
   static const compact = 44.0;
+}
+
+// Bottom navigation bar dimensions.
+class AppNavBar {
+  static const height = 64.0;
+  static const iconSize = 24.0;
+  static const labelSize = 11.0;
+  static const gap = 4.0; // icon → label spacing
+
+  // The raised center "+" action button.
+  static const addButtonSize = 65.0;
+  static const addButtonRadius = 20.0;
+  static const addButtonGap = 12.0; // breathing room either side of the "+"
+
+  // The floating pill: inset from the screen edges + rounded + shadow.
+  static const margin = 16.0; // gap to screen edges
+  static const radius = 20.0; // pill corner radius
+  static const elevation = 8.0; // drop shadow
 }
 
 // The text sizes used in the app, defined as constants for consistency and easy maintenance.

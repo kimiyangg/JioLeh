@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/pages/auth/login_page.dart';
-import 'package:jio_leh/pages/map/map_page.dart';
+import 'package:jio_leh/pages/home/home_page.dart';
 import 'package:jio_leh/pages/onboarding/onboarding_page.dart';
 
 import 'package:jio_leh/pages/auth/gate/auth_gate_model.dart';
@@ -108,7 +108,7 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     if (_model.screen == AuthGateScreen.map) {
-      return const MapPage();
+      return const HomePage();
     }
 
     // AuthGateScreen.error

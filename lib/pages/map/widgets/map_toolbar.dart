@@ -14,7 +14,7 @@ class MapToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       right: 16,
-      bottom: 32,
+      bottom: 120,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
