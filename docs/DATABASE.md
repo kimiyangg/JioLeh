@@ -16,7 +16,7 @@ user id and is created during onboarding by `AccountService.createProfile`.
 | Column | Type | Notes |
 |---|---|---|
 | `id` | uuid | Primary key, matches the Supabase Auth user id |
-| `username` | text | Set during onboarding, falling back to a generated code |
+| `username` | text | Set during onboarding; falls back to an app-generated code (`UsernameRule`) |
 | `display_name` | text | Set during onboarding |
 | `birthday` | date | Optional |
 | `bio` | text | Optional |

@@ -8,6 +8,7 @@ import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
+import 'package:jio_leh/widgets/app_avatar.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_snack_bar.dart';
 
@@ -167,19 +168,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         SizedBox( 
                           width: double.infinity,
                           child: Center(
-                            child: GestureDetector(
+                            child: AppAvatar(
+                              radius: 50,
+                              image: _avatarFile == null
+                                  ? null
+                                  : FileImage(File(_avatarFile!.path)),
                               onTap: _submitting ? null : _pickAvatar,
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundColor: AppColors.darkWidgetBackground,
-                                foregroundImage: _avatarFile == null 
-                                    ? null
-                                    : FileImage(File(_avatarFile!.path)),
-                                child: _avatarFile == null
-                                    ? const Icon(Icons.add_a_photo, color: Colors.white)
-                                    : null,
-                              ),
-                          ),
+                            ),
                           ),
                         ),
                         ProfileForm(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
+import 'package:jio_leh/widgets/app_avatar.dart';
 import 'package:jio_leh/widgets/app_secondary_button.dart';
 
 /// Organism — the profile card: avatar + name/username, bio, birthday, and
@@ -51,28 +52,27 @@ class ProfileCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
+                AppAvatar(
                   radius: 30,
-                  backgroundColor: AppColors.darkWidgetBackground,
-                  foregroundImage: hasAvatar ? NetworkImage(avatarUrl) : null,
-                  child: hasAvatar
-                      ? null
-                      : const Icon(Icons.person, color: Colors.white),
+                  image: hasAvatar ? NetworkImage(avatarUrl) : null,
+                  placeholder: Icons.person,
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        profile?.displayName ?? "",
-                        style: TextStyle(
-                          fontSize: nameSize,
-                          fontWeight: FontWeight.w900,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile?.displayName ?? "",
+                          style: TextStyle(
+                            fontSize: nameSize,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
-                      Text("@${profile?.username ?? ""}"),
-                    ],
+                        Text("@${profile?.username ?? ""}"),
+                      ],
+                    ),
                   ),
                 ),
               ],
