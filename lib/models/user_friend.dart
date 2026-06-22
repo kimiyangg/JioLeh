@@ -19,6 +19,17 @@ class UserFriend {
       direction: direction,
     );
   }
+
+  // An accepted (mutual) friend.
+  bool get isAccepted => status == FriendshipStatus.accepted;
+
+  // A pending request the other user sent me — shown under Requests.
+  bool get isIncomingRequest =>
+      status == FriendshipStatus.pending && direction == FriendDirection.incoming;
+
+  // A pending request I sent that they haven't accepted — shown under Sent.
+  bool get isOutgoingRequest =>
+      status == FriendshipStatus.pending && direction == FriendDirection.outgoing;
 }
 
 // Enum representing, from the current user's perspective, who initiated the

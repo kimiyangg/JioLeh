@@ -126,7 +126,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
           }
 
           final friends = (snapshot.data ?? [])
-              .where((friend) => friend.status == FriendshipStatus.accepted)
+              .where((friend) => friend.isAccepted)
               .toList();
 
           return Column(
