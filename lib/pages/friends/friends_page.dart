@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/services/services.dart';
-import 'package:jio_leh/pages/profile/profile_page.dart';
 import "package:jio_leh/theme.dart";
 import "package:jio_leh/widgets/app_page_header.dart";
 import "package:jio_leh/widgets/app_selection_bar.dart";
+import "package:jio_leh/widgets/app_snack_bar.dart";
+import 'package:jio_leh/pages/friends/widgets/friend_search_bar.dart';
 import 'package:jio_leh/pages/friends/widgets/friends_tab.dart';
 import 'package:jio_leh/pages/friends/widgets/requests_tab.dart';
 
@@ -61,8 +62,7 @@ class _FriendsPageState extends State<FriendsPage> {
       _reload();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('$error')));
+        context.showAppSnackBar('$error', kind: SnackBarKind.error);
       }
     }
   }
@@ -76,11 +76,28 @@ class _FriendsPageState extends State<FriendsPage> {
       if (!mounted) return;
       setState(() => _searchResult = result);
       if (result == null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No user found')));
+        context.showAppSnackBar('No user found');
       }
     } finally {
       if (mounted) setState(() => _searching = false);
+    }
+  }
+
+  // Sends a friend request to the searched [user]. On success clears the search
+  // result and reloads, so the new request shows under Requests → Sent.
+  Future<void> _sendRequest(UserProfile user) async {
+    try {
+      await _friends.sendFriendRequest(user);
+      if (!mounted) return;
+      setState(() {
+        _searchResult = null;
+        _searchController.clear();
+      });
+      _reload();
+    } catch (error) {
+      if (mounted) {
+        context.showAppSnackBar('$error', kind: SnackBarKind.error);
+      }
     }
   }
 
@@ -89,209 +106,78 @@ class _FriendsPageState extends State<FriendsPage> {
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const AppPageHeader(
-                      title: "Friends",
-                      closeBtn: false,
-                    ),
-                    const SizedBox(height: 5),
-                    AppSelectionBar(
-                      items: _items,
-                      selectedIndex: _selectedTab,
-                      onChanged: (i) => setState(() => _selectedTab = i),
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(child: _buildTabBody()),
-                  ]
-                )
-              );
-            }
-          )
-      )
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppPageHeader(
+                title: "Friends",
+                closeBtn: false,
+              ),
+              const SizedBox(height: 5),
+              AppSelectionBar(
+                items: _items,
+                selectedIndex: _selectedTab,
+                onChanged: (i) => setState(() => _selectedTab = i),
+              ),
+              const SizedBox(height: 20),
+              // Search-to-invite lives in the Requests tab only.
+              if (_selectedTab == 1) ...[
+                FriendSearchBar(
+                  controller: _searchController,
+                  searching: _searching,
+                  result: _searchResult,
+                  onSearch: _search,
+                  onSendRequest: _sendRequest,
+                ),
+                const SizedBox(height: 15),
+              ],
+              Expanded(
+                child: FutureBuilder<List<UserFriend>>(
+                  future: _future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Center(
+                          child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(
+                            fontSize: context.scaledFont(AppTextSizes.body),
+                          ),
+                        ),
+                      );
+                    }
+                    return _buildTabBody(snapshot.data ?? const []);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  // Shows the placeholder body for the selected tab.
-  Widget _buildTabBody() {
-    if (_selectedTab == 0) return const FriendsTab();
-    if (_selectedTab == 1) return const RequestsTab();
+  // Shows the body for the selected tab, fed by the already-loaded [all] friends.
+  Widget _buildTabBody(List<UserFriend> all) {
+    if (_selectedTab == 0) {
+      final friends = all.where((f) => f.isAccepted).toList();
+      return FriendsTab(friends: friends);
+    }
+    if (_selectedTab == 1) {
+      final requests = all.where((f) => f.isIncomingRequest).toList();
+      final sent = all.where((f) => f.isOutgoingRequest).toList();
+      return RequestsTab(
+        requests: requests,
+        sent: sent,
+        onAccept: (p) => _runAction(() => _friends.acceptFriendRequest(p)),
+        onReject: (p) => _runAction(() => _friends.rejectFriendRequest(p)),
+      );
+    }
     return const SizedBox.shrink();
   }
 }
-//       appBar: AppBar(title: const Text('Friends')),
-//       body: Column(
-//         children: [
-//           // Search a user by username, then send them a friend request.
-//           Padding(
-//             padding: const EdgeInsets.all(16),
-//             child: Row(
-//               children: [
-//                 Expanded(
-//                   child: TextField(
-//                     controller: _searchController,
-//                     onSubmitted: (_) => _search(),
-//                     decoration: const InputDecoration(
-//                       labelText: 'Search by username',
-//                       border: OutlineInputBorder(),
-//                     ),
-//                   ),
-//                 ),
-//                 IconButton(
-//                   onPressed: _searching ? null : _search,
-//                   icon: const Icon(Icons.search),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           if (_searchResult != null)
-//             ListTile(
-//               title: Text(_searchResult!.displayName),
-//               subtitle: Text('@${_searchResult!.username}'),
-//               trailing: ElevatedButton(
-//                 onPressed: () => _runAction(
-//                   () => _friends.sendFriendRequest(_searchResult!),
-//                 ),
-//                 child: const Text('Add'),
-//               ),
-//             ),
-//           const Divider(),
-//           Expanded(child: _buildList()),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildList() {
-//     return FutureBuilder<List<UserFriend>>(
-//       future: _future,
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState != ConnectionState.done) {
-//           return const Center(child: CircularProgressIndicator());
-//         }
-//         if (snapshot.hasError) {
-//           return Center(child: Text('Error: ${snapshot.error}'));
-//         }
-
-//         final all = snapshot.data ?? [];
-//         // Only incoming pending requests belong in the Requests section; a
-//         // request we sent out is still pending but must not appear as if the
-//         // other user is asking us.
-//         final requests = all
-//             .where((f) =>
-//                 f.status == FriendshipStatus.pending &&
-//                 f.direction == FriendDirection.incoming)
-//             .toList();
-//         // Requests we sent that the other user has not accepted yet.
-//         final sent = all
-//             .where((f) =>
-//                 f.status == FriendshipStatus.pending &&
-//                 f.direction == FriendDirection.outgoing)
-//             .toList();
-//         final friends =
-//             all.where((f) => f.status == FriendshipStatus.accepted).toList();
-
-//         return ListView(
-//           children: [
-//             const ListTile(
-//               title: Text(
-//                 'Requests',
-//                 style: TextStyle(fontWeight: FontWeight.bold),
-//               ),
-//             ),
-//             if (requests.isEmpty)
-//               const ListTile(title: Text('No requests'))
-//             else
-//               for (final r in requests)
-//                 ListTile(
-//                   title: Text(r.userProfile.displayName),
-//                   subtitle: Text('@${r.userProfile.username}'),
-//                   trailing: Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       IconButton(
-//                         icon: const Icon(Icons.check, color: Colors.green),
-//                         onPressed: () => _runAction(
-//                           () => _friends.acceptFriendRequest(r.userProfile),
-//                         ),
-//                       ),
-//                       IconButton(
-//                         icon: const Icon(Icons.close, color: Colors.red),
-//                         onPressed: () => _runAction(
-//                           () => _friends.rejectFriendRequest(r.userProfile),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//             const Divider(),
-//             const ListTile(
-//               title: Text(
-//                 'Sent',
-//                 style: TextStyle(fontWeight: FontWeight.bold),
-//               ),
-//             ),
-//             if (sent.isEmpty)
-//               const ListTile(title: Text('No sent requests'))
-//             else
-//               for (final s in sent)
-//                 ListTile(
-//                   title: Text(s.userProfile.displayName),
-//                   subtitle: Text('@${s.userProfile.username}'),
-//                   trailing: const Text('Pending'),
-//                 ),
-//             const Divider(),
-//             const ListTile(
-//               title: Text(
-//                 'Friends',
-//                 style: TextStyle(fontWeight: FontWeight.bold),
-//               ),
-//             ),
-//             if (friends.isEmpty)
-//               const ListTile(title: Text('No friends yet'))
-//             else
-//               for (final f in friends)
-//                 ListTile(
-//                   title: Text(f.userProfile.displayName),
-//                   subtitle: Text('@${f.userProfile.username}'),
-//                   trailing: Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       TextButton(
-//                         onPressed: () {
-//                           Navigator.push(
-//                             context,
-//                             MaterialPageRoute(
-//                               builder: (_) => ProfilePage(
-//                                 userId: f.userProfile.id,
-//                               ),
-//                             ),
-//                           );
-//                         },
-//                         child: const Text('View Profile'),
-//                       ),
-//                       IconButton(
-//                         tooltip: 'Remove friend',
-//                         icon: const Icon(
-//                           Icons.person_remove,
-//                           color: Colors.red,
-//                         ),
-//                         onPressed: () => _runAction(
-//                           () => _friends.removeFriend(f.userProfile),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-// }
-

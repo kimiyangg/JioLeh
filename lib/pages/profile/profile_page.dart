@@ -143,9 +143,12 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppPageHeader(
+                  AppPageHeader(
                     title: "Profile",
-                    closeBtn: false,
+                    // Show the close (✕) button only when viewing a specific
+                    // user's profile (a pushed route, e.g. from the friends
+                    // list); the home "my profile" tab passes no userId.
+                    closeBtn: widget.userId != null,
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
