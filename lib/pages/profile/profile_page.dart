@@ -143,7 +143,10 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppPageHeader(title: "Profile"),
+                  const AppPageHeader(
+                    title: "Profile",
+                    closeBtn: false,
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                     child: ProfileCard(

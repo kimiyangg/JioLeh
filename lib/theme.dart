@@ -83,6 +83,22 @@ class AppNavBar {
   static const elevation = 8.0; // drop shadow
 }
 
+// Pill-style segmented selector ([AppSelectionBar]) dimensions. Named AppSelBar
+// so it doesn't clash with the widget class — the same way AppNavBar pairs with
+// the AppBottomNav widget.
+class AppSelBar {
+  static const segmentPadH = 18.0; // bubble horizontal padding
+  static const segmentPadV = 9.0; // bubble vertical padding
+  static const segmentGap = 8.0; // gap between bubbles
+  static const segmentRadius = 24.0;
+  static const labelGap = 6.0; // label → badge spacing
+  static const labelSize = 14.0;
+  static const badgePad = 5.0;
+  static const badgeMinSize = 20.0;
+  static const badgeTextSize = 11.0;
+  static const animation = Duration(milliseconds: 200);
+}
+
 // The text sizes used in the app, defined as constants for consistency and easy maintenance.
 class AppTextSizes {
   static const heading = 28.0; // page titles (AppPageHeader)
