@@ -10,7 +10,10 @@ changed-files-labels-limit: 10
 
 "area:app-shell":
   - changed-files:
-      - any-glob-to-any-file: "lib/*.dart"
+      - any-glob-to-any-file:
+          - "lib/*.dart"
+          - "lib/app/**"
+          - "lib/routing/**"
 
 "area:config":
   - changed-files:
@@ -32,7 +35,7 @@ changed-files-labels-limit: 10
 
 "area:friends":
   - changed-files:
-      - any-glob-to-any-file: "lib/pages/friends_page.dart"
+      - any-glob-to-any-file: "lib/pages/friends/**"
 
 "area:map":
   - changed-files:
@@ -40,7 +43,7 @@ changed-files-labels-limit: 10
 
 "area:profile":
   - changed-files:
-      - any-glob-to-any-file: "lib/pages/profile_page.dart"
+      - any-glob-to-any-file: "lib/pages/profile/**"
 
 "area:assets":
   - changed-files:

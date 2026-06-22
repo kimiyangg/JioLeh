@@ -6,9 +6,11 @@ import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/birthday.dart';
+import 'package:jio_leh/widgets/app_avatar.dart';
 import 'package:jio_leh/widgets/app_field_box.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
+import 'package:jio_leh/widgets/app_secondary_button.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
 import 'package:jio_leh/widgets/app_snack_bar.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
@@ -91,13 +93,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
 
     return Center(
-      child: CircleAvatar(
+      child: AppAvatar(
         radius: 50,
-        backgroundColor: AppColors.darkWidgetBackground,
-        foregroundImage: image,
-        child: image == null
-            ? const Icon(Icons.add_a_photo, color: Colors.white)
-            : null,
+        image: image,
       ),
     );
   }
@@ -223,33 +221,39 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             ),
                           ],
                         ),
-                        child: SizedBox(
-                          height: 46,
-                          child: FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.danger,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadii.elements),
-                              ),
-                              elevation: 0,
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            onPressed: () {},
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.delete, size: 18),
-                                SizedBox(width: 8),
-                                Text('Delete account'),
-                              ],
-                            ),
-                          ),
+                        child: AppSecondaryButton(
+                          label: "Delete Account",
+                          onPressed: null,
+                          icon: Icons.delete,
+                          backgroundColor: AppColors.danger,
                         ),
+                        // child: SizedBox(
+                        //   height: 46,
+                        //   child: FilledButton(
+                        //     style: FilledButton.styleFrom(
+                        //       backgroundColor: AppColors.danger,
+                        //       foregroundColor: Colors.white,
+                        //      shape: RoundedRectangleBorder(
+                        //         borderRadius:
+                        //             BorderRadius.circular(AppRadii.elements),
+                        //       ),
+                        //       elevation: 0,
+                        //       textStyle: const TextStyle(
+                        //         fontSize: 14,
+                        //         fontWeight: FontWeight.w800,
+                        //       ),
+                        //     ),
+                        //     onPressed: () {},
+                        //     child: const Row(
+                        //       mainAxisSize: MainAxisSize.min,
+                        //       children: [
+                        //         Icon(Icons.delete, size: 18),
+                        //         SizedBox(width: 8),
+                        //         Text('Delete account'),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
                       ),
                     ),
                     const Spacer(),

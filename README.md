@@ -25,6 +25,8 @@ The app currently includes:
 - Profile viewing, profile editing, and share-code access.
 - Friend search by username, friend requests, accept/reject flows, and friend
   removal.
+- Creating OpenJio gathering invitations to selected friends, with a date and
+  time, caption, and location.
 - Persistent places, user pins, user profiles, and friendships stored in
   Supabase.
 - Map pins with custom names, emoji, ratings, reviews, privacy, and up to three
@@ -43,7 +45,7 @@ The aims of our project include but are not limited to:
 - Supporting private friend-based discovery instead of public-only reviews.
 - Making exploration more engaging through points, leaderboards, map
   progression, virtual buildings, and other game-like features.
-- Helping users plan outings through shared friend recommendations and future
+- Helping users plan outings through shared friend recommendations and
   OpenJio-style gathering flows.
 
 ## Roadmap
@@ -142,8 +144,9 @@ integration, and release workflows.
 | Path | Purpose |
 |---|---|
 | `lib/main.dart` | App bootstrap and service initialization |
-| `lib/app.dart` | Root Flutter app and auth gate routing |
-| `lib/pages/` | App pages (auth, onboarding, map, profile) |
+| `lib/app/` | Root app shell, auth gate, and service-provider wiring |
+| `lib/routing/` | Centralized route definitions (`AppRoutes`) |
+| `lib/pages/` | App pages (auth, onboarding, map, profile, friends, invitations, home) |
 | `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
 | `lib/services/` | Auth, account, friends, location, geocoding, and pin services |
 | `lib/config/` | Mapbox and Supabase environment config |

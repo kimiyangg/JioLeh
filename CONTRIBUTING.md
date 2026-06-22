@@ -14,11 +14,13 @@ Useful paths:
 | Path | Purpose |
 |---|---|
 | `lib/` | App source code |
+| `lib/app/` | Root app shell, auth gate, and service-provider wiring |
 | `lib/config/` | Dart define based environment configuration |
-| `lib/pages/` | App pages (auth, onboarding, map, profile) |
+| `lib/pages/` | App pages (auth, onboarding, map, profile, friends, invitations, home) |
 | `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
 | `lib/services/` | Auth, account, friends, location, geocoding, and pin services |
 | `lib/models/` | App data models |
+| `lib/routing/` | Centralized route definitions (`AppRoutes`) |
 | `test/` | Flutter tests |
 | `supabase/` | Supabase CLI config and versioned schema migrations |
 | `.github/workflows/` | Continuous Integration, build validation, and release workflows |
@@ -190,7 +192,7 @@ Delete if the change is trivial.
 
 ## Continuous Integration
 
-Pull requests trigger `.github/workflows/pr-check.yml`, which runs:
+Pull requests trigger `.github/workflows/ci.yml`, which runs:
 
 - `flutter pub get`
 - `flutter analyze`
@@ -203,6 +205,9 @@ Pull request area labels are applied automatically by
 `.github/labeler.yml`, for example `area:app-shell`, `area:auth`, `area:map`,
 `area:services`, `area:android`, `area:ios`, `area:database`, `area:ci`, and
 `area:docs`.
+
+A reviewer is requested automatically on each pull request by
+`.github/workflows/auto-request-reviewer.yml`.
 
 Build validation is defined in `.github/workflows/build-validation.yml`.
 
