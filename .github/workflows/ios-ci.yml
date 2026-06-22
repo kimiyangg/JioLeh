@@ -121,7 +121,7 @@ jobs:
           name: ios-build
           path: build/ios/ipa/*.ipa
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
 
   deploy-ios:
     name: Deploy iOS to TestFlight (${{ github.ref_name }})
