@@ -178,6 +178,14 @@ class _FriendsPageState extends State<FriendsPage> {
         onReject: (p) => _runAction(() => _friends.rejectFriendRequest(p)),
       );
     }
+    if (_selectedTab == 2) {
+      return Center(
+        child: Text(
+          'Leaderboard coming soon',
+          style: TextStyle(fontSize: context.scaledFont(AppTextSizes.body)),
+        ),
+      );
+    }
     return const SizedBox.shrink();
   }
 }
