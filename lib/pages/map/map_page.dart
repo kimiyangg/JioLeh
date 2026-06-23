@@ -29,7 +29,6 @@ class _MapPageState extends State<MapPage> {
   // Services are resolved from the shared composition root (Services) so the
   // whole app uses a single AuthService — and therefore a single Supabase
   // client — instead of each page constructing its own.
-  final auth = Services.auth;
   final _locationServicePins = Services.pins;
   final _geocoding = Services.geocoding;
   final _locationService = Services.location;
@@ -309,22 +308,6 @@ class _MapPageState extends State<MapPage> {
 
           // Top: current area name display
           CurrentAreaBar(locationName: _currentLocationName),
-
-          // Top right: logout button
-          Positioned(
-            top: 10,
-            right: 10,
-            child: SafeArea(
-              child: FloatingActionButton(
-                mini: true,
-                heroTag: 'logout',
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                onPressed: () => auth.signOut(),
-                child: const Icon(Icons.logout),
-              ),
-            ),
-          ),
 
           // Bottom right: recenter, and add pin buttons
           MapToolbar(onRecenter: _recenterMap, onAddPin: _addPin),
