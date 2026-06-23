@@ -96,10 +96,12 @@ class ShareCodePage extends StatelessWidget {
                         label: "Copy Link",
                         onPressed: () async {
                           await Clipboard.setData(ClipboardData(text: profileLink));
-                          if (context.mounted) context.showAppSnackBar(
-                            "Link Copied",
-                            kind: SnackBarKind.success
-                          );
+                          if (context.mounted) {
+                            context.showAppSnackBar(
+                              "Link Copied",
+                              kind: SnackBarKind.success,
+                            );
+                          }
                         },
                       )
                     ],
