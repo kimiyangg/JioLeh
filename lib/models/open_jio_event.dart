@@ -1,5 +1,7 @@
 import 'package:jio_leh/models/user_friend.dart';
 
+/// The current user's response to an invite they received.
+enum InviteStatus { pending, accepted, declined }
 class OpenJioEvent {
   const OpenJioEvent({
     this.id, 
@@ -19,7 +21,7 @@ class OpenJioEvent {
   final String locationName;
   final String? senderId; // The user ID of the person who sent the invite
   final String? senderName; // The display name of the person who sent the invite
-  final String? inviteStatus; // "pending", "accepted", "declined"
+  final InviteStatus? inviteStatus; // The current user's response to the invite
 
   String get friendNames {
     return invitedFriends
