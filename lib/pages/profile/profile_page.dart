@@ -11,7 +11,10 @@ import 'package:jio_leh/services/friends_service.dart';
 import "package:jio_leh/theme.dart";
 
 import 'package:jio_leh/widgets/app_page_header.dart';
+<<<<<<< refactor/page-cleanup
 import 'package:jio_leh/widgets/app_primary_button.dart';
+=======
+>>>>>>> main
 import 'package:jio_leh/widgets/app_snack_bar.dart';
 import 'package:jio_leh/pages/profile/widgets/profile_card.dart';
 
@@ -167,6 +170,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       onAddFriend: _sendFriendRequest,
                     ),
                   ),
+<<<<<<< refactor/page-cleanup
                   // Logout only makes sense on your own profile, not when
                   // viewing someone else's.
                   SizedBox(height: 16,),
@@ -177,6 +181,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: "Log out",
                       onPressed: () => _auth.signOut(),
                     ),
+=======
+>>>>>>> main
                 ],
               ),
             );
