@@ -113,11 +113,18 @@ class _InvitationsPageState extends State<InvitationsPage> {
                               vertical: 8,
                             ),
                             child: ListTile(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => OpenJioFormPage(event: event),
+                                ),
+                              ),
                               title: Text(
                                 'OpenJio sent to ${event.invitedFriends.length} friend(s)',
                               ),
                               subtitle: Text(event.friendNames),
                               leading: const Icon(Icons.markunread_mailbox),
+                              trailing: const Icon(Icons.chevron_right),
                             ),
                           );
                         },
