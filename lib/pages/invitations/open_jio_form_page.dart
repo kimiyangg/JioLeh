@@ -15,7 +15,10 @@ import 'package:jio_leh/widgets/app_field_box.dart';
 
 
 class OpenJioFormPage extends StatefulWidget {
-  const OpenJioFormPage({super.key});
+  const OpenJioFormPage({super.key, this.event});
+
+  // If event is provided, the form will be in view mode and will display the event details.
+  final OpenJioEvent? event;
 
   @override
   State<OpenJioFormPage> createState() => _OpenJioFormPageState();
@@ -30,6 +33,8 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
 
   late Future<List<UserFriend>> _future;
 
+  bool get _isViewMode => widget.event != null;
+
   @override
   void dispose() {
     _captionController.dispose();
@@ -40,7 +45,16 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   @override
   void initState() {
     super.initState();
-    _future = _friends.getUserFriends();
+    if (widget.event != null) {
+      final e = widget.event!;
+      _selectedDateTime = e.dateTime;
+      _captionController.text = e.caption;
+      _locationController.text = e.locationName;
+      _selectedFriendIds.addAll(e.invitedFriends.map((f) => f.userProfile.id));
+      _future = Future.value(e.invitedFriends);
+    } else {
+      _future = _friends.getUserFriends();
+    }
   }
 
   Future<void> _pickDateTime() async {
@@ -112,7 +126,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Open a Jio'),
+        title: Text(_isViewMode ? 'Jio Details' : 'Open a Jio'),
       ),
       body: FutureBuilder<List<UserFriend>>(
         future: _future,
@@ -125,9 +139,11 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final friends = (snapshot.data ?? [])
-              .where((friend) => friend.status == FriendshipStatus.accepted)
-              .toList();
+          final friends =  _isViewMode 
+            ? (snapshot.data ?? [])
+            : (snapshot.data ?? [])
+                .where((friend) => friend.status == FriendshipStatus.accepted)
+                .toList();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +156,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                     const AppSectionLabel(text: 'Date & Time'),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: _pickDateTime,
+                      onTap: _isViewMode ? null : _pickDateTime,
                       child: AppFieldBox(
                         height: AppFieldHeights.single,
                         child: Padding(
@@ -174,8 +190,9 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                     const SizedBox(height: 8),
                     AppTextField(
                       controller: _locationController,
-                      hintText: 'Enter a location name…',), 
-                      const SizedBox(height: 16),
+                      hintText: 'Enter a location name…',
+                      readOnly: _isViewMode,), 
+                    const SizedBox(height: 16),
                     const AppSectionLabel(text: 'Invite Friends'),
                     const SizedBox(height: 8),
                   ],
@@ -186,13 +203,15 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                   friends: friends,
                   selectedFriendIds: _selectedFriendIds,
                   onToggle: _toggleFriend,
+                  readOnly: _isViewMode,
                 ),
               ),
-              SafeArea(
-                minimum: const EdgeInsets.all(16),
-                child: AppPrimaryButton(
-                  label: 'OpenJio',
-                  onPressed: canSubmit ? () => _openJio(friends) : null,
+              if (!_isViewMode)
+                SafeArea(
+                  minimum: const EdgeInsets.all(16),
+                  child: AppPrimaryButton(
+                    label: 'OpenJio',
+                    onPressed: canSubmit ? () => _openJio(friends) : null,
                 ),
               ),
             ],
