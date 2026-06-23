@@ -236,7 +236,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                       child: AppPrimaryButton(
-                        label: 'All saved',
+                        label: 'Save',
                         icon: Icons.check,
                         isLoading: _saving,
                         onPressed: _saveProfile,
