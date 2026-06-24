@@ -12,6 +12,7 @@ import 'package:jio_leh/widgets/app_field_box.dart';
 /// * [keyboardType]: The type of information for which to optimize the text input control.
 /// * [inputFormatters]: Optional input formatters to restrict or format the text.
 /// * [maxLines]: The maximum number of lines to show at one time, defaults to 1.
+/// * [onSubmitted]: Called when the user submits the field from the keyboard.
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
@@ -22,6 +23,7 @@ class AppTextField extends StatelessWidget {
     this.inputFormatters,
     this.maxLines = 1,
     this.readOnly = false,
+    this.onSubmitted,
   });
 
   final TextEditingController controller;
@@ -31,6 +33,7 @@ class AppTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLines;
   final bool readOnly;
+  final ValueChanged<String>? onSubmitted;
   
   @override
   Widget build(BuildContext context) {
@@ -44,6 +47,7 @@ class AppTextField extends StatelessWidget {
         inputFormatters: inputFormatters,
         maxLines: maxLines,
         readOnly: readOnly,
+        onSubmitted: onSubmitted,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
