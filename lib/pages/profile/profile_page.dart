@@ -33,6 +33,10 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _sendingFriendRequest = false;
   bool _friendRequestSent = false;
 
+  // True when the viewed profile is already an accepted friend, so the card
+  // shows a "Friends" status instead of offering "Add as Friend".
+  bool _isAlreadyFriend = false;
+
   // The loaded profile. Null until it finishes loading.
   UserProfile? _profile;
 
@@ -79,6 +83,16 @@ class _ProfilePageState extends State<ProfilePage> {
       context.showAppSnackBar('Profile not found', kind: SnackBarKind.error);
       Navigator.maybePop(context);
       return;
+    }
+
+    // A profile reached via QR can be a stranger; only an accepted friend
+    // should hide the "Add as Friend" action.
+    final profileId = profile.id;
+    if (profileId != _auth.getCurrentUserId()) {
+      final friends = await _friends.getUserFriends();
+      if (!mounted) return;
+      _isAlreadyFriend =
+          friends.any((f) => f.isAccepted && f.userProfile.id == profileId);
     }
 
     setState(() => _profile = profile);
@@ -166,6 +180,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       isSendingRequest: _sendingFriendRequest,
                       requestSent: _friendRequestSent,
+                      isAlreadyFriend: _isAlreadyFriend,
                       onAddFriend: _sendFriendRequest,
                     ),
                   ),
