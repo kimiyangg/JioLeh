@@ -33,7 +33,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   String? _selectedMonth;
   bool _saving = false;
 
-  
   final _imagePicker = ImagePicker();
   XFile? _avatarFile;
 
@@ -64,7 +63,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     super.dispose();
   }
 
-    Future<void> _pickAvatar() async {
+  Future<void> _pickAvatar() async {
     final photo = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1000,
@@ -164,85 +163,73 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const AppPageHeader(title: "Edit Profile"),
-                    const SizedBox(height: 5),
-                    const AppSectionLabel(text: "PROFILE PHOTO"),
-                    const SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: _saving ? null : _pickAvatar,
-                      child: AppFieldBox(
-                        height: AppFieldHeights.photo,
-                        child: _buildAvatarPreview(),
-                      ),
-                    ),     
-                    const SizedBox(height: 20),
-                    const AppSectionLabel(text: "DISPLAY NAME"),
-                    const SizedBox(height: 10),
-                    AppTextField(
-                      controller: _displayNameController,
-                      hintText: "What should we call you?",
-                    ),
-                    const SizedBox(height: 20),
-                    const AppSectionLabel(text: "BIO"),
-                    const SizedBox(height: 10),
-                    AppTextField(
-                      controller: _bioController,
-                      hintText: "Tell friends a little about you",
-                      height: 110,
-                      maxLines: null,
-                    ),
-                    const SizedBox(height: 20),
-                    const AppSectionLabel(text: "BIRTHDAY"),
-                    const SizedBox(height: 10),
-                    BirthdayRow(
-                      dayController: _dayController,
-                      yearController: _yearController,
-                      selectedMonth: _selectedMonth,
-                      onMonthChanged: (value) =>
-                          setState(() => _selectedMonth = value),
-                    ),
-                    // TODO: implement Delete Account Function
-                    /*
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: AppColors.dangerShadow,
-                          borderRadius: BorderRadius.circular(AppRadii.elements),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: AppColors.dangerShadow,
-                              blurRadius: 0,
-                              offset: Offset(0, 4),
+              // Scroll wrapper so the keyboard can't hide a focused field
+              // (e.g. birthday): the field auto-scrolls above the keyboard,
+              // while ConstrainedBox + IntrinsicHeight keep Save pinned to the
+              // bottom when there's room. Mirrors the onboarding page.
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const AppPageHeader(title: "Edit Profile"),
+                          const SizedBox(height: 5),
+                          const AppSectionLabel(text: "PROFILE PHOTO"),
+                          const SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: _saving ? null : _pickAvatar,
+                            child: AppFieldBox(
+                              height: AppFieldHeights.photo,
+                              child: _buildAvatarPreview(),
                             ),
-                          ],
-                        ),
-                        child: AppSecondaryButton(
-                          label: "Delete Account",
-                          onPressed: null,
-                          icon: Icons.delete,
-                          backgroundColor: AppColors.danger,
-                        ),
+                          ),
+                          const SizedBox(height: 20),
+                          const AppSectionLabel(text: "DISPLAY NAME"),
+                          const SizedBox(height: 10),
+                          AppTextField(
+                            controller: _displayNameController,
+                            hintText: "What should we call you?",
+                          ),
+                          const SizedBox(height: 20),
+                          const AppSectionLabel(text: "BIO"),
+                          const SizedBox(height: 10),
+                          AppTextField(
+                            controller: _bioController,
+                            hintText: "Tell friends a little about you",
+                            height: 110,
+                            maxLines: null,
+                          ),
+                          const SizedBox(height: 20),
+                          const AppSectionLabel(text: "BIRTHDAY"),
+                          const SizedBox(height: 10),
+                          BirthdayRow(
+                            dayController: _dayController,
+                            yearController: _yearController,
+                            selectedMonth: _selectedMonth,
+                            onMonthChanged: (value) =>
+                                setState(() => _selectedMonth = value),
+                          ),
+                          // TODO: implement delete account function
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            child: AppPrimaryButton(
+                              label: 'Save',
+                              icon: Icons.check,
+                              isLoading: _saving,
+                              onPressed: _saveProfile,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    */
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                      child: AppPrimaryButton(
-                        label: 'Save',
-                        icon: Icons.check,
-                        isLoading: _saving,
-                        onPressed: _saveProfile,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               );
             },
