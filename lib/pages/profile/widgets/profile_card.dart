@@ -20,6 +20,7 @@ class ProfileCard extends StatelessWidget {
     required this.onShare,
     required this.isSendingRequest,
     required this.requestSent,
+    required this.isAlreadyFriend,
     required this.onAddFriend,
   });
 
@@ -29,6 +30,7 @@ class ProfileCard extends StatelessWidget {
   final VoidCallback? onShare;
   final bool isSendingRequest;
   final bool requestSent;
+  final bool isAlreadyFriend;
   final VoidCallback? onAddFriend;
 
   @override
@@ -125,27 +127,38 @@ class ProfileCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12),
                 child: SizedBox(
                   width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed:
-                        isSendingRequest || requestSent ? null : onAddFriend,
-                    icon: isSendingRequest
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Icon(requestSent ? Icons.check : Icons.person_add),
-                    label: Text(
-                      requestSent
-                          ? 'Friend Request Sent'
-                          : isSendingRequest
-                              ? 'Sending...'
-                              : 'Add as Friend',
-                    ),
-                  ),
+                  child: isAlreadyFriend
+                      ? FilledButton.icon(
+                          onPressed: null,
+                          icon: const Icon(Icons.check),
+                          label: const Text('Friends'),
+                        )
+                      : FilledButton.icon(
+                          onPressed: isSendingRequest || requestSent
+                              ? null
+                              : onAddFriend,
+                          icon: isSendingRequest
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  requestSent
+                                      ? Icons.check
+                                      : Icons.person_add,
+                                ),
+                          label: Text(
+                            requestSent
+                                ? 'Friend Request Sent'
+                                : isSendingRequest
+                                    ? 'Sending...'
+                                    : 'Add as Friend',
+                          ),
+                        ),
                 ),
               ),
           ],
