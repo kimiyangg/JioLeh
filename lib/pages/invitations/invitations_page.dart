@@ -30,7 +30,6 @@ class _InvitationsPageState extends State<InvitationsPage> {
     _model = InvitationsPageModel(
       openJio: services.openJio,
       friends: services.friends,
-      auth: services.auth,
     )
       ..addListener(_rebuild)
       ..start();
