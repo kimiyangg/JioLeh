@@ -6,35 +6,33 @@ import 'package:jio_leh/services/open_jio_service.dart';
 
 /// Presentation state and logic for [InvitationsPage].
 ///
-/// Call [start] once after construction to kick off the initial load and
-/// realtime subscription. Mirrors the pattern in [AuthGateModel].
+/// Call [start] once after construction to kick off the initial load and realtime subscription. Mirrors the pattern in [AuthGateModel].
 class InvitationsPageModel extends ChangeNotifier {
   InvitationsPageModel({
     required this.openJio,
     required this.friends,
   });
 
+  // Dependencies
   final OpenJioService openJio;
   final FriendsService friends;
 
+  // States: what it holds
   List<OpenJioEvent> _sentEvents = [];
   List<OpenJioEvent> _pendingEvents = [];
   List<OpenJioEvent> _acceptedEvents = [];
   bool _isLoading = true;
   String? _error;
-  bool _sentExpanded = true;
-  bool _receivedExpanded = true;
-  bool _acceptedExpanded = true;
+  int _selectedTab = 0;
   bool _disposed = false;
 
+  // Getters: intentionally unchangable here, only readable
   List<OpenJioEvent> get sentEvents => _sentEvents;
   List<OpenJioEvent> get pendingEvents => _pendingEvents;
   List<OpenJioEvent> get acceptedEvents => _acceptedEvents;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get sentExpanded => _sentExpanded;
-  bool get receivedExpanded => _receivedExpanded;
-  bool get acceptedExpanded => _acceptedExpanded;
+  int get selectedTab => _selectedTab;
 
   void Function()? _unsubscribe;
 
@@ -44,6 +42,7 @@ class InvitationsPageModel extends ChangeNotifier {
   }
 
   Future<void> loadEvents() async {
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -74,6 +73,7 @@ class InvitationsPageModel extends ChangeNotifier {
   ///
   /// Rethrows on failure so the page can surface a snack bar.
   Future<void> saveEvent(OpenJioEvent event) async {
+    // Save event to db and get event ID
     final id = await openJio.saveEvent(event);
 
     if (_disposed) return;
@@ -85,6 +85,7 @@ class InvitationsPageModel extends ChangeNotifier {
         caption: event.caption,
         locationName: event.locationName,
       ),
+      // ..._sentEvents means putting the original stuff in the list back into the new list
       ..._sentEvents,
     ];
     notifyListeners();
@@ -97,6 +98,8 @@ class InvitationsPageModel extends ChangeNotifier {
     await openJio.respondToInvite(event.id!, response);
 
     if (_disposed) return;
+
+    // remove the event in question from both the list first, and then add it to the correct list afterwards
     _pendingEvents = _pendingEvents.where((e) => e.id != event.id).toList();
     _acceptedEvents = _acceptedEvents.where((e) => e.id != event.id).toList();
 
@@ -118,16 +121,13 @@ class InvitationsPageModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleSent() => _toggle(() => _sentExpanded = !_sentExpanded);
-  void toggleReceived() => _toggle(() => _receivedExpanded = !_receivedExpanded);
-  void toggleAccepted() => _toggle(() => _acceptedExpanded = !_acceptedExpanded);
-
-  void _toggle(void Function() update) {
-    update();
+  void selectTab(int index) {
+    _selectedTab = index;
     notifyListeners();
   }
 
   void _subscribeToInvites() {
+    // Two Steps implemented: First subsubribe to invites, then remember where unsubscribe can be called
     _unsubscribe = openJio.subscribeToInvites(loadEvents);
   }
 

@@ -25,12 +25,7 @@ class SupabaseOpenJioService extends OpenJioService {
     // Insert the event first. This is the "anchor" row the invites depend on.
     final row = await _client
         .from('open_jio_events')
-        .insert({
-          'user_id': senderId,
-          'date_time': event.dateTime.toIso8601String(),
-          'caption': event.caption,
-          'location_name': event.locationName,
-        })
+        .insert({'user_id': senderId, ...event.toMap()})
         .select()
         .single();
     final eventId = row['id'] as String;
@@ -89,13 +84,10 @@ class SupabaseOpenJioService extends OpenJioService {
 
     return eventRows.map((row) {
       final ids = inviteeIdsByEvent[row['id'] as String] ?? const <String>[];
-      return OpenJioEvent(
-        id: row['id'] as String,
+      return OpenJioEvent.fromMap(
+        row,
         invitedFriends:
             allFriends.where((f) => ids.contains(f.userProfile.id)).toList(),
-        dateTime: DateTime.parse(row['date_time'] as String),
-        caption: row['caption'] as String,
-        locationName: row['location_name'] as String,
       );
     }).toList();
   }
@@ -143,15 +135,10 @@ class SupabaseOpenJioService extends OpenJioService {
       final senderId = row['user_id'] as String;
       final rawStatus = statusByEvent[eventId] ?? InviteStatus.pending.name;
 
-      return OpenJioEvent(
-        id: eventId,
-        invitedFriends: const [],
-        dateTime: DateTime.parse(row['date_time'] as String),
-        caption: row['caption'] as String,
-        locationName: row['location_name'] as String,
-        senderId: senderId,
+      return OpenJioEvent.fromMap(
+        row,
         senderName: nameById[senderId],
-        inviteStatus: InviteStatus.values.byName(rawStatus),
+        status: InviteStatus.values.byName(rawStatus),
       );
     }).toList();
   }

@@ -115,7 +115,7 @@ class _FriendsPageState extends State<FriendsPage> {
                 title: "Friends",
                 closeBtn: false,
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 20),
               AppSelectionBar(
                 items: _items,
                 selectedIndex: _selectedTab,
