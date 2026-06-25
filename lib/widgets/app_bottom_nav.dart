@@ -31,10 +31,13 @@ class AppBottomNav extends StatelessWidget {
     // Items split into the halves that sit left/right of the "+" (even count).
     final half = items.length ~/ 2;
 
-    return SafeArea(
-      top: false,
+    return MediaQuery.removePadding(
+    context: context,
+    removeBottom: true,
       child: Padding(
-        padding: const EdgeInsets.all(AppNavBar.margin),
+        // Wider left/right, and pushed lower so it covers the Mapbox logo/info.
+        // Increase bottom to lift it; decrease bottom to move it lower.
+        padding: const EdgeInsets.fromLTRB(8.5, 0, 8.5, 20),
         child: Material(
           color: AppColors.lightSection,
           elevation: AppNavBar.elevation,
