@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/models/user_friend.dart';
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/services/open_jio_service.dart';
 import 'package:jio_leh/pages/invitations/widgets/friend_selection_list.dart';
 import 'package:jio_leh/util/datetime_format.dart';
 
@@ -30,7 +31,9 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   final TextEditingController _captionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   bool _isLeaving = false;
+  bool _didInit = false;
 
+  late final OpenJioService _openJio;
   late Future<List<UserFriend>> _future;
 
   bool get _isViewMode => widget.event != null;
@@ -52,10 +55,20 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
       _captionController.text = e.caption;
       _locationController.text = e.locationName;
       _selectedFriendIds.addAll(e.invitedFriends.map((f) => f.userProfile.id));
-      _future = Future.value(e.invitedFriends);
-    } else {
-      _future = Services.friends.getUserFriends();
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _openJio = services.openJio;
+    _future = widget.event != null
+        ? Future.value(widget.event!.invitedFriends)
+        : services.friends.getUserFriends();
   }
 
   Future<void> _pickDateTime() async {
@@ -104,7 +117,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
 
     setState(() => _isLeaving = true);
     try {
-      await Services.openJio
+      await _openJio
           .respondToInvite(widget.event!.id!, InviteStatus.declined);
       if (!mounted) return;
       Navigator.pop(context, true);
