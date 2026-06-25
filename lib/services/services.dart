@@ -26,7 +26,10 @@ class Services {
   static final pins = PinService(client: _client, auth: auth);
   static final location = LocationService();
   static final geocoding = GeocodingService();
-  static final OpenJioService openJio = SupabaseOpenJioService(client: _client);
+  static final OpenJioService openJio = SupabaseOpenJioService(
+    client: _client,
+    auth: auth,
+  );
   static final AccountService account = SupabaseAccountService(
     client: _client,
     auth: auth,

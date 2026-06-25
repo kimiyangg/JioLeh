@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:jio_leh/models/open_jio_event.dart';
-import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/friends_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 
@@ -13,12 +12,10 @@ class InvitationsPageModel extends ChangeNotifier {
   InvitationsPageModel({
     required this.openJio,
     required this.friends,
-    required this.auth,
   });
 
   final OpenJioService openJio;
   final FriendsService friends;
-  final AuthService auth;
 
   List<OpenJioEvent> _sentEvents = [];
   List<OpenJioEvent> _pendingEvents = [];
@@ -52,10 +49,9 @@ class InvitationsPageModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userId = auth.getCurrentUserId();
       final allFriends = await friends.getUserFriends();
-      final sent = await openJio.getSentEvents(userId, allFriends);
-      final received = await openJio.getReceivedEvents(userId);
+      final sent = await openJio.getSentEvents(allFriends);
+      final received = await openJio.getReceivedEvents();
 
       if (_disposed) return;
       _sentEvents = sent;
@@ -78,8 +74,7 @@ class InvitationsPageModel extends ChangeNotifier {
   ///
   /// Rethrows on failure so the page can surface a snack bar.
   Future<void> saveEvent(OpenJioEvent event) async {
-    final userId = auth.getCurrentUserId();
-    final id = await openJio.saveEvent(event, userId);
+    final id = await openJio.saveEvent(event);
 
     if (_disposed) return;
     _sentEvents = [
@@ -99,8 +94,7 @@ class InvitationsPageModel extends ChangeNotifier {
   ///
   /// Rethrows on failure so the page can surface a snack bar.
   Future<void> respondToInvite(OpenJioEvent event, InviteStatus response) async {
-    final userId = auth.getCurrentUserId();
-    await openJio.respondToInvite(event.id!, userId, response);
+    await openJio.respondToInvite(event.id!, response);
 
     if (_disposed) return;
     _pendingEvents = _pendingEvents.where((e) => e.id != event.id).toList();
@@ -134,8 +128,7 @@ class InvitationsPageModel extends ChangeNotifier {
   }
 
   void _subscribeToInvites() {
-    final userId = auth.getCurrentUserId();
-    _unsubscribe = openJio.subscribeToInvites(userId, loadEvents);
+    _unsubscribe = openJio.subscribeToInvites(loadEvents);
   }
 
   @override

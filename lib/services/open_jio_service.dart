@@ -5,31 +5,24 @@ import 'package:jio_leh/models/user_friend.dart';
 /// so the real Supabase service can be swapped for a fake in tests.
 /// Write a sibling class if a new backend is needed in the future.
 abstract class OpenJioService {
-  /// Saves a new Open Jio [event] sent by [senderId], creates a pending status
+  /// Saves a new Open Jio [event] for the current user, creates a pending status
   /// row for each invitee, and returns the generated event ID.
-  Future<String> saveEvent(OpenJioEvent event, String senderId);
+  Future<String> saveEvent(OpenJioEvent event);
 
-  /// Fetches the events [userId] has sent, resolving invitees against
+  /// Fetches the events the current user has sent, resolving invitees against
   /// [allFriends].
-  Future<List<OpenJioEvent>> getSentEvents(
-    String userId,
-    List<UserFriend> allFriends,
-  );
+  Future<List<OpenJioEvent>> getSentEvents(List<UserFriend> allFriends);
 
-  /// Fetches the events [userId] was invited to, with their invite status.
-  Future<List<OpenJioEvent>> getReceivedEvents(String userId);
+  /// Fetches the events the current user was invited to, with their invite status.
+  Future<List<OpenJioEvent>> getReceivedEvents();
 
-  /// Accepts or declines the invite for [userId] on [eventId].
-  Future<void> respondToInvite(
-    String eventId,
-    String userId,
-    InviteStatus status,
-  );
+  /// Accepts or declines the current user's invite on [eventId].
+  Future<void> respondToInvite(String eventId, InviteStatus status);
 
-  /// Subscribes to new invites sent to [userId] and calls [onNew] for each.
+  /// Subscribes to new invites for the current user and calls [onNew] for each.
   ///
   /// Returns a function that cancels the subscription when invoked.
-  void Function() subscribeToInvites(String userId, void Function() onNew);
+  void Function() subscribeToInvites(void Function() onNew);
 }
 
 /// Base class for all Open Jio related exceptions.

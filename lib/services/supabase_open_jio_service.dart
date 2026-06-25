@@ -2,17 +2,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/models/user_friend.dart';
+import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 
 /// The real [OpenJioService] used in production, backed by Supabase.
 /// Write a sibling class if a new backend is needed in the future.
 class SupabaseOpenJioService extends OpenJioService {
+  final AuthService auth;
   final SupabaseClient _client;
 
-  SupabaseOpenJioService({required SupabaseClient client}) : _client = client;
+  // `required this.auth` stores the injected AuthService in the auth field.
+  SupabaseOpenJioService({required SupabaseClient client, required this.auth})
+    : _client = client;
 
   @override
-  Future<String> saveEvent(OpenJioEvent event, String senderId) async {
+  Future<String> saveEvent(OpenJioEvent event) async {
+    final senderId = auth.getCurrentUserId();
     final friendIds = event.invitedFriends
         .map((friend) => friend.userProfile.id)
         .toList();
@@ -53,9 +58,9 @@ class SupabaseOpenJioService extends OpenJioService {
 
   @override
   Future<List<OpenJioEvent>> getSentEvents(
-    String userId,
     List<UserFriend> allFriends,
   ) async {
+    final userId = auth.getCurrentUserId();
     final eventRows = await _client
         .from('open_jio_events')
         .select()
@@ -96,7 +101,8 @@ class SupabaseOpenJioService extends OpenJioService {
   }
 
   @override
-  Future<List<OpenJioEvent>> getReceivedEvents(String userId) async {
+  Future<List<OpenJioEvent>> getReceivedEvents() async {
+    final userId = auth.getCurrentUserId();
     // Which events am I invited to? Ask the status table — my own rows are the source of truth.
     final myStatuses = await _client
         .from('open_jio_invite_statuses')
@@ -153,9 +159,9 @@ class SupabaseOpenJioService extends OpenJioService {
   @override
   Future<void> respondToInvite(
     String eventId,
-    String userId,
     InviteStatus status,
   ) async {
+    final userId = auth.getCurrentUserId();
     final updated = await _client
         .from('open_jio_invite_statuses')
         .update({
@@ -172,7 +178,8 @@ class SupabaseOpenJioService extends OpenJioService {
   }
 
   @override
-  void Function() subscribeToInvites(String userId, void Function() onNew) {
+  void Function() subscribeToInvites(void Function() onNew) {
+    final userId = auth.getCurrentUserId();
     final channel = _client
         .channel('open_jio_invites_$userId')
         .onPostgresChanges(

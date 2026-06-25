@@ -22,25 +22,22 @@ class FakeOpenJioService extends OpenJioService {
   void Function()? lastOnNew;
 
   @override
-  Future<String> saveEvent(OpenJioEvent event, String senderId) async {
+  Future<String> saveEvent(OpenJioEvent event) async {
     saveEventCalls++;
     return savedEventId;
   }
 
   @override
   Future<List<OpenJioEvent>> getSentEvents(
-    String userId,
     List<UserFriend> allFriends,
   ) async => sentEvents;
 
   @override
-  Future<List<OpenJioEvent>> getReceivedEvents(String userId) async =>
-      receivedEvents;
+  Future<List<OpenJioEvent>> getReceivedEvents() async => receivedEvents;
 
   @override
   Future<void> respondToInvite(
     String eventId,
-    String userId,
     InviteStatus status,
   ) async {
     respondToInviteCalls++;
@@ -51,7 +48,7 @@ class FakeOpenJioService extends OpenJioService {
   }
 
   @override
-  void Function() subscribeToInvites(String userId, void Function() onNew) {
+  void Function() subscribeToInvites(void Function() onNew) {
     lastOnNew = onNew;
     return () {};
   }
