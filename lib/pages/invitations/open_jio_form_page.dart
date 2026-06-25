@@ -8,13 +8,11 @@ import 'package:jio_leh/util/datetime_format.dart';
 
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_dialog.dart';
+import 'package:jio_leh/widgets/app_field_box.dart';
+import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
-
-import 'package:jio_leh/widgets/app_field_box.dart';
-
-
 
 class OpenJioFormPage extends StatefulWidget {
   const OpenJioFormPage({super.key, this.event});
@@ -37,7 +35,6 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
 
   bool get _isViewMode => widget.event != null;
   bool get _isReceivedEvent => widget.event?.senderName != null;
-
 
   @override
   void dispose() {
@@ -95,8 +92,6 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
     });
   }
 
-
-
   Future<void> _leave() async {
     final confirmed = await showAppConfirmDialog(
       context: context,
@@ -134,148 +129,158 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
         caption: _captionController.text.trim(),
         locationName: _locationController.text.trim()),
     );
-  } 
+  }
 
   @override
   Widget build(BuildContext context) {
     final canSubmit =
         _selectedFriendIds.isNotEmpty && _selectedDateTime != null;
 
-    final hasFriends =  !_isViewMode || widget.event!.invitedFriends.isNotEmpty;
-
+    final hasFriends = !_isViewMode || widget.event!.invitedFriends.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isViewMode ? 'Jio Details' : 'Open a Jio'),
-      ),
-      body: FutureBuilder<List<UserFriend>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final friends =  _isViewMode 
-            ? (snapshot.data ?? [])
-            : (snapshot.data ?? [])
-                .where((friend) => friend.status == FriendshipStatus.accepted)
-                .toList();
-
-          return Column(
+      backgroundColor: AppColors.lightBackground,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_isReceivedEvent) ...[
-                      const AppSectionLabel(text: 'Sent by'),
-                      const SizedBox(height: 8),
-                      AppFieldBox(
-                        height: AppFieldHeights.single,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              widget.event!.senderName!,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    const AppSectionLabel(text: 'Date & Time'),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: _isViewMode ? null : _pickDateTime,
-                      child: AppFieldBox(
-                        height: AppFieldHeights.single,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              _selectedDateTime != null
-                                  ? formatDateTime(_selectedDateTime!)
-                                  : 'Pick a date and time',
-                              style: TextStyle(
-                                fontSize: AppTextSizes.textFieldHint,
-                                color: _selectedDateTime != null ? Colors.black : Colors.grey,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+              AppPageHeader(
+                title: _isViewMode ? 'Jio Details' : 'Open a Jio',
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: FutureBuilder<List<UserFriend>>(
+                  future: _future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                    const SizedBox(height: 16),
-                    const AppSectionLabel(text: 'Caption'),
-                    const SizedBox(height: 8),
-                    AppTextField(
-                      controller: _captionController,
-                      hintText: 'Add a short caption…',
-                      readOnly: _isViewMode,
-                    ),
-                    const SizedBox(height: 16),
-                    const AppSectionLabel(text: 'Location'),
-                    const SizedBox(height: 8),
-                    AppTextField(
-                      controller: _locationController,
-                      hintText: 'Enter a location name…',
-                      readOnly: _isViewMode,), 
-                    const SizedBox(height: 16),
-                    if (hasFriends) ...[
-                      AppSectionLabel(
-                        text: _isReceivedEvent ? 'Also invited' : 'Invited Friends',
-                      ),
-                    const SizedBox(height: 8),
-                  ],
-                  ],
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+
+                    final friends = _isViewMode
+                        ? (snapshot.data ?? [])
+                        : (snapshot.data ?? [])
+                            .where((friend) =>
+                                friend.status == FriendshipStatus.accepted)
+                            .toList();
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_isReceivedEvent) ...[
+                          const AppSectionLabel(text: 'Sent by'),
+                          const SizedBox(height: 8),
+                          AppFieldBox(
+                            height: AppFieldHeights.single,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  widget.event!.senderName!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        const AppSectionLabel(text: 'Date & Time'),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: _isViewMode ? null : _pickDateTime,
+                          child: AppFieldBox(
+                            height: AppFieldHeights.single,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _selectedDateTime != null
+                                      ? formatDateTime(_selectedDateTime!)
+                                      : 'Pick a date and time',
+                                  style: TextStyle(
+                                    fontSize: AppTextSizes.textFieldHint,
+                                    color: _selectedDateTime != null
+                                        ? Colors.black
+                                        : Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const AppSectionLabel(text: 'Caption'),
+                        const SizedBox(height: 8),
+                        AppTextField(
+                          controller: _captionController,
+                          hintText: 'Add a short caption…',
+                          readOnly: _isViewMode,
+                        ),
+                        const SizedBox(height: 16),
+                        const AppSectionLabel(text: 'Location'),
+                        const SizedBox(height: 8),
+                        AppTextField(
+                          controller: _locationController,
+                          hintText: 'Enter a location name…',
+                          readOnly: _isViewMode,
+                        ),
+                        const SizedBox(height: 16),
+                        if (hasFriends) ...[
+                          AppSectionLabel(
+                            text: _isReceivedEvent
+                                ? 'Also invited'
+                                : 'Invited Friends',
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: FriendSelectionList(
+                              friends: friends,
+                              selectedFriendIds: _selectedFriendIds,
+                              onToggle: _toggleFriend,
+                              readOnly: _isViewMode,
+                            ),
+                          ),
+                        ],
+                        if (!hasFriends) const Spacer(),
+                        if (!_isViewMode) ...[
+                          const SizedBox(height: 16),
+                          AppPrimaryButton(
+                            label: 'OpenJio',
+                            onPressed:
+                                canSubmit ? () => _submit(friends) : null,
+                          ),
+                        ],
+                        if (_isReceivedEvent) ...[
+                          const SizedBox(height: 16),
+                          AppPrimaryButton(
+                            label: 'Leave',
+                            onPressed: _isLeaving ? null : _leave,
+                            isLoading: _isLeaving,
+                            backgroundColor: AppColors.danger,
+                            liftColor: AppColors.dangerShadow,
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
               ),
-              if (hasFriends)
-                Expanded(
-                  child: FriendSelectionList(
-                    friends: friends,
-                    selectedFriendIds: _selectedFriendIds,
-                    onToggle: _toggleFriend,
-                    readOnly: _isViewMode,
-                  ),
-                ),
-              if (!hasFriends) const Spacer(),
-              if (!_isViewMode)
-                SafeArea(
-                  minimum: const EdgeInsets.all(16),
-                  child: AppPrimaryButton(
-                    label: 'OpenJio',
-                    onPressed: canSubmit ? () => _submit(friends) : null,
-                ),
-              ),
-              if (_isReceivedEvent)
-                SafeArea(
-                  minimum: const EdgeInsets.all(16),
-                  child: AppPrimaryButton(
-                    label: 'Leave',
-                    onPressed: _isLeaving ? null : _leave,
-                    isLoading: _isLeaving,
-                    backgroundColor: AppColors.danger,
-                    liftColor: AppColors.dangerShadow,
-                  ),
-                ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }

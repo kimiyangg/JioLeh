@@ -27,6 +27,7 @@ class FriendSelectionList extends StatelessWidget {
         final isSelected = selectedFriendIds.contains(friend.userProfile.id);
 
         return ListTile(
+          contentPadding: EdgeInsets.zero,
           onTap: readOnly ? null : () => onToggle(friend),
           title: Text(friend.userProfile.displayName),
           subtitle: Text('@${friend.userProfile.username}'),
