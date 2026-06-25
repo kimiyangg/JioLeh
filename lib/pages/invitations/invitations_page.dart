@@ -5,12 +5,10 @@ import 'package:jio_leh/pages/invitations/invitations_page_model.dart';
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/pages/invitations/open_jio_form_page.dart';
 
-import 'package:jio_leh/pages/invitations/widgets/accepted_event_card.dart';
 import 'package:jio_leh/pages/invitations/widgets/received_event_card.dart';
-import 'package:jio_leh/pages/invitations/widgets/sent_event_card.dart';
+import 'package:jio_leh/pages/invitations/widgets/your_jio_card.dart';
 
 import 'package:jio_leh/theme.dart';
-import 'package:jio_leh/widgets/app_dialog.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_selection_bar.dart';
@@ -80,21 +78,6 @@ class _InvitationsPageState extends State<InvitationsPage> {
       );
     }
   }
-
-  Future<void> _confirmLeave(OpenJioEvent event) async {
-    final shouldLeave = await showAppConfirmDialog(
-      context: context,
-      title: 'Leave this jio?',
-      message: 'You will leave this accepted jio.',
-      confirmLabel: 'Leave',
-      isDestructive: true,
-    );
-
-    if (!shouldLeave || !mounted) return;
-    await _respond(event, InviteStatus.declined);
-  }
-    
-  
 
   @override
   Widget build(BuildContext context) {
@@ -166,12 +149,9 @@ class _InvitationsPageState extends State<InvitationsPage> {
       }
       return ListView(
         children: [
-          ..._model.sentEvents.map((e) => SentEventCard(event: e)),
+          ..._model.sentEvents.map((e) => YourJioCard(event: e)),
           ..._model.acceptedEvents.map(
-            (e) => AcceptedEventCard(
-              event: e,
-              onLeave: () => _confirmLeave(e),
-            ),
+            (e) => YourJioCard(event: e, onChanged: _model.loadEvents),
           ),
         ],
       );

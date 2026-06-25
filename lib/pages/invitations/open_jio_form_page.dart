@@ -7,6 +7,7 @@ import 'package:jio_leh/pages/invitations/widgets/friend_selection_list.dart';
 import 'package:jio_leh/util/datetime_format.dart';
 
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_dialog.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
@@ -30,6 +31,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   DateTime? _selectedDateTime;
   final TextEditingController _captionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  bool _isLeaving = false;
 
   late Future<List<UserFriend>> _future;
 
@@ -94,6 +96,31 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   }
 
 
+
+  Future<void> _leave() async {
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Leave this jio?',
+      message: 'You will leave this jio.',
+      confirmLabel: 'Leave',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isLeaving = true);
+    try {
+      await Services.openJio
+          .respondToInvite(widget.event!.id!, InviteStatus.declined);
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLeaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to leave. Please try again.')),
+      );
+    }
+  }
 
   void _submit(List<UserFriend> friends) {
     final selectedFriends = friends
@@ -235,6 +262,17 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                     onPressed: canSubmit ? () => _submit(friends) : null,
                 ),
               ),
+              if (_isReceivedEvent)
+                SafeArea(
+                  minimum: const EdgeInsets.all(16),
+                  child: AppPrimaryButton(
+                    label: 'Leave',
+                    onPressed: _isLeaving ? null : _leave,
+                    isLoading: _isLeaving,
+                    backgroundColor: AppColors.danger,
+                    liftColor: AppColors.dangerShadow,
+                  ),
+                ),
             ],
           );
         },
