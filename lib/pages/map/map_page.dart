@@ -15,7 +15,10 @@ import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/services/pin_service.dart';
+import 'package:jio_leh/services/geocoding_service.dart';
+import 'package:jio_leh/services/location_service.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 
 class MapPage extends StatefulWidget {
@@ -26,12 +29,10 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  // Services are resolved from the shared composition root (Services) so the
-  // whole app uses a single AuthService — and therefore a single Supabase
-  // client — instead of each page constructing its own.
-  final _locationServicePins = Services.pins;
-  final _geocoding = Services.geocoding;
-  final _locationService = Services.location;
+  late final PinService _locationServicePins;
+  late final GeocodingService _geocoding;
+  late final LocationService _locationService;
+  bool _didInit = false;
 
   // Map state and controls
   MapboxMap? _map;
@@ -50,8 +51,15 @@ class _MapPageState extends State<MapPage> {
   List<Place> _places = [];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _locationServicePins = services.pins;
+    _geocoding = services.geocoding;
+    _locationService = services.location;
     _booting();
   }
 

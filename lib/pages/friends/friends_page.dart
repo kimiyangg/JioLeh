@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/models/user_profile.dart';
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/services/account_service.dart';
+import 'package:jio_leh/services/friends_service.dart';
 import "package:jio_leh/theme.dart";
 import "package:jio_leh/widgets/app_page_header.dart";
 import "package:jio_leh/widgets/app_selection_bar.dart";
@@ -19,8 +21,9 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
-  final _friends = Services.friends;
-  final _account = Services.account;
+  late final FriendsService _friends;
+  late final AccountService _account;
+  bool _didInit = false;
 
   final _searchController = TextEditingController();
 
@@ -40,8 +43,14 @@ class _FriendsPageState extends State<FriendsPage> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _friends = services.friends;
+    _account = services.account;
     _future = _friends.getUserFriends();
   }
 
