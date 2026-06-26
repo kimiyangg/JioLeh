@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/pages/invitations/open_jio_form_page.dart';
+import 'package:jio_leh/pages/invitations/jio_chat_page.dart';
+
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/util/datetime_format.dart';
 
@@ -56,7 +58,22 @@ class YourJioCard extends StatelessWidget {
           ],
         ),
         isThreeLine: true,
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: 'Chat',
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => JioChatPage(event: event),
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
       ),
     );
   }
