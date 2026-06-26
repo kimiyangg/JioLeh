@@ -218,7 +218,7 @@ class _JioChatPageState extends State<JioChatPage> {
                               padding: EdgeInsets.all(24),
                               child: CircularProgressIndicator(),
                             ),
-                  errorBuilder: (_, __, ___) => const Text('⚠️ image failed'),
+                  errorBuilder: (test1, test2, test3) => const Text('⚠️ image failed'),
                 ),
               ),
             if (message.hasText)
