@@ -11,6 +11,8 @@ import 'supabase_friends_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 import 'package:jio_leh/services/supabase_open_jio_service.dart';
+import 'package:jio_leh/services/jio_chat_service.dart';
+import 'package:jio_leh/services/supabase_jio_chat_service.dart';
 
 /// A singleton class that provides access to all application services.
 ///
@@ -30,6 +32,11 @@ class Services {
     client: _client,
     auth: auth,
   );
+  static final JioChatService jioChat = SupabaseJioChatService(
+  client: _client,
+  auth: auth,
+  );
+
   static final AccountService account = SupabaseAccountService(
     client: _client,
     auth: auth,

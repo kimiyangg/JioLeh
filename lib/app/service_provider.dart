@@ -8,6 +8,8 @@ import 'package:jio_leh/services/location_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
+import 'package:jio_leh/services/jio_chat_service.dart';
+
 
 /// /// An [InheritedWidget] that provides access to application services throughout the widget tree.
 ///
@@ -23,6 +25,7 @@ class ServiceProvider extends InheritedWidget {
     GeocodingService? geocoding,
     FriendsService? friends,
     OpenJioService? openJio,
+    JioChatService? jioChat,
     required super.child
   }) : _auth = auth,
         _account = account,
@@ -30,7 +33,8 @@ class ServiceProvider extends InheritedWidget {
         _location = location,
         _geocoding = geocoding,
         _friends = friends,
-        _openJio = openJio;
+        _openJio = openJio,
+        _jioChat = jioChat;
 
   final AuthService? _auth;
   final AccountService? _account;
@@ -39,6 +43,7 @@ class ServiceProvider extends InheritedWidget {
   final GeocodingService? _geocoding;
   final FriendsService? _friends;
   final OpenJioService? _openJio;
+  final JioChatService? _jioChat;
 
   AuthService get auth => _auth ?? Services.auth;
   AccountService get account => _account ?? Services.account;
@@ -47,6 +52,7 @@ class ServiceProvider extends InheritedWidget {
   GeocodingService get geocoding => _geocoding ?? Services.geocoding;
   FriendsService get friends => _friends ?? Services.friends;
   OpenJioService get openJio => _openJio ?? Services.openJio;
+  JioChatService get jioChat => _jioChat ?? Services.jioChat;
 
   /// Finds the nearest [ServiceProvider] above this widget in the widget tree.
   ///
