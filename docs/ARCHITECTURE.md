@@ -117,7 +117,7 @@ sees only the abstract type.
 | account | abstract + impl + fake | modernized |
 | friends | abstract + impl + fake | modernized — `FriendsService` + `SupabaseFriendsService` + `FakeFriendsService` |
 | open_jio | abstract + impl + fake | modernized — `OpenJioService` + `SupabaseOpenJioService` + `FakeOpenJioService` |
-| pin | concrete only | extract a contract **when a test needs a fake**, not before |
+| pin | abstract + impl + fake | modernized - `PinService` + `SupabasePinService` + `FakePinService` |
 | location, geocoding | concrete only | thin wrappers — a contract is not justified yet |
 
 > An abstraction must **earn its keep**: a real second implementation or a test

@@ -1,44 +1,27 @@
 import 'package:flutter/material.dart';
 
-import 'package:jio_leh/models/user_profile.dart';
-
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/models/user_profile.dart';
+import 'package:jio_leh/pages/profile/profile_page_model.dart';
+import 'package:jio_leh/pages/profile/widgets/profile_card.dart';
 import 'package:jio_leh/routing/app_routing.dart';
-import 'package:jio_leh/services/account_service.dart';
-import 'package:jio_leh/services/auth_service.dart';
-import 'package:jio_leh/services/friends_service.dart';
-
-import "package:jio_leh/theme.dart";
-
+import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_snack_bar.dart';
-import 'package:jio_leh/pages/profile/widgets/profile_card.dart';
 
 class ProfilePage extends StatefulWidget {
-  final String? userId;
+  const ProfilePage({super.key, this.userId});
 
-  const ProfilePage({super.key, this.userId,});
+  final String? userId;
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late final AccountService _account;
-  late final FriendsService _friends;
-  late final AuthService _auth;
+  late final ProfilePageModel _model;
   bool _didInit = false;
-
-  bool _sendingFriendRequest = false;
-  bool _friendRequestSent = false;
-
-  // True when the viewed profile is already an accepted friend, so the card
-  // shows a "Friends" status instead of offering "Add as Friend".
-  bool _isAlreadyFriend = false;
-
-  // The loaded profile. Null until it finishes loading.
-  UserProfile? _profile;
 
   @override
   void didChangeDependencies() {
@@ -49,100 +32,61 @@ class _ProfilePageState extends State<ProfilePage> {
     _didInit = true;
 
     final services = ServiceProvider.of(context)!;
-    _account = services.account;
-    _friends = services.friends;
-    _auth = services.auth;
+    _model = ProfilePageModel(
+      account: services.account,
+      friends: services.friends,
+      auth: services.auth,
+      userId: widget.userId,
+    )..addListener(_onModelChanged);
 
-    _loadProfile();
+    _model.loadProfile();
   }
 
-  // Whether the loaded profile belongs to the current user. If no profile is
-  // loaded yet, returns false.
-  bool get _isOwnProfile {
-    final profile = _profile;
-    if (profile == null) return false;
-
-    return profile.id == _auth.getCurrentUserId();
-  }
-
-  // Loads the profile from the database and updates the state. If the profile
-  // fails to load (e.g. due to network issues or if the profile doesn't exist),
-  // shows an error message and pops the page.
-  Future<void> _loadProfile() async {
-    final UserProfile? profile;
-
-    if (widget.userId == null) {
-      profile = await _account.getUserProfile();
-    } else {
-      profile = await _account.getProfileById(widget.userId!);
+  @override
+  void dispose() {
+    if (_didInit) {
+      _model.removeListener(_onModelChanged);
+      _model.dispose();
     }
+    super.dispose();
+  }
 
+  void _onModelChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _sendFriendRequest() async {
+    final profile = _model.profile;
+    final result = await _model.sendFriendRequest();
     if (!mounted) return;
 
-    if (profile == null) {
-      context.showAppSnackBar('Profile not found', kind: SnackBarKind.error);
-      Navigator.maybePop(context);
-      return;
-    }
-
-    // A profile reached via QR can be a stranger; only an accepted friend
-    // should hide the "Add as Friend" action.
-    final profileId = profile.id;
-    if (profileId != _auth.getCurrentUserId()) {
-      final friends = await _friends.getUserFriends();
-      if (!mounted) return;
-      _isAlreadyFriend =
-          friends.any((f) => f.isAccepted && f.userProfile.id == profileId);
-    }
-
-    setState(() => _profile = profile);
-  }
-
-  // Sends a friend request to the loaded profile, if it's not the current
-  // user's own profile and a request isn't already being sent. Shows a success
-  // or error message, and updates the state to reflect the request's status.
-  Future<void> _sendFriendRequest() async {
-    final profile = _profile;
-
-    if (profile == null || _isOwnProfile || _sendingFriendRequest) {
-      return;
-    }
-
-    setState(() => _sendingFriendRequest = true);
-
-    try {
-      await _friends.sendFriendRequest(profile);
-
-      if (!mounted) return;
-
-      setState(() => _friendRequestSent = true);
-
-      context.showAppSnackBar(
-        'Friend request sent to ${profile.displayName}',
-        kind: SnackBarKind.success,
-      );
-    } catch (error) {
-      if (!mounted) return;
-
-      context.showAppSnackBar('$error', kind: SnackBarKind.error);
-    } finally {
-      if (mounted) {
-        setState(() => _sendingFriendRequest = false);
-      }
+    switch (result.status) {
+      case FriendRequestStatus.sent:
+        context.showAppSnackBar(
+          'Friend request sent to ${profile?.displayName ?? 'this user'}',
+          kind: SnackBarKind.success,
+        );
+      case FriendRequestStatus.failure:
+        context.showAppSnackBar('${result.error}', kind: SnackBarKind.error);
+      case FriendRequestStatus.noProfile:
+      case FriendRequestStatus.ownProfile:
+      case FriendRequestStatus.alreadySending:
+      case FriendRequestStatus.disposed:
+        return;
     }
   }
 
   Future<void> _editProfile() async {
-    final profile = _profile;
+    final profile = _model.profile;
     if (profile == null) return;
 
-    final updatedProfile = await Navigator.push(
+    final updatedProfile = await Navigator.push<UserProfile?>(
       context,
       AppRoutes.profileEdit(profile),
     );
 
     if (updatedProfile != null && mounted) {
-      setState(() => _profile = updatedProfile);
+      _model.replaceProfile(updatedProfile);
     }
   }
 
@@ -151,54 +95,87 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppPageHeader(
-                    title: "Profile",
-                    // Show the close (✕) button only when viewing a specific
-                    // user's profile (a pushed route, e.g. from the friends
-                    // list); the home "my profile" tab passes no userId.
-                    closeBtn: widget.userId != null,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: _profile == null
-                    ? CircularProgressIndicator()
-                    : ProfileCard(
-                      profile: _profile,
-                      isOwnProfile: _isOwnProfile,
-                      onEdit: _editProfile,
-                      onShare: () => Navigator.push(
-                        context,
-                        // ! operator is need to ensure that profile is loaded and throw errors if profile is null
-                        AppRoutes.shareCode(_profile!)
-                      ),
-                      isSendingRequest: _sendingFriendRequest,
-                      requestSent: _friendRequestSent,
-                      isAlreadyFriend: _isAlreadyFriend,
-                      onAddFriend: _sendFriendRequest,
-                    ),
-                  ),
-                  // Logout only makes sense on your own profile, not when
-                  // viewing someone else's.
-                  SizedBox(height: 16,),
-                  if (_isOwnProfile)
-                    AppPrimaryButton(
-                      backgroundColor: Colors.grey,
-                      liftColor: Colors.blueGrey,
-                      label: "Log out",
-                      onPressed: () => _auth.signOut(),
-                    ),
-                ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              child: AppPageHeader(
+                title: 'Profile',
+                // Show the close button only when viewing a specific user's
+                // profile. The home "my profile" tab passes no userId.
+                closeBtn: widget.userId != null,
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 16),
+            Expanded(child: _buildBody()),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_model.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final error = _model.error;
+    if (error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Failed to load profile.'),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _model.loadProfile,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final profile = _model.profile;
+    if (profile == null) {
+      return const Center(child: Text('Profile not found.'));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileCard(
+            profile: profile,
+            isOwnProfile: _model.isOwnProfile,
+            onEdit: _editProfile,
+            onShare: () => Navigator.push(
+              context,
+              AppRoutes.shareCode(profile),
+            ),
+            isSendingRequest: _model.sendingFriendRequest,
+            requestSent: _model.friendRequestSent,
+            isAlreadyFriend: _model.isAlreadyFriend,
+            onAddFriend: _sendFriendRequest,
+          ),
+          // Logout only makes sense on your own profile, not when viewing
+          // someone else's.
+          const SizedBox(height: 16),
+          if (_model.isOwnProfile)
+            AppPrimaryButton(
+              backgroundColor: AppColors.danger,
+              liftColor: AppColors.dangerShadow,
+              label: 'Log out',
+              onPressed: _model.signOut,
+            ),
+        ],
       ),
     );
   }

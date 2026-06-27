@@ -5,8 +5,7 @@ enum PinType {
   // and the customised name from user 
   restaurant("Restaurant", "🍽️"),
   gym("Gym", "🏋"),
-  hotel("Hotel", "🏨"),
-  toilet("Toilet", "🚽");
+  hotel("Hotel", "🏨");
 
   const PinType(this.label, this.emoji);
   final String label;

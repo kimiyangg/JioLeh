@@ -5,65 +5,81 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:jio_leh/config/map_env.dart';
 
 import 'package:jio_leh/models/place.dart';
-import 'package:jio_leh/models/user_inserted_pin.dart';
 import 'package:jio_leh/models/user_pin.dart';
 
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
-import 'package:jio_leh/pages/map/widgets/location_customize_sheet.dart';
+import 'package:jio_leh/pages/map/location_customize_page.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
-import 'package:jio_leh/services/services.dart';
+import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/pages/map/add_pin.dart';
+import 'package:jio_leh/pages/map/map_page_model.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({super.key, required this.model});
+
+  final MapPageModel model;
 
   @override
   State<MapPage> createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
-  // Services are resolved from the shared composition root (Services) so the
-  // whole app uses a single AuthService — and therefore a single Supabase
-  // client — instead of each page constructing its own.
-  final _locationServicePins = Services.pins;
-  final _geocoding = Services.geocoding;
-  final _locationService = Services.location;
-
-  // Map state and controls
+  // Map view state. The data (location, places) lives in the model.
   MapboxMap? _map;
   MapPins? _pins;
   ViewportState? _initialViewport;
+  List<Place>? _renderedPlaces;
+  bool _didBoot = false;
 
-  // User location state and controls
-  geo.Position? _currentPosition;
-
-  bool _isLoadingLocation = true;
-
-  // AreaName state and controls
-  String _currentLocationName = 'Fetching location...';
-
-  // Places state and controls
-  List<Place> _places = [];
+  MapPageModel get _model => widget.model;
 
   @override
-  void initState() {
-    super.initState();
-    _booting();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didBoot) return;
+    _didBoot = true;
+
+    _model.addListener(_onModelChanged);
+    _boot();
   }
 
   @override
   void dispose() {
-    _locationService.dispose();
+    _model.removeListener(_onModelChanged);
     super.dispose();
   }
 
-  Future<void> _booting() async {
-    // Main boot sequence to initialize location, map, and nearby places
-    await _startLocationTracking();
+  Future<void> _boot() async {
+    try {
+      await _model.start();
+    } catch (e) {
+      if (!mounted) return;
+      await _showLocationErrorDialog(e);
+    }
+  }
+
+  void _onModelChanged() {
+    if (!mounted) return;
+
+    // First fix: seed the initial viewport so the map opens at the user.
+    if (_map == null &&
+        _initialViewport == null &&
+        _model.currentPosition != null) {
+      _initialViewport = _viewportFor(_model.currentPosition!);
+    }
+
+    // Re-render pins only when the places list itself changed.
+    if (!identical(_renderedPlaces, _model.places)) {
+      _renderedPlaces = _model.places;
+      _pins?.render(_model.places);
+    }
+
+    setState(() {});
   }
 
   // Map Helper Methods
@@ -99,6 +115,17 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  ViewportState _viewportFor(geo.Position position) {
+    return CameraViewportState(
+      center: Point(
+        coordinates: Position(position.longitude, position.latitude),
+      ),
+      zoom: 15,
+      bearing: 0,
+      pitch: 60,
+    );
+  }
+
   Future<void> _moveCameraToPos(geo.Position position) async {
     if (_map == null) return; // prevent crash if method called too early
     await _map!.easeTo(
@@ -119,69 +146,19 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  // Location Helper Methods
-  Future<void> _startLocationTracking() async {
-    // Fetches the user's current location and starts real-time tracking.
-    // On failure, surfaces a dialog so the user can retry or open settings.
-    try {
-      final position = await _locationService.getCurrentLocation();
-      if (!mounted) return;
-
-      setState(() {
-        _currentPosition = position;
-        _isLoadingLocation = false;
-        _initialViewport = CameraViewportState(
-          center: Point(
-            coordinates: Position(position.longitude, position.latitude),
-          ),
-          zoom: 15,
-          bearing: 0,
-          pitch: 60,
-        );
-      });
-
-      _updateLocationName(position);
-      await _reloadPlaces();
-      await _locationService.startLocationTracking(
-        onLocationUpdate: _onLocationUpdate,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoadingLocation = false);
-      await _showLocationErrorDialog(e);
-    }
-  }
-
-  void _onLocationUpdate(geo.Position position) {
-    _currentPosition = position;
-    _updateLocationName(position);
-  }
-
   Future<void> _recenterMap() async {
-    if (_currentPosition == null) return;
-    await _moveCameraToPos(_currentPosition!);
+    final position = _model.currentPosition;
+    if (position == null) return;
+    await _moveCameraToPos(position);
   }
 
   Future<void> _showLocationErrorDialog(Object error) async {
     await showLocationErrorDialog(
       context: context,
       error: error,
-      locationService: _locationService,
-      onRetry: () => _startLocationTracking(),
+      locationService: ServiceProvider.of(context)!.location,
+      onRetry: () => _boot(),
     );
-  }
-
-  // Area Name Helper Methods
-  Future<void> _updateLocationName(geo.Position position) async {
-    _geocoding
-        .fetchAreaName(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        )
-        .then((name) {
-          if (!mounted) return;
-          setState(() => _currentLocationName = name);
-        });
   }
 
   Future<void> _showPlace(Place place) async {
@@ -192,13 +169,11 @@ class _MapPageState extends State<MapPage> {
     );
 
     try {
-      final photoUrls = await _locationServicePins.createPhotoUrls(
-        pin?.photoPaths ?? const [],
-      );
+      final photoUrls = await _model.photoUrls(pin?.photoPaths ?? const []);
 
       if (!mounted) return;
 
-      await showLocationCustomizeSheet(
+      await showLocationCustomizePage(
         context,
         pinType,
         initialCustomization: LocationCustomization(
@@ -225,55 +200,9 @@ class _MapPageState extends State<MapPage> {
     return place.pins.isEmpty ? null : place.pins.first;
   }
 
-  // Pin Helper Methods
-  Future<void> _reloadPlaces() async {
-    final position = _currentPosition;
-    if (position == null) return;
-
-    final places = await _locationServicePins.loadPlacesNearLocation(
-      latitude: position.latitude,
-      longitude: position.longitude,
-    );
-
-    if (!mounted) return;
-
-    setState(() => _places = places);
-    await _pins?.render(_places);
-  }
-
-  Future<void> _addPin() async {
-    final position = _currentPosition; // save current location for pinning
-
-    if (position == null) return; // stops if location unknown
-
-    await showLocationCustomizeSheet(
-      context,
-      PinType.restaurant,
-      onSave: (customization) async {
-        await _locationServicePins.saveUserInsertedPin(
-          UserInsertedPin(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            formalName: customization.formalName,
-            customName:
-                customization.name, // if user close page early, return ''
-            // else, return wtv he typed in
-            emoji: customization.pinType.emoji,
-            rating: customization.rating == 0 ? null : customization.rating,
-            review: customization.review,
-            isPrivate: customization.isPrivate!,
-          ),
-          customization.selectedPhotos,
-        ); // still save the emoji
-
-        await _reloadPlaces();
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingLocation) {
+    if (_model.isLoadingLocation) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -294,10 +223,11 @@ class _MapPageState extends State<MapPage> {
 
               await _initMapStyleSettings();
               await _enableMapboxLocationComponent();
-              await _pins!.render(_places);
+              _renderedPlaces = _model.places;
+              await _pins!.render(_model.places);
 
-              if (_currentPosition != null) {
-                await _moveCameraToPos(_currentPosition!);
+              if (_model.currentPosition != null) {
+                await _moveCameraToPos(_model.currentPosition!);
               }
 
               if (mounted) {
@@ -307,10 +237,13 @@ class _MapPageState extends State<MapPage> {
           ),
 
           // Top: current area name display
-          CurrentAreaBar(locationName: _currentLocationName),
+          CurrentAreaBar(locationName: _model.locationName),
 
           // Bottom right: recenter, and add pin buttons
-          MapToolbar(onRecenter: _recenterMap, onAddPin: _addPin),
+          MapToolbar(
+            onRecenter: _recenterMap,
+            onAddPin: () => addPin(context, _model),
+          ),
         ],
       ),
     );

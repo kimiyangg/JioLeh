@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:jio_leh/services/supabase_friends_service.dart';
+import 'package:jio_leh/services/supabase/supabase_friends_service.dart';
 
 void main() {
   group('decideFriendInsertAction', () {

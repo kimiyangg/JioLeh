@@ -3,7 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:jio_leh/services/auth_service.dart';
-import 'package:jio_leh/services/supabase_auth_service.dart';
+import 'package:jio_leh/services/supabase/supabase_auth_service.dart';
 
 // Pretend versions of the two Supabase pieces we touch.
 class _MockSupabaseClient extends Mock implements SupabaseClient {}

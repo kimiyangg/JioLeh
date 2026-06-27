@@ -4,17 +4,18 @@ import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/friends_service.dart';
 import 'package:jio_leh/services/geocoding_service.dart';
+import 'package:jio_leh/services/jio_chat_service.dart';
 import 'package:jio_leh/services/location_service.dart';
+import 'package:jio_leh/services/open_jio_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 import 'package:jio_leh/services/services.dart';
-import 'package:jio_leh/services/open_jio_service.dart';
-import 'package:jio_leh/services/jio_chat_service.dart';
 
-
-/// /// An [InheritedWidget] that provides access to application services throughout the widget tree.
+/// An [InheritedWidget] that provides access to application services throughout
+/// the widget tree.
 ///
 /// This allows for dependency injection, making it easier to swap real services
-/// with mocks during testing by wrapping the app or a specific subtree in a [ServiceProvider].
+/// with fakes during testing by wrapping the app or a specific subtree in a
+/// [ServiceProvider].
 class ServiceProvider extends InheritedWidget {
   const ServiceProvider({
     super.key,
@@ -26,15 +27,15 @@ class ServiceProvider extends InheritedWidget {
     FriendsService? friends,
     OpenJioService? openJio,
     JioChatService? jioChat,
-    required super.child
+    required super.child,
   }) : _auth = auth,
-        _account = account,
-        _pins = pins,
-        _location = location,
-        _geocoding = geocoding,
-        _friends = friends,
-        _openJio = openJio,
-        _jioChat = jioChat;
+       _account = account,
+       _pins = pins,
+       _location = location,
+       _geocoding = geocoding,
+       _friends = friends,
+       _openJio = openJio,
+       _jioChat = jioChat;
 
   final AuthService? _auth;
   final AccountService? _account;
@@ -56,8 +57,9 @@ class ServiceProvider extends InheritedWidget {
 
   /// Finds the nearest [ServiceProvider] above this widget in the widget tree.
   ///
-  /// Child widgets use this helper to access shared services without passing them through every constructor.
-  /// It returns `null` if no [ServiceProvider] is mounted above the given [context].
+  /// Child widgets use this helper to access shared services without passing
+  /// them through every constructor. It returns `null` if no [ServiceProvider]
+  /// is mounted above the given [context].
   static ServiceProvider? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ServiceProvider>();
   }

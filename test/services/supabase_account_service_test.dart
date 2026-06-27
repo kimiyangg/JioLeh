@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:jio_leh/services/supabase_account_service.dart';
+import 'package:jio_leh/services/supabase/supabase_account_service.dart';
 
 void main() {
   group('decideAccountInsertAction', () {
