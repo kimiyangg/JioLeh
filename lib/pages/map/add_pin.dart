@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:jio_leh/models/user_inserted_pin.dart';
 import 'package:jio_leh/pages/map/map_page_model.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
-import 'package:jio_leh/pages/map/widgets/location_customize_page.dart';
+import 'package:jio_leh/pages/map/location_customize_page.dart';
 
 Future<void> addPin(BuildContext context, MapPageModel model) async {
   final position = model.currentPosition;

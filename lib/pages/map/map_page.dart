@@ -10,7 +10,7 @@ import 'package:jio_leh/models/user_pin.dart';
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
-import 'package:jio_leh/pages/map/widgets/location_customize_page.dart';
+import 'package:jio_leh/pages/map/location_customize_page.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
