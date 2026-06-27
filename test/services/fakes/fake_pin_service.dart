@@ -19,6 +19,7 @@ class FakePinService extends PinService {
 
   int saveUserInsertedPinCalls = 0;
   int loadPlacesNearLocationCalls = 0;
+  int loadPlacesInBoundsCalls = 0;
   int createPhotoUrlsCalls = 0;
 
   UserInsertedPin? lastSavedPin;
@@ -26,6 +27,10 @@ class FakePinService extends PinService {
   double? lastLatitude;
   double? lastLongitude;
   double? lastRadiusKm;
+  double? lastWest;
+  double? lastSouth;
+  double? lastEast;
+  double? lastNorth;
   List<String> lastPhotoPaths = const [];
 
   @override
@@ -52,6 +57,21 @@ class FakePinService extends PinService {
     lastLatitude = latitude;
     lastLongitude = longitude;
     lastRadiusKm = radiusKm;
+    return places;
+  }
+
+  @override
+  Future<List<Place>> loadPlacesInBounds({
+    required double west,
+    required double south,
+    required double east,
+    required double north,
+  }) async {
+    loadPlacesInBoundsCalls++;
+    lastWest = west;
+    lastSouth = south;
+    lastEast = east;
+    lastNorth = north;
     return places;
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -32,6 +34,7 @@ class _MapPageState extends State<MapPage> {
   // Map view state. The data (location, places) lives in the model.
   MapboxMap? _map;
   MapPins? _pins;
+  Timer? _viewportReload;
   ViewportState? _initialViewport;
   List<Place>? _renderedPlaces;
   bool _didBoot = false;
@@ -50,6 +53,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
+    _viewportReload?.cancel();
     _model.removeListener(_onModelChanged);
     super.dispose();
   }
@@ -158,6 +162,40 @@ class _MapPageState extends State<MapPage> {
     await _moveCameraToPos(position);
   }
 
+  void _onMapIdle(MapIdleEventData _) {
+    _viewportReload?.cancel();
+    _viewportReload = Timer(
+      const Duration(milliseconds: 300),
+      _reloadVisiblePlaces,
+    );
+  }
+
+  Future<void> _reloadVisiblePlaces() async {
+    final map = _map;
+    if (map == null) return;
+
+    final camera = await map.getCameraState();
+    final bounds = await map.coordinateBoundsForCamera(
+      CameraOptions(
+        center: camera.center,
+        zoom: camera.zoom,
+        bearing: camera.bearing,
+        pitch: camera.pitch,
+        padding: camera.padding,
+      ),
+    );
+
+    final southwest = bounds.southwest.coordinates;
+    final northeast = bounds.northeast.coordinates;
+
+    await _model.reloadPlacesInBounds(
+      west: southwest.lng.toDouble(),
+      south: southwest.lat.toDouble(),
+      east: northeast.lng.toDouble(),
+      north: northeast.lat.toDouble(),
+    );
+  }
+
   Future<void> _showLocationErrorDialog(Object error) async {
     await showLocationErrorDialog(
       context: context,
@@ -218,6 +256,7 @@ class _MapPageState extends State<MapPage> {
           MapWidget(
             viewport: _initialViewport,
             styleUri: MapEnv.mapboxStyleUri,
+            onMapIdleListener: _onMapIdle,
             onMapCreated: (controller) async {
               _map = controller;
               _pins = MapPins(

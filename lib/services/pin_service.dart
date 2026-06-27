@@ -17,6 +17,14 @@ abstract class PinService {
     double radiusKm = 1,
   });
 
+  /// Loads places whose coordinates fall inside the given bounding box.
+  Future<List<Place>> loadPlacesInBounds({
+    required double west,
+    required double south,
+    required double east,
+    required double north,
+  });
+
   /// Creates temporary display URLs for stored pin photo paths.
   Future<List<String>> createPhotoUrls(List<String> photoPaths);
 }

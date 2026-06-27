@@ -85,6 +85,23 @@ class MapPageModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> reloadPlacesInBounds({
+    required double west,
+    required double south,
+    required double east,
+    required double north,
+  }) async {
+    final places = await pins.loadPlacesInBounds(
+      west: west,
+      south: south,
+      east: east,
+      north: north,
+    );
+    if (_disposed) return;
+    _places = places;
+    notifyListeners();
+  }
+
   Future<void> savePin(UserInsertedPin pin, List<XFile> photos) async {
     await pins.saveUserInsertedPin(pin, photos);
     await reloadPlaces();
