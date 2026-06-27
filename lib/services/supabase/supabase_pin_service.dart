@@ -21,6 +21,11 @@ class SupabasePinService extends PinService {
   static const _userPinsTable = 'user_pins';
   static const _photoBucket = 'pin-photos';
 
+  static const _placeColumns =
+      'id, name, latitude, longitude, pin_count, '
+      'user_pins!inner(id, user_id, place_id, custom_name, emoji, ratings, '
+      'reviews, photo_paths, is_private)';
+
   @override
   Future<void> saveUserInsertedPin(
     UserInsertedPin pin,
@@ -118,11 +123,7 @@ class SupabasePinService extends PinService {
 
     final rows = await _supabase
         .from(_placesTable)
-        .select(
-          'id, name, latitude, longitude, pin_count, '
-          'user_pins(id, user_id, place_id, custom_name, emoji, ratings, '
-          'reviews, photo_paths, is_private)',
-        )
+        .select(_placeColumns)
         .gte('latitude', latitude - latDelta)
         .lte('latitude', latitude + latDelta)
         .gte('longitude', longitude - lngDelta)
@@ -141,6 +142,24 @@ class SupabasePinService extends PinService {
               radiusKm,
         )
         .toList();
+  }
+
+  @override
+  Future<List<Place>> loadPlacesInBounds({
+    required double west,
+    required double south,
+    required double east,
+    required double north,
+  }) async {
+    final rows = await _supabase
+        .from(_placesTable)
+        .select(_placeColumns)
+        .gte('latitude', south)
+        .lte('latitude', north)
+        .gte('longitude', west)
+        .lte('longitude', east);
+
+    return rows.map(Place.fromMap).toList();
   }
 
   @override
