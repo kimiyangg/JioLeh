@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
+import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
 import 'package:jio_leh/widgets/app_selection_bar.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
@@ -436,17 +437,12 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
 
               const SizedBox(height: 20),
 
-              FilledButton(
+              AppPrimaryButton(
+                label: widget.isReadOnly ? 'Close' : 'Save',
                 onPressed: _isSaving ? null : _onSavePressed,
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(widget.isReadOnly ? 'Close' : 'Save'),
-              ),
-            ],
+                isLoading: _isSaving,
+              )
+            ]
           ),
         ),
       ),
