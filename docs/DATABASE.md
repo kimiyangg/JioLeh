@@ -75,32 +75,117 @@ user id and is created during onboarding by `AccountService.createProfile`.
 | `created_at` | timestamp | Row creation time |
 | `updated_at` | timestamp | Last update time |
 
+A row is unique per `(requester_id, addressee_id)` pair, and a user cannot
+befriend themselves (`requester_id <> addressee_id`).
+
+### `open_jio_events`
+
+`open_jio_events` holds OpenJio gathering invitations created by a user.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | Creator (Supabase Auth user id) |
+| `date_time` | timestamp | When the gathering happens |
+| `caption` | text | Short description |
+| `location_name` | text | Free-text location name |
+| `created_at` | timestamp | Row creation time |
+
+The invitee list is not stored on this table. An earlier
+`invited_friend_ids` array column was dropped; `open_jio_invite_statuses` is now
+the single source of truth for who is invited.
+
+### `open_jio_invite_statuses`
+
+`open_jio_invite_statuses` holds one row per invitee per event, tracking their
+response. It is enabled for Supabase Realtime so invite responses update live.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `event_id` | uuid | Linked row in `open_jio_events` (cascade delete) |
+| `invitee_id` | uuid | Invited Supabase Auth user id |
+| `status` | text | `pending`, `accepted`, or `declined` |
+| `updated_at` | timestamp | Last response time |
+
+A row is unique per `(event_id, invitee_id)` pair.
+
+### `jio_chat_messages`
+
+`jio_chat_messages` holds the JioChat group-chat messages for an OpenJio event.
+It is enabled for Supabase Realtime so new messages appear live.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `event_id` | uuid | Linked row in `open_jio_events` (cascade delete) |
+| `sender_id` | uuid | Sender's Supabase Auth user id |
+| `sender_name` | text | Display name captured at send time |
+| `content` | text | Message text; null for photo-only messages |
+| `image_path` | text | `chat-photos` storage path; null for text-only messages |
+| `created_at` | timestamp | Row creation time |
+
+Each message must have either `content` or `image_path` (or both).
+
 ## Storage
 
-Pin photos are stored in the Supabase Storage bucket `pin-photos`.
+| Bucket | Visibility | Used by |
+|---|---|---|
+| `pin-photos` | Private | Pin photos, paths saved in `user_pins.photo_paths` |
+| `profile-photos` | Public | Profile avatars, path saved in `profiles.avatar_url` |
+| `chat-photos` | Public | JioChat photo messages, path saved in `jio_chat_messages.image_path` |
 
-Current behavior:
+`pin-photos` behavior:
 
 - A pin can have at most three photos.
 - Stored paths are saved in `user_pins.photo_paths`.
-- The app creates signed URLs when loading photos.
+- The app creates signed URLs when loading photos (private bucket).
+- Friends can read non-private pins' photos through a storage policy.
 - Upload cleanup should remove already-uploaded photos if saving the full pin
   fails.
 
+`profile-photos` and `chat-photos` are public buckets, so their files are served
+directly by public URL.
+
+> The `pin-photos` and `profile-photos` buckets are created in migration files.
+> The `chat-photos` bucket is **not** created by a migration (only its upload
+> policy is version-controlled); it currently must exist in the project already.
+
 ## Row-Level Security
 
-Row-Level Security (RLS) is enabled.
+Row-Level Security (RLS) is enabled on all application tables.
 
 Current policy direction:
 
-- Authenticated users can read profiles.
-- Authenticated users can read places.
+- Authenticated users can read all profiles, and update only their own.
+- Authenticated users can read all places, and create or update only places they
+  created.
 - Users can manage their own pins.
 - Users can read non-private pins from accepted friends.
-- Users can create and update places they created.
+- Friendship rows are visible to the requester and addressee; only the addressee
+  can accept or block.
+- OpenJio events are visible to their creator and to invited users; only the
+  creator can insert or delete them.
+- Invite statuses are visible to the invitee and the event creator; the creator
+  inserts them, and the invitee can update only their own status.
+- JioChat messages are readable and writable only by the event creator and
+  accepted invitees.
 
-The helper function `public.are_friends(user_a uuid, user_b uuid)` checks
-whether two users have an accepted friendship.
+Helper functions used by these policies:
+
+- `public.are_friends(user_a uuid, user_b uuid)` checks whether two users have an
+  accepted friendship.
+- `public.is_invited_to_open_jio(p_event_id uuid, p_user_id uuid)` checks whether
+  a user has an invite status row for an event.
+- `public.can_access_jio_chat(p_event_id uuid, p_user_id uuid)` checks whether a
+  user is the event creator or an accepted invitee.
+
+Other database automation:
+
+- `update_updated_at()` keeps `updated_at` current on `profiles` and
+  `friendships`.
+- `sync_place_pin_stats()` maintains `places.pin_count` and auto-approves
+  user-created places once enough distinct users have pinned them.
 
 ## Migrations
 
@@ -116,7 +201,10 @@ supabase db push                # apply pending migrations to the linked project
 supabase db pull                # import schema changes made elsewhere
 ```
 
-`supabase db push` and `supabase db pull` need Docker Desktop running.
+`supabase db push` applies migrations straight to the linked project and does
+**not** need Docker. Commands that diff against a local shadow database, such as
+`supabase db pull` and the local stack (`supabase start`), do need Docker Desktop
+running.
 
 Never commit secrets. `supabase/.temp/` and `.env*` files are git-ignored.
 

@@ -16,9 +16,9 @@ Useful paths:
 | `lib/` | App source code |
 | `lib/app/` | Root app shell, auth gate, and service-provider wiring |
 | `lib/config/` | Dart define based environment configuration |
-| `lib/pages/` | App pages (auth, onboarding, map, profile, friends, invitations, home) |
+| `lib/pages/` | App pages (auth, onboarding, home, map, profile, friends, invitations) |
 | `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
-| `lib/services/` | Auth, account, friends, location, geocoding, and pin services |
+| `lib/services/` | Auth, account, friends, location, geocoding, pin, OpenJio, and JioChat services |
 | `lib/models/` | App data models |
 | `lib/routing/` | Centralized route definitions (`AppRoutes`) |
 | `test/` | Flutter tests |

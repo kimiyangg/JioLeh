@@ -115,10 +115,15 @@ sees only the abstract type.
 |---------|---------|-------|
 | auth | abstract + impl + fake | reference implementation |
 | account | abstract + impl + fake | modernized |
-| friends | abstract + impl + fake | modernized — `FriendsService` + `SupabaseFriendsService` + `FakeFriendsService` |
-| open_jio | abstract + impl + fake | modernized — `OpenJioService` + `SupabaseOpenJioService` + `FakeOpenJioService` |
-| pin | abstract + impl + fake | modernized - `PinService` + `SupabasePinService` + `FakePinService` |
-| location, geocoding | concrete only | thin wrappers — a contract is not justified yet |
+| friends | abstract + impl + fake | modernized: `FriendsService` + `SupabaseFriendsService` + `FakeFriendsService` |
+| open_jio | abstract + impl + fake | modernized: `OpenJioService` + `SupabaseOpenJioService` + `FakeOpenJioService` |
+| pin | abstract + impl + fake | modernized: `PinService` + `SupabasePinService` + `FakePinService` |
+| jio_chat | abstract + impl (no fake yet) | newest: `JioChatService` + `SupabaseJioChatService`; fake and tests still pending |
+| location, geocoding | concrete only | thin wrappers; a contract is not justified yet |
+
+Production implementations live under `lib/services/supabase/` (one
+`supabase_*_service.dart` per contract); the abstract contracts sit directly in
+`lib/services/`.
 
 > An abstraction must **earn its keep**: a real second implementation or a test
 > fake justifies an interface; speculative flexibility does not.
@@ -220,8 +225,8 @@ lib/
       widgets/                     this feature's organisms + molecules (one file each)
   widgets/                     shared, dumb, cross-feature atoms/molecules
   theme.dart                   design tokens
-  services/                    *_service (contract) + supabase_*_service (impl)
-                               + services.dart (composition root)
+  services/                    *_service (contract) + services.dart (composition root)
+      supabase/                    supabase_*_service (production impls)
   models/                      plain data classes (fromMap / toMap)
   util/                        pure logic/rules (UsernameRule, birthday)
   config/                      env parsing + validation

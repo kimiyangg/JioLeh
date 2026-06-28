@@ -15,25 +15,29 @@ Flutter implementation in this repository.
 
 The app currently includes:
 
-- A Mapbox-powered map interface.
+- A Mapbox-powered map interface with a bottom navigation shell of four tabs
+  (Map, Jios, Friends, You) and a center button to add a location.
 - Current location detection and live location updates.
 - Reverse geocoding to show the user's current area.
 - Google sign-in through Supabase Auth.
-- An auth gate that routes users between sign-in, onboarding, and the map.
+- An auth gate that routes users between sign-in, onboarding, and the home shell.
 - First-time onboarding to set up a user profile (username, display name,
-  birthday).
-- Profile viewing, profile editing, and share-code access.
+  birthday, and an optional profile photo).
+- Profile viewing, profile editing, avatar photos, and share-code access via QR
+  code and deep links.
 - Friend search by username, friend requests, accept/reject flows, and friend
   removal.
-- Creating OpenJio gathering invitations to selected friends, with a date and
-  time, caption, and location.
-- Persistent places, user pins, user profiles, and friendships stored in
-  Supabase.
+- OpenJio gathering invitations: create an invite to selected friends with a
+  date and time, caption, and location, and recipients can accept, decline, or
+  leave.
+- JioChat real-time group chat for each OpenJio gathering, with text and photo
+  messages.
+- Persistent places, user pins, user profiles, friendships, OpenJio events,
+  invite statuses, and chat messages stored in Supabase.
 - Map pins with custom names, emoji, ratings, reviews, privacy, and up to three
   photos per pin.
 - Nearby place loading around the current map area.
-- A map toolbar for recentering, adding pins, opening profile, and opening
-  friends.
+- A map toolbar for recentering and adding pins, plus a current-area bar.
 
 ## Product Direction
 
@@ -53,10 +57,10 @@ The aims of our project include but are not limited to:
 Planned features from the proposal include:
 
 - Location categories beyond emoji-based custom pins.
-- Comments and place-specific discussion or chat.
+- Comments and place-specific discussion.
 - Social points and friend leaderboards.
 - Fog-of-map exploration.
-- Group chats, gatherings, and group location filters.
+- Group location filters.
 - Profile search and close-friends filtering.
 - AI-assisted content classification and recommendation ideas.
 
@@ -68,9 +72,12 @@ Planned features from the proposal include:
 | Maps | Mapbox Maps SDK for Flutter |
 | Location | Geolocator |
 | Backend | Supabase |
-| Auth | Supabase Auth with Google OAuth |
+| Auth | Supabase Auth with Google OAuth (`google_sign_in`) |
 | Database | Supabase PostgreSQL |
+| Real-time | Supabase Realtime (OpenJio invites and JioChat messages) |
 | Photos | `image_picker`, Supabase Storage |
+| Fonts | `google_fonts` (Gabarito) |
+| Sharing | `qr_flutter`, `app_links` deep links, `share_plus`, `url_launcher` |
 | HTTP | Dart `http` package |
 | CI/CD | GitHub Actions |
 
@@ -133,7 +140,12 @@ current app flow is centered around:
 - `user_pins`: a user's personal pin for a place, including custom name, emoji,
   rating, review, privacy, and photo paths.
 - `friendships`: friend request and accepted-friend relationships.
-- Supabase Storage bucket `pin-photos`: uploaded pin photos.
+- `open_jio_events`: OpenJio gathering invitations created by a user.
+- `open_jio_invite_statuses`: per-invitee pending/accepted/declined status for an
+  event (the source of truth for who is invited).
+- `jio_chat_messages`: real-time group-chat messages for an OpenJio event.
+- Supabase Storage buckets `pin-photos` (private), `profile-photos` (public),
+  and `chat-photos` (public).
 
 The database schema is version-controlled under `supabase/migrations/`. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for schema, migration, build, continuous
@@ -146,12 +158,13 @@ integration, and release workflows.
 | `lib/main.dart` | App bootstrap and service initialization |
 | `lib/app/` | Root app shell, auth gate, and service-provider wiring |
 | `lib/routing/` | Centralized route definitions (`AppRoutes`) |
-| `lib/pages/` | App pages (auth, onboarding, map, profile, friends, invitations, home) |
+| `lib/pages/` | App pages (auth, onboarding, home, map, profile, friends, invitations) |
 | `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
-| `lib/services/` | Auth, account, friends, location, geocoding, and pin services |
+| `lib/services/` | Auth, account, friends, location, geocoding, pin, OpenJio, and JioChat services |
+| `lib/services/supabase/` | Supabase implementations of the service contracts |
 | `lib/config/` | Mapbox and Supabase environment config |
 | `lib/models/` | App data models |
-| `test/` | Flutter tests |
+| `test/` | Flutter tests, including in-memory service fakes |
 | `supabase/migrations/` | Versioned database schema (Supabase CLI) |
 | `.github/workflows/` | CI and release workflows |
 | `docs/` | Code style, database, release, and software engineering references |
