@@ -114,13 +114,12 @@ class _MapPageState extends State<MapPage> {
 
     _map!.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
 
-    // Position the compass above the recenter button
-    // (which is at bottom left with some margin)
+    // Position the compass in the gap left beside the location bar
     _map!.compass.updateSettings(
       CompassSettings(
         position: OrnamentPosition.BOTTOM_LEFT,
-        marginLeft: 10,
-        marginBottom: 30,
+        marginLeft: 15,
+        marginBottom: 120,
       ),
     );
   }

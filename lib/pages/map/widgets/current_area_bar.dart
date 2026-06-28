@@ -9,7 +9,7 @@ class CurrentAreaBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       left: 20,
-      right: 20,
+      right: 70,
       top: 10,
       child: SafeArea(
         child: Container(
