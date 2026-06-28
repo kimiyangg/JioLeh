@@ -21,11 +21,11 @@ class ShareCodePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Build the deep link the QR encodes and the share button sends: com.gijios.jioleh://profile/<id>.
+    // Build the universal link the QR encodes and the share button sends: https://jio-leh-website.vercel.app/profile/<id>.
     final profileLink = Uri(
-      scheme: 'com.gijios.jioleh',
-      host: 'profile',
-      pathSegments: [profile.id],
+      scheme: 'https',
+      host: 'jio-leh-website.vercel.app',
+      pathSegments: ['profile', profile.id],
     ).toString();
 
     return Scaffold(
@@ -70,7 +70,7 @@ class ShareCodePage extends StatelessWidget {
                       const SizedBox(height: 30),
                       AppPrimaryButton(
                         icon: Icons.share,
-                        label: "Share my code",
+                        label: "Share my profile",
                         onPressed: () async {
                           // Capture this button's rect so the iPad share popover has an anchor (phones ignore it).
                           final box = context.findRenderObject() as RenderBox?;
