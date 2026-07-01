@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/user_profile.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/profile/profile_page_model.dart';
 import 'package:jio_leh/pages/profile/widgets/profile_card.dart';
 import 'package:jio_leh/routing/app_routing.dart';
@@ -117,7 +118,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildBody() {
     if (_model.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: BrandLoadingAnimation.compact());
     }
 
     final error = _model.error;

@@ -17,7 +17,9 @@ import 'package:jio_leh/pages/map/location_customize_page.dart';
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/map/add_pin.dart';
+import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/pages/map/map_page_model.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 
@@ -246,7 +248,10 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     if (_model.isLoadingLocation) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        backgroundColor: AppColors.lightBackground,
+        body: Center(child: BrandLoadingAnimation()),
+      );
     }
 
     return Scaffold(

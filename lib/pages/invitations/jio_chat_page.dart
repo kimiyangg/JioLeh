@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/jio_chat_message.dart';
 import 'package:jio_leh/models/open_jio_event.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/services/jio_chat_service.dart';
 
 /// Group chat for a single Open Jio invite. Only the creator and accepted
@@ -151,7 +152,7 @@ class _JioChatPageState extends State<JioChatPage> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: BrandLoadingAnimation.compact());
     }
     if (_hasError) {
       return Center(

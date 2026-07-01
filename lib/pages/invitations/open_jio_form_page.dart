@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/open_jio_event.dart';
 import 'package:jio_leh/models/user_friend.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 import 'package:jio_leh/pages/invitations/widgets/friend_selection_list.dart';
 import 'package:jio_leh/util/datetime_format.dart';
@@ -176,7 +177,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                     future: _future,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: BrandLoadingAnimation.compact());
                       }
 
                       if (snapshot.hasError) {

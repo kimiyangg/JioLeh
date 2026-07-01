@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/pages/auth/login_page.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/home/home_page.dart';
 import 'package:jio_leh/pages/onboarding/onboarding_page.dart';
 
@@ -11,6 +12,7 @@ import 'package:jio_leh/pages/auth/gate/profile_link_holder.dart';
 
 import 'package:jio_leh/routing/app_routing.dart';
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/theme.dart';
 
 import 'package:app_links/app_links.dart';
 
@@ -95,7 +97,10 @@ class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
     if (_model.screen == AuthGateScreen.loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        backgroundColor: AppColors.lightBackground,
+        body: Center(child: BrandLoadingAnimation()),
+      );
     }
 
     if (_model.screen == AuthGateScreen.login) {

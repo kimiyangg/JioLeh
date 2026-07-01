@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/user_friend.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/friends_service.dart';
@@ -148,7 +149,7 @@ class _FriendsPageState extends State<FriendsPage> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return const Center(
-                          child: CircularProgressIndicator());
+                          child: BrandLoadingAnimation.compact());
                     }
                     if (snapshot.hasError) {
                       return Center(

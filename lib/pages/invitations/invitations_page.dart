@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/invitations/invitations_page_model.dart';
 
 import 'package:jio_leh/models/open_jio_event.dart';
@@ -125,7 +126,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
 
   Widget _buildBody() {
     if (_model.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: BrandLoadingAnimation.compact());
     }
     if (_model.error != null) {
       return Center(
