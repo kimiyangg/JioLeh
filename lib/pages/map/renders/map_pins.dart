@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/models/user_pin.dart';
+import 'package:jio_leh/theme.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 /// This class renders places on the map and links marker taps back to a place.
@@ -16,6 +17,8 @@ class MapPins {
 
   static const _sourceId = 'user_pins_source';
   static const _pinsLayerId = 'user_pins_layer';
+  static const _clusterCircleLayerId = 'user_pins_cluster_circles';
+  static const _clusterCountLayerId = 'user_pins_cluster_count';
 
   final Map<String, Uint8List> _emojiImageCache = {};
   final Set<String> _registeredIcons = {};
@@ -44,7 +47,9 @@ class MapPins {
     final source = GeoJsonSource(
       id: _sourceId,
       data: initialData,
-      cluster: false,
+      cluster: true,
+      clusterRadius: 50,
+      clusterMaxZoom: 16,
     );
     await _map.style.addSource(source);
     _pinsSource = source;
@@ -65,25 +70,87 @@ class MapPins {
       ),
     );
 
+    await _map.style.addLayer(
+      CircleLayer(
+        id: _clusterCircleLayerId,
+        sourceId: _sourceId,
+        filter: <Object>['has', 'point_count'],
+        circleColor: AppColors.lightWidgetBackground.toARGB32(),
+        circleRadiusExpression: <Object>[
+          'step',
+          <Object>['get', 'point_count'],
+          18.0,
+          5,
+          24.0,
+          15,
+          32.0,
+        ],
+      ),
+    );
+
+    await _map.style.addLayer(
+      SymbolLayer(
+        id: _clusterCountLayerId,
+        sourceId: _sourceId,
+        filter: <Object>['has', 'point_count'],
+        textFieldExpression: <Object>['get', 'point_count_abbreviated'],
+        textSize: 14,
+        textColor: Colors.white.toARGB32(),
+      ),
+    );
+
     _map.setOnMapTapListener(_onMapTapped);
   }
 
   void _onMapTapped(MapContentGestureContext context) async {
     final results = await _map.queryRenderedFeatures(
       RenderedQueryGeometry.fromScreenCoordinate(context.touchPosition),
-      RenderedQueryOptions(layerIds: [_pinsLayerId]),
+      RenderedQueryOptions(
+        layerIds: [_pinsLayerId, _clusterCircleLayerId],
+      ),
     );
 
     if (results.isEmpty) return;
 
     final feature = results.first?.queriedFeature.feature;
     final properties = feature?['properties'] as Map?;
-    final placeId = properties?['place_id'] as String?;
 
+    if (properties?['point_count'] != null) {
+      await _expandCluster(feature!);
+      return;
+    }
+
+    final placeId = properties?['place_id'] as String?;
     final place = placeId == null ? null : _placesByPlaceId[placeId];
     if (place != null) {
       onPinTapped(place);
     }
+  }
+
+  Future<void> _expandCluster(Map<String?, Object?> feature) async {
+    final zoomResult = await _map.getGeoJsonClusterExpansionZoom(
+      _sourceId,
+      feature,
+    );
+    final zoom = double.tryParse(zoomResult.value ?? '');
+    if (zoom == null) return;
+
+    final geometry = feature['geometry'] as Map?;
+    final coordinates = geometry?['coordinates'] as List?;
+    if (coordinates == null) return;
+
+    await _map.easeTo(
+      CameraOptions(
+        center: Point(
+          coordinates: Position(
+            (coordinates[0] as num).toDouble(),
+            (coordinates[1] as num).toDouble(),
+          ),
+        ),
+        zoom: zoom,
+      ),
+      MapAnimationOptions(duration: 500),
+    );
   }
 
   String _featureCollectionFor(List<Place> places) {
@@ -162,7 +229,7 @@ class MapPins {
     final picture = recorder.endRecording();
     final image = await picture.toImage(imageSize.toInt(), imageSize.toInt());
 
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final emojiImage = byteData!.buffer.asUint8List();
 
     _emojiImageCache[emoji] = emojiImage;

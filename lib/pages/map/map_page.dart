@@ -40,6 +40,7 @@ class _MapPageState extends State<MapPage> {
   ViewportState? _initialViewport;
   List<Place>? _renderedPlaces;
   bool _didBoot = false;
+  bool _styleLoaded = false;
 
   MapPageModel get _model => widget.model;
 
@@ -80,7 +81,7 @@ class _MapPageState extends State<MapPage> {
     }
 
     // Re-render pins only when the places list itself changed.
-    if (!identical(_renderedPlaces, _model.places)) {
+    if (_styleLoaded && !identical(_renderedPlaces, _model.places)) {
       _renderedPlaces = _model.places;
       _pins?.render(_model.places);
     }
@@ -261,6 +262,11 @@ class _MapPageState extends State<MapPage> {
             viewport: _initialViewport,
             styleUri: MapEnv.mapboxStyleUri,
             onMapIdleListener: _onMapIdle,
+            onStyleLoadedListener: (_) async {
+              _styleLoaded = true;
+              _renderedPlaces = _model.places;
+              await _pins?.render(_model.places);
+            },
             onMapCreated: (controller) async {
               _map = controller;
               _pins = MapPins(
@@ -272,8 +278,6 @@ class _MapPageState extends State<MapPage> {
 
               await _initMapStyleSettings();
               await _enableMapboxLocationComponent();
-              _renderedPlaces = _model.places;
-              await _pins!.render(_model.places);
 
               if (_model.currentPosition != null) {
                 await _moveCameraToPos(_model.currentPosition!);
