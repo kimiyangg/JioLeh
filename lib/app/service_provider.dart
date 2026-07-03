@@ -8,6 +8,7 @@ import 'package:jio_leh/services/jio_chat_service.dart';
 import 'package:jio_leh/services/location_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
+import 'package:jio_leh/services/place_service.dart';
 import 'package:jio_leh/services/services.dart';
 
 /// An [InheritedWidget] that provides access to application services throughout
@@ -24,6 +25,7 @@ class ServiceProvider extends InheritedWidget {
     PinService? pins,
     LocationService? location,
     GeocodingService? geocoding,
+    PlaceService? places,
     FriendsService? friends,
     OpenJioService? openJio,
     JioChatService? jioChat,
@@ -33,6 +35,7 @@ class ServiceProvider extends InheritedWidget {
        _pins = pins,
        _location = location,
        _geocoding = geocoding,
+       _places = places,
        _friends = friends,
        _openJio = openJio,
        _jioChat = jioChat;
@@ -42,6 +45,7 @@ class ServiceProvider extends InheritedWidget {
   final PinService? _pins;
   final LocationService? _location;
   final GeocodingService? _geocoding;
+  final PlaceService? _places;
   final FriendsService? _friends;
   final OpenJioService? _openJio;
   final JioChatService? _jioChat;
@@ -51,6 +55,7 @@ class ServiceProvider extends InheritedWidget {
   PinService get pins => _pins ?? Services.pins;
   LocationService get location => _location ?? Services.location;
   GeocodingService get geocoding => _geocoding ?? Services.geocoding;
+  PlaceService get places => _places ?? Services.places;
   FriendsService get friends => _friends ?? Services.friends;
   OpenJioService get openJio => _openJio ?? Services.openJio;
   JioChatService get jioChat => _jioChat ?? Services.jioChat;
