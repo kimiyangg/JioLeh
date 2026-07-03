@@ -107,6 +107,7 @@ The app requires these `--dart-define` values:
 | `MAPBOX_STYLE_URI` | Mapbox map style |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Supabase client anon key |
+| `GOOGLE_PLACES_API_KEY` | Google Places API (nearby place suggestions) |
 
 Run the app:
 
@@ -115,7 +116,8 @@ flutter run \
   --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" \
   --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" \
   --dart-define=SUPABASE_URL="your-supabase-url" \
-  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key" \
+  --dart-define=GOOGLE_PLACES_API_KEY="your-google-places-api-key"
 ```
 
 PowerShell:
@@ -125,7 +127,8 @@ flutter run `
   --dart-define=MAPBOX_ACCESS_TOKEN="your-mapbox-token" `
   --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" `
   --dart-define=SUPABASE_URL="your-supabase-url" `
-  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key"
+  --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key" `
+  --dart-define=GOOGLE_PLACES_API_KEY="your-google-places-api-key"
 ```
 
 Do not commit real secrets.

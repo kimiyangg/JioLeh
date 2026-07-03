@@ -55,8 +55,9 @@ environment:
   sdk: ^3.11.5
 ```
 
-The app also needs Mapbox and Supabase `--dart-define` values when running or
-building. See [`README.md`](README.md) for the run command and environment keys.
+The app also needs Mapbox, Supabase, and Google Places `--dart-define` values
+when running or building. See [`README.md`](README.md) for the run command and
+environment keys.
 
 ## Development Checks
 
