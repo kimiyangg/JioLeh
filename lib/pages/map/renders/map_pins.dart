@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -13,68 +14,119 @@ class MapPins {
   final void Function(Place place) onPinTapped;
   final MapboxMap _map;
 
-  final Map<String, Uint8List> _emojiImageCache = {};
-  final Map<String, Place> _placesByAnnotationId = {};
+  static const _sourceId = 'user_pins_source';
+  static const _pinsLayerId = 'user_pins_layer';
 
-  PointAnnotationManager? _pinsManager;
+  final Map<String, Uint8List> _emojiImageCache = {};
+  final Set<String> _registeredIcons = {};
+  Map<String, Place> _placesByPlaceId = {};
+
+  GeoJsonSource? _pinsSource;
 
   Future<void> render(List<Place> places) async {
-    if (_pinsManager == null) {
-      _pinsManager = await _map.annotations.createPointAnnotationManager();
+    await _ensureIconsRegistered(places);
 
-      _pinsManager!.tapEvents(
-        onTap: (annotation) {
-          final place = _placesByAnnotationId[annotation.id];
+    _placesByPlaceId = {
+      for (final place in places)
+        if (place.id != null) place.id!: place,
+    };
 
-          if (place != null) {
-            onPinTapped(place);
-          }
-        },
-      );
+    final data = _featureCollectionFor(places);
+
+    if (_pinsSource == null) {
+      await _setUpLayers(data);
+    } else {
+      await _pinsSource!.updateGeoJSON(data);
     }
+  }
 
-    await _pinsManager!.deleteAll();
-    _placesByAnnotationId.clear();
+  Future<void> _setUpLayers(String initialData) async {
+    final source = GeoJsonSource(
+      id: _sourceId,
+      data: initialData,
+      cluster: false,
+    );
+    await _map.style.addSource(source);
+    _pinsSource = source;
 
+    await _map.style.addLayer(
+      SymbolLayer(
+        id: _pinsLayerId,
+        sourceId: _sourceId,
+        filter: <Object>[
+          '!',
+          <Object>['has', 'point_count'],
+        ],
+        iconImageExpression: <Object>['get', 'icon'],
+        iconSize: 0.55,
+        iconAnchor: IconAnchor.BOTTOM,
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
+      ),
+    );
+
+    _map.setOnMapTapListener(_onMapTapped);
+  }
+
+  void _onMapTapped(MapContentGestureContext context) async {
+    final results = await _map.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(context.touchPosition),
+      RenderedQueryOptions(layerIds: [_pinsLayerId]),
+    );
+
+    if (results.isEmpty) return;
+
+    final feature = results.first?.queriedFeature.feature;
+    final properties = feature?['properties'] as Map?;
+    final placeId = properties?['place_id'] as String?;
+
+    final place = placeId == null ? null : _placesByPlaceId[placeId];
+    if (place != null) {
+      onPinTapped(place);
+    }
+  }
+
+  String _featureCollectionFor(List<Place> places) {
+    final features = [
+      for (final place in places)
+        if (place.id != null)
+          {
+            'type': 'Feature',
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [place.longitude, place.latitude],
+            },
+            'properties': {
+              'place_id': place.id,
+              'icon': _primaryPinFor(place)?.emoji ?? '\u{1F4CD}',
+            },
+          },
+    ];
+
+    return json.encode({'type': 'FeatureCollection', 'features': features});
+  }
+
+  Future<void> _ensureIconsRegistered(List<Place> places) async {
     for (final place in places) {
-      final pin = _primaryPinFor(place);
-      final emojiImage = await _emojiImageFor(pin?.emoji ?? '\u{1F4CD}');
-      final name = _displayNameFor(place, pin);
+      final emoji = _primaryPinFor(place)?.emoji ?? '\u{1F4CD}';
+      if (_registeredIcons.contains(emoji)) continue;
 
-      final annotation = await _pinsManager!.create(
-        PointAnnotationOptions(
-          geometry: Point(
-            coordinates: Position(place.longitude, place.latitude),
-          ),
-          image: emojiImage,
-          iconSize: 0.55,
-          iconAnchor: IconAnchor.BOTTOM,
-          textField: name.isEmpty ? null : name,
-          textSize: 15,
-          textOffset: [0, 0.8],
-          textAnchor: TextAnchor.TOP,
-          textColor: Colors.black.toARGB32(),
-          textHaloColor: Colors.white.toARGB32(),
-          textHaloWidth: 2,
-        ),
+      final bytes = await _emojiImageFor(emoji);
+      await _map.style.addStyleImage(
+        emoji,
+        1.0,
+        MbxImage(width: 128, height: 128, data: bytes),
+        false,
+        [],
+        [],
+        null,
       );
-
-      _placesByAnnotationId[annotation.id] = place;
+      _registeredIcons.add(emoji);
     }
   }
 
   UserPin? _primaryPinFor(Place place) {
     return place.pins.isEmpty ? null : place.pins.first;
-  }
-
-  String _displayNameFor(Place place, UserPin? pin) {
-    final customName = pin?.customName?.trim();
-
-    if (customName != null && customName.isNotEmpty) {
-      return customName;
-    }
-
-    return place.name.trim();
   }
 
   Future<Uint8List> _emojiImageFor(String emoji) async {
@@ -110,7 +162,7 @@ class MapPins {
     final picture = recorder.endRecording();
     final image = await picture.toImage(imageSize.toInt(), imageSize.toInt());
 
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
     final emojiImage = byteData!.buffer.asUint8List();
 
     _emojiImageCache[emoji] = emojiImage;
