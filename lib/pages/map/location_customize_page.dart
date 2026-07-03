@@ -133,16 +133,37 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
       _loadingSuggestions = true;
     });
 
-    final places = await ServiceProvider.of(context)!.places.getNearbyPlaces(
-      latitude: latitude,
-      longitude: longitude,
-    );
+    final places = await ServiceProvider.of(
+      context,
+    )!.places.getNearbyPlaces(latitude: latitude, longitude: longitude);
 
     if (!mounted) return;
 
     setState(() {
       _nearbyPlaces = places;
       _loadingSuggestions = false;
+    });
+  }
+
+  static const _maxSuggestions = 5;
+
+  List<NearbyPlace>? get _suggestionsToShow {
+    if (widget.isReadOnly || _suggestionsDismissed || _nearbyPlaces.isEmpty) {
+      return null;
+    }
+    return _nearbyPlaces.take(_maxSuggestions).toList();
+  }
+
+  void _selectSuggestion(NearbyPlace place) {
+    setState(() {
+      _formalNameController.text = place.name;
+      _suggestionsDismissed = true;
+    });
+  }
+
+  void _dismissSuggestions() {
+    setState(() {
+      _suggestionsDismissed = true;
     });
   }
 
@@ -263,6 +284,8 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
 
   @override
   Widget build(BuildContext context) {
+    final suggestions = _suggestionsToShow;
+
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: GestureDetector(
@@ -303,6 +326,63 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
                     },
                   ),
                   const SizedBox(height: 20),
+                ],
+
+                if (!widget.isReadOnly && _loadingSuggestions)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+
+                if (suggestions != null) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.lightSection,
+                      borderRadius: BorderRadius.circular(AppRadii.elements),
+                      boxShadow: AppShadows.field,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (var index = 0; index < suggestions.length; index++)
+                          InkWell(
+                            onTap: () => _selectSuggestion(suggestions[index]),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: index < suggestions.length - 1
+                                  ? const BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Colors.black12,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                              child: Text(suggestions[index].name),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: _dismissSuggestions,
+                    child: Text(
+                      "Can't find it? Type it in below.",
+                      style: TextStyle(
+                        fontSize: context.scaledFont(AppTextSizes.caption),
+                        color: AppColors.lightSubtitle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
 
                 const AppSectionLabel(text: 'Formal location name'),
