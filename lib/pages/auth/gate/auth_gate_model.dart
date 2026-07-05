@@ -40,7 +40,8 @@ class AuthGateModel extends ChangeNotifier {
   /// Check the login state and update which screen to show.
   Future<void> check() async {
     final myCheck = ++_latestCheck; // claim the newest ticket
-    _setScreen(AuthGateScreen.loading);
+    // Only force loading when recovering from an error retry.
+    if (screen == AuthGateScreen.error) _setScreen(AuthGateScreen.loading);
     try {
       final result = await resolveAuthGateState(
         isSignedIn: auth.isSignedIn,

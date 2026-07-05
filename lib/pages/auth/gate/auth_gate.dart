@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:jio_leh/pages/auth/gate/loading_intro_gate.dart';
 
 import 'package:jio_leh/pages/auth/login_page.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
@@ -31,6 +32,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   late final AuthGateModel _model;
   final _linkHolder = ProfileLinkHolder();
+  final _introGate = LoadingIntroGate();
 
   late final AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSub;
@@ -62,12 +64,18 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   void _onModelChange() {
+    if (_model.screen == AuthGateScreen.loading) _introGate.reset();
     setState(() {}); // redraw for the new screen
     if (_model.screen == AuthGateScreen.map) {
       // We just became ready — open a profile link if one was waiting.
       final id = _linkHolder.takeSavedLink();
       if (id != null) _openProfile(id);
     }
+  }
+
+  void _onIntroComplete() {
+    if (!mounted) return;
+    setState(_introGate.completed);
   }
 
   void _onLink(Uri uri) {
@@ -96,23 +104,27 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_model.screen == AuthGateScreen.loading) {
-      return const Scaffold(
+    final displayedScreen = _introGate.resolve(_model.screen);
+    
+    if (displayedScreen == AuthGateScreen.loading) {
+      return Scaffold(
         backgroundColor: AppColors.lightBackground,
-        body: Center(child: BrandLoadingAnimation()),
+        body: Center(
+          child: BrandLoadingAnimation(onIntroComplete: _onIntroComplete),
+        ),
       );
     }
 
-    if (_model.screen == AuthGateScreen.login) {
+    if (displayedScreen == AuthGateScreen.login) {
       return const AuthPage();
     }
 
-    if (_model.screen == AuthGateScreen.onboarding) {
+    if (displayedScreen == AuthGateScreen.onboarding) {
       // onComplete re-checks so the gate moves on once the profile is made.
       return OnboardingPage(onComplete: _model.check);
     }
 
-    if (_model.screen == AuthGateScreen.map) {
+    if (displayedScreen == AuthGateScreen.map) {
       return const HomePage();
     }
 

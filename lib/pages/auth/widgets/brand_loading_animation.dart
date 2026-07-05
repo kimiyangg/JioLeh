@@ -2,13 +2,24 @@ import 'package:flutter/material.dart';
 
 import 'package:jio_leh/theme.dart';
 
-class BrandLoadingAnimation extends StatefulWidget {
-  const BrandLoadingAnimation({super.key, this.width = 170}) : compact = false;
+// Note: The loading animations of this page is designed and implemented by AI
 
-  const BrandLoadingAnimation.compact({super.key, this.width = 40}) : compact = true;
+class BrandLoadingAnimation extends StatefulWidget {
+  const BrandLoadingAnimation({
+    super.key, 
+    this.width = 170, 
+    this.onIntroComplete
+  }) : compact = false;
+
+  const BrandLoadingAnimation.compact({
+    super.key,
+    this.width = 40,
+    this.onIntroComplete,
+  }) : compact = true;
 
   final double width;
   final bool compact;
+  final VoidCallback? onIntroComplete;
 
   @override
   State<BrandLoadingAnimation> createState() => _BrandLoadingAnimationState();
@@ -31,7 +42,10 @@ class _BrandLoadingAnimationState extends State<BrandLoadingAnimation>
       duration: Duration(milliseconds: widget.compact ? 450 : 1500),
     )
       ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _idle.repeat(reverse: true);
+        if (status == AnimationStatus.completed) {
+          _idle.repeat(reverse: true);
+          widget.onIntroComplete?.call();
+        }
       })
       ..forward();
   }
