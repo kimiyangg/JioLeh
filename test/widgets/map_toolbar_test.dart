@@ -12,23 +12,12 @@ void main() {
     testWidgets('tapping the recenter button fires onRecenter', (tester) async {
       var recenters = 0;
       await tester.pumpWidget(wrap(
-        MapToolbar(onRecenter: () => recenters++, onAddPin: () {}),
+        MapToolbar(onRecenter: () => recenters++),
       ));
 
       await tester.tap(find.byIcon(Icons.my_location));
 
       expect(recenters, 1);
-    });
-
-    testWidgets('tapping the add-pin button fires onAddPin', (tester) async {
-      var addPins = 0;
-      await tester.pumpWidget(wrap(
-        MapToolbar(onRecenter: () {}, onAddPin: () => addPins++),
-      ));
-
-      await tester.tap(find.byIcon(Icons.place));
-
-      expect(addPins, 1);
     });
   });
 }

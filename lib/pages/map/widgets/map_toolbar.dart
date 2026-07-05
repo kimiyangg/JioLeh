@@ -4,11 +4,9 @@ class MapToolbar extends StatelessWidget {
   const MapToolbar({
     super.key,
     required this.onRecenter,
-    required this.onAddPin,
   });
 
   final VoidCallback onRecenter;
-  final VoidCallback onAddPin;
 
   @override
   Widget build(BuildContext context) {
@@ -19,16 +17,11 @@ class MapToolbar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 12),
-          FloatingActionButton(
+          FloatingActionButton.small(
             heroTag: 'recenter',
             onPressed: onRecenter,
+            backgroundColor: Colors.white,
             child: const Icon(Icons.my_location),
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton(
-            heroTag: 'addPin',
-            onPressed: onAddPin,
-            child: const Icon(Icons.place),
           ),
         ],
       ),

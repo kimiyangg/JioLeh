@@ -18,7 +18,6 @@ import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
-import 'package:jio_leh/pages/map/add_pin.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/pages/map/map_page_model.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
@@ -292,10 +291,9 @@ class _MapPageState extends State<MapPage> {
           // Top: current area name display
           CurrentAreaBar(locationName: _model.locationName),
 
-          // Bottom right: recenter, and add pin buttons
+          // Bottom right: recenter button
           MapToolbar(
             onRecenter: _recenterMap,
-            onAddPin: () => addPin(context, _model),
           ),
         ],
       ),
