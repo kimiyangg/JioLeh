@@ -13,6 +13,8 @@ import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 import 'package:jio_leh/pages/map/location_customize_page.dart';
+import 'package:jio_leh/pages/map/shared_place_details_page.dart';
+
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
@@ -207,6 +209,11 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _showPlace(Place place) async {
+    if (place.pins.length > 1) {
+      await showSharedPlaceDetailsPage(context, place);
+      return;
+    }
+
     final pin = _primaryPinFor(place);
     final pinType = PinType.values.firstWhere(
       (type) => type.emoji == (pin?.emoji ?? '\u{1F4CD}'),
