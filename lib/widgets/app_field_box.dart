@@ -6,18 +6,20 @@ import 'package:jio_leh/theme.dart';
 /// 
 /// * [child]: The widget to be displayed inside the box.
 /// * [height]: The fixed height of the box.
+/// * [color]: Optional override for the box's fill color (defaults to [AppColors.lightSection]).
 class AppFieldBox extends StatelessWidget {
-  const AppFieldBox({super.key, required this.child, required this.height});
+  const AppFieldBox({super.key, required this.child, required this.height, this.color});
 
   final Widget child;
   final double height;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.lightSection,
+        color: color ?? AppColors.lightSection,
         borderRadius: BorderRadius.circular(AppRadii.elements),
         boxShadow: AppShadows.field,
       ),
