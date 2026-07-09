@@ -7,12 +7,10 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:jio_leh/config/map_env.dart';
 
 import 'package:jio_leh/models/place.dart';
-import 'package:jio_leh/models/user_pin.dart';
 
 import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
-import 'package:jio_leh/pages/map/location_customize_page.dart';
 import 'package:jio_leh/pages/map/shared_place_details_page.dart';
 
 
@@ -22,7 +20,6 @@ import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/pages/map/map_page_model.dart';
-import 'package:jio_leh/pages/map/models/pin_type.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.model});
@@ -209,47 +206,8 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _showPlace(Place place) async {
-    if (place.pins.length > 1) {
-      await showSharedPlaceDetailsPage(context, place);
-      return;
-    }
-
-    final pin = _primaryPinFor(place);
-    final pinType = PinType.values.firstWhere(
-      (type) => type.emoji == (pin?.emoji ?? '\u{1F4CD}'),
-      orElse: () => PinType.restaurant,
-    );
-
-    try {
-      final photoUrls = await _model.photoUrls(pin?.photoPaths ?? const []);
-
-      if (!mounted) return;
-
-      await showLocationCustomizePage(
-        context,
-        pinType,
-        initialCustomization: LocationCustomization(
-          pinType: pinType,
-          formalName: place.name,
-          name: pin?.customName ?? '',
-          rating: pin?.rating ?? 0,
-          review: pin?.review ?? '',
-          isPrivate: pin?.isPrivate,
-          photoUrls: photoUrls,
-        ),
-        isReadOnly: true,
-      );
-    } catch (error) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not load location photos: $error')),
-      );
-    }
-  }
-
-  UserPin? _primaryPinFor(Place place) {
-    return place.pins.isEmpty ? null : place.pins.first;
+    await showSharedPlaceDetailsPage(context, place);
+    return;
   }
 
   @override

@@ -54,3 +54,6 @@ gi_jios/build/
 /.superpowers/
 /docs/testing/
 /docs/debug/
+/.obsidian/
+/obsidian/
+/CLAUDE.md
