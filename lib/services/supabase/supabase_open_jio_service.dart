@@ -5,14 +5,18 @@ import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 
+import 'package:jio_leh/models/point_transaction.dart';
+import 'package:jio_leh/services/points_service.dart';
+
 /// The real [OpenJioService] used in production, backed by Supabase.
 /// Write a sibling class if a new backend is needed in the future.
 class SupabaseOpenJioService extends OpenJioService {
   final AuthService auth;
+  final PointsService points;
   final SupabaseClient _client;
 
   // `required this.auth` stores the injected AuthService in the auth field.
-  SupabaseOpenJioService({required SupabaseClient client, required this.auth})
+  SupabaseOpenJioService({required SupabaseClient client, required this.auth, required this.points})
     : _client = client;
 
   @override
@@ -41,6 +45,15 @@ class SupabaseOpenJioService extends OpenJioService {
                     })
                 .toList(),
           );
+
+      try {
+        await points.awardPoints(
+          reason: PointReason.jioCreated,
+          referenceId: eventId,
+        );
+      } catch (_) {
+        // Ignore — the event itself already saved successfully.
+      }
 
       return eventId;
     } catch (_) {
