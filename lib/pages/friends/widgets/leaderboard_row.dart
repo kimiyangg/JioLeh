@@ -62,7 +62,7 @@ class LeaderboardRow extends StatelessWidget {
           Row(
             children: [
               const Icon(
-                Icons.auto_awesome,
+                Icons.stars,
                 size: 16,
                 color: AppColors.lightWidgetBackground,
               ),

@@ -8,10 +8,10 @@ import 'package:jio_leh/theme.dart';
 /// * [height]: The fixed height of the box.
 /// * [color]: Optional override for the box's fill color (defaults to [AppColors.lightSection]).
 class AppFieldBox extends StatelessWidget {
-  const AppFieldBox({super.key, required this.child, required this.height, this.color});
+  const AppFieldBox({super.key, required this.child, this.height, this.color});
 
   final Widget child;
-  final double height;
+  final double? height;
   final Color? color;
 
   @override

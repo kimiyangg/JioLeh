@@ -44,6 +44,10 @@ class AppRadii {
   static const elements = 16.0;
 }
 
+class AppOpacity {
+  static const disabled = 0.4;
+}
+
 class AppShadows {
   static const field = [
     BoxShadow(color: Color(0x0F1E1B16), blurRadius: 24, offset: Offset(0, 8)),

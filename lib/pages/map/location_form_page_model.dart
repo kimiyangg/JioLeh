@@ -31,6 +31,11 @@ class LocationFormPageModel extends ChangeNotifier {
   late PinType _currentType;
   PinType get currentType => _currentType;
 
+  // when _lockedCategory is null, it means its free to choose and not determined
+  String? _lockedCategory;
+  bool get isTypeLocked => _lockedCategory != null;
+
+
   late int _rating;
   int get rating => _rating;
 
@@ -112,6 +117,7 @@ class LocationFormPageModel extends ChangeNotifier {
   Future<void> selectSuggestion(NearbyPlace suggestion) async {
     _selectedNearbyPlace = suggestion;
     _selectedExistingPlace = null;
+    _lockedCategory = null;
     notifyListeners();
 
     Place? existingPlace;
@@ -129,6 +135,8 @@ class LocationFormPageModel extends ChangeNotifier {
     final category = existingPlace?.category;
     if (category == null) return;
 
+    _lockedCategory = category;
+
     final matchingType = PinType.values.firstWhere(
       (type) => type.emoji == category,
       orElse: () => _currentType,
@@ -141,6 +149,7 @@ class LocationFormPageModel extends ChangeNotifier {
     _selectedNearbyPlace = null;
 
     final category = existingPlace.category;
+    _lockedCategory = category;
     if (category != null) {
       _currentType = PinType.values.firstWhere(
         (type) => type.emoji == category,
@@ -155,6 +164,7 @@ class LocationFormPageModel extends ChangeNotifier {
     _selectedNearbyPlace = null;
     _selectedExistingPlace = null;
     _isEnteringManually = false;
+    _lockedCategory = null;
     notifyListeners();
   }
 
