@@ -141,11 +141,10 @@ the sum of their rows (exposed as the `user_points` view).
 | `reference_id` | uuid | Id of the pin/event that earned the points, optional |
 | `created_at` | timestamp | Row creation time |
 
-Point values: pinning a place +2, uploading a photo +3 (per photo), opening a
-Jio +5 — defined once in `PointReason` (`lib/models/point_transaction.dart`).
-Awarded server-side (Supabase insert) right after the underlying action
-succeeds; failures to award are swallowed so they never block the action
-itself.
+Point values: pinning a place +2, uploading a photo +1 (per photo), a friend accepting an OpenJio invite +5 — defined once in `PointReason` (`lib/models/point_transaction.dart`). each case's `dbValue` must match the `reason` check constraint below.
+
+Pin and photo points are awarded client-side (Supabase insert)right after the underlying action succeeds; failures to award are swallowed so they never block the action itself. Jio points are awarded by the `award_jio_points_on_accept()` trigger on `open_jio_invite_statuses`, since crediting the event's sender needs to bypass the "insert only your own
+point_transactions" RLS policy.
 
 ## Storage
 
@@ -206,6 +205,7 @@ Other database automation:
   `friendships`.
 - `sync_place_pin_stats()` maintains `places.pin_count` and auto-approves
   user-created places once enough distinct users have pinned them.
+- `award_jio_points_on_accept()` credits an OpenJio event's sender with points when an invitee accepts.
 
 ## Migrations
 
