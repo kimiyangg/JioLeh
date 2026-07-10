@@ -11,7 +11,7 @@ void main() {
         'longitude': 103.8607,
         'pin_count': 3,
         'user_pins': [
-          {'id': 'pin-1', 'user_id': 'user-1', 'emoji': 'star'},
+          {'id': 'pin-1', 'user_id': 'user-1', 'emoji': 'star', 'created_at': '2026-07-01T12:00:00.000Z'},
         ],
       });
 
