@@ -29,7 +29,7 @@ class SupabasePointsService extends PointsService {
       (_) => {
         'user_id': userId,
         'amount': reason.points,
-        'reason': reason.name,
+        'reason': reason.dbValue,
         'reference_id': referenceId,
       },
     );
