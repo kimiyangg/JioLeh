@@ -127,6 +127,26 @@ It is enabled for Supabase Realtime so new messages appear live.
 
 Each message must have either `content` or `image_path` (or both).
 
+### `point_transactions`
+
+`point_transactions` is a ledger of point awards. A user's total points is
+the sum of their rows (exposed as the `user_points` view).
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | Who earned the points (cascade delete) |
+| `amount` | integer | Points earned |
+| `reason` | text | `pin_created`, `photo_uploaded`, or `jio_created` |
+| `reference_id` | uuid | Id of the pin/event that earned the points, optional |
+| `created_at` | timestamp | Row creation time |
+
+Point values: pinning a place +2, uploading a photo +3 (per photo), opening a
+Jio +5 — defined once in `PointReason` (`lib/models/point_transaction.dart`).
+Awarded server-side (Supabase insert) right after the underlying action
+succeeds; failures to award are swallowed so they never block the action
+itself.
+
 ## Storage
 
 | Bucket | Visibility | Used by |

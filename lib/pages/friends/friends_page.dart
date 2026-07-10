@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/models/leaderboard_entry.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/models/user_profile.dart';
 import 'package:jio_leh/services/account_service.dart';
+import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/friends_service.dart';
+import 'package:jio_leh/services/points_service.dart';
 import "package:jio_leh/theme.dart";
 import "package:jio_leh/widgets/app_page_header.dart";
 import "package:jio_leh/widgets/app_selection_bar.dart";
 import "package:jio_leh/widgets/app_snack_bar.dart";
 import 'package:jio_leh/pages/friends/widgets/friend_search_bar.dart';
 import 'package:jio_leh/pages/friends/widgets/friends_tab.dart';
+import 'package:jio_leh/pages/friends/widgets/leaderboard_tab.dart';
 import 'package:jio_leh/pages/friends/widgets/requests_tab.dart';
 
 class FriendsPage extends StatefulWidget {
@@ -24,11 +28,17 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   late final FriendsService _friends;
   late final AccountService _account;
+  late final AuthService _auth;
+  late final PointsService _points;
   bool _didInit = false;
 
   final _searchController = TextEditingController();
 
   late Future<List<UserFriend>> _future;
+
+  // Cached leaderboard fetch — built lazily once accepted friends are known,
+  // and cleared whenever the friend list reloads so it stays in sync.
+  Future<List<LeaderboardEntry>>? _leaderboardFuture;
 
   // The profile found by the last search, if any.
   UserProfile? _searchResult;
@@ -52,6 +62,8 @@ class _FriendsPageState extends State<FriendsPage> {
     final services = ServiceProvider.of(context)!;
     _friends = services.friends;
     _account = services.account;
+    _auth = services.auth;
+    _points = services.points;
     _future = _friends.getUserFriends();
   }
 
@@ -62,7 +74,10 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   void _reload() {
-    setState(() => _future = _friends.getUserFriends());
+    setState(() {
+      _future = _friends.getUserFriends();
+      _leaderboardFuture = null; // clear cached leaderboard so it reloads
+    });
   }
 
   // Runs a friend action, shows any error, and reloads the list on success.
@@ -189,13 +204,37 @@ class _FriendsPageState extends State<FriendsPage> {
       );
     }
     if (_selectedTab == 2) {
-      return Center(
-        child: Text(
-          'Leaderboard coming soon',
-          style: TextStyle(fontSize: context.scaledFont(AppTextSizes.body)),
-        ),
-      );
+      return _buildLeaderboard(all);
     }
     return const SizedBox.shrink();
+  }
+
+  Widget _buildLeaderboard(List<UserFriend> all) {
+    final currentUserId = _auth.getCurrentUserId();
+    _leaderboardFuture ??= _points.getLeaderboard([
+      currentUserId,
+      ...all.where((f) => f.isAccepted).map((f) => f.userProfile.id),
+    ]);
+
+    return FutureBuilder<List<LeaderboardEntry>>(
+      future: _leaderboardFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: BrandLoadingAnimation.compact());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error: ${snapshot.error}',
+              style: TextStyle(fontSize: context.scaledFont(AppTextSizes.body)),
+            ),
+          );
+        }
+        return LeaderboardTab(
+          entries: snapshot.data ?? const [],
+          currentUserId: currentUserId,
+        );
+      },
+    );
   }
 }

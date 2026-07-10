@@ -1,5 +1,7 @@
 import 'auth_service.dart';
 import 'supabase/supabase_auth_service.dart';
+import 'package:jio_leh/services/points_service.dart';
+import 'package:jio_leh/services/supabase/supabase_points_service.dart';
 import 'pin_service.dart';
 import 'supabase/supabase_pin_service.dart';
 import 'location_service.dart';
@@ -17,6 +19,7 @@ import 'package:jio_leh/services/supabase/supabase_open_jio_service.dart';
 import 'package:jio_leh/services/jio_chat_service.dart';
 import 'package:jio_leh/services/supabase/supabase_jio_chat_service.dart';
 
+
 /// A singleton class that provides access to all application services.
 ///
 /// This class centralizes service instantiation and ensures that dependencies,
@@ -28,9 +31,15 @@ class Services {
   // of the app never mentions Supabase.
   static final AuthService auth = SupabaseAuthService(client: _client);
 
+  static final PointsService points = SupabasePointsService(
+    client: _client,
+    auth: auth,
+  );
+
   static final PinService pins = SupabasePinService(
     client: _client,
     auth: auth,
+    points: points,
   );
 
   static final location = LocationService();
@@ -40,6 +49,7 @@ class Services {
   static final OpenJioService openJio = SupabaseOpenJioService(
     client: _client,
     auth: auth,
+    points: points,
   );
 
   static final JioChatService jioChat = SupabaseJioChatService(
@@ -58,4 +68,6 @@ class Services {
   );
 
   static final PlaceService places = GooglePlaceService();
+
+
 }

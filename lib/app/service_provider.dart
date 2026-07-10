@@ -7,6 +7,7 @@ import 'package:jio_leh/services/geocoding_service.dart';
 import 'package:jio_leh/services/jio_chat_service.dart';
 import 'package:jio_leh/services/location_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
+import 'package:jio_leh/services/points_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 import 'package:jio_leh/services/place_service.dart';
 import 'package:jio_leh/services/services.dart';
@@ -29,6 +30,8 @@ class ServiceProvider extends InheritedWidget {
     FriendsService? friends,
     OpenJioService? openJio,
     JioChatService? jioChat,
+    PointsService? points,
+    
     required super.child,
   }) : _auth = auth,
        _account = account,
@@ -38,7 +41,8 @@ class ServiceProvider extends InheritedWidget {
        _places = places,
        _friends = friends,
        _openJio = openJio,
-       _jioChat = jioChat;
+       _jioChat = jioChat,
+       _points = points;
 
   final AuthService? _auth;
   final AccountService? _account;
@@ -49,10 +53,12 @@ class ServiceProvider extends InheritedWidget {
   final FriendsService? _friends;
   final OpenJioService? _openJio;
   final JioChatService? _jioChat;
+  final PointsService? _points;
 
   AuthService get auth => _auth ?? Services.auth;
   AccountService get account => _account ?? Services.account;
   PinService get pins => _pins ?? Services.pins;
+  PointsService get points => _points ?? Services.points;
   LocationService get location => _location ?? Services.location;
   GeocodingService get geocoding => _geocoding ?? Services.geocoding;
   PlaceService get places => _places ?? Services.places;

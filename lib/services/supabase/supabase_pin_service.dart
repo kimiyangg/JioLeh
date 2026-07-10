@@ -8,13 +8,17 @@ import 'package:jio_leh/models/user_inserted_pin.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 
+import 'package:jio_leh/models/point_transaction.dart';
+import 'package:jio_leh/services/points_service.dart';
+
 /// The real [PinService] used in production, backed by Supabase.
 class SupabasePinService extends PinService {
   // `required this.auth` stores the injected AuthService in the auth field.
-  SupabasePinService({required SupabaseClient client, required this.auth})
+  SupabasePinService({required SupabaseClient client, required this.auth, required this.points})
     : _supabase = client;
 
   final AuthService auth;
+  final PointsService points;
   final SupabaseClient _supabase;
 
   static const _placesTable = 'places';
@@ -100,6 +104,7 @@ class SupabasePinService extends PinService {
             .eq('id', pinId);
       }
 
+      await _awardPinPoints(pinId, uploadedPaths.length);
     } catch (_) {
       if (uploadedPaths.isNotEmpty) {
         try {
@@ -202,6 +207,26 @@ class SupabasePinService extends PinService {
             _supabase.storage.from(_photoBucket).createSignedUrl(path, 3600),
       ),
     );
+  }
+
+    // Points are a bonus, not a critical path — award best-effort so a
+  // points-write hiccup never fails an otherwise-successful pin save.
+  Future<void> _awardPinPoints(String pinId, int photoCount) async {
+    try {
+      await points.awardPoints(
+        reason: PointReason.pinCreated,
+        referenceId: pinId,
+      );
+      if (photoCount > 0) {
+        await points.awardPoints(
+          reason: PointReason.photoUploaded,
+          referenceId: pinId,
+          count: photoCount,
+        );
+      }
+    } catch (_) {
+      // Ignore — the pin itself already saved successfully.
+    }
   }
 
   String _extensionFor(XFile photo) {
