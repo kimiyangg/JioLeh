@@ -12,6 +12,8 @@ class FakePointsService extends PointsService {
   String? lastReferenceId;
   int? lastCount;
 
+  void Function()? lastLeaderboardOnChange;
+
   @override
   Future<void> awardPoints({
     required PointReason reason,
@@ -27,5 +29,11 @@ class FakePointsService extends PointsService {
   @override
   Future<List<LeaderboardEntry>> getLeaderboard(List<String> userIds) async {
     return leaderboard.where((e) => userIds.contains(e.profile.id)).toList();
+  }
+
+  @override
+  void Function() subscribeToLeaderboard(void Function() onChange) {
+    lastLeaderboardOnChange = onChange;
+    return () {};
   }
 }

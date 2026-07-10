@@ -62,7 +62,7 @@ class MapPins {
           <Object>['has', 'point_count'],
         ],
         iconImageExpression: <Object>['get', 'icon'],
-        iconSize: 0.55,
+        iconSize: 0.35,
         iconAnchor: IconAnchor.BOTTOM,
         iconAllowOverlap: true,
         iconIgnorePlacement: true,

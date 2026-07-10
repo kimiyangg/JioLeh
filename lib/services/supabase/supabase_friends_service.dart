@@ -129,6 +129,29 @@ class SupabaseFriendsService extends FriendsService {
       throw const FriendNotFound();
     }
   }
+
+  @override
+  void Function() subscribeToFriendRequests(void Function() onChange) {
+    final userId = auth.getCurrentUserId();
+    final channel = _supabase
+        .channel('friend_requests_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: _tableName,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'addressee_id',
+            value: userId,
+          ),
+          callback: (_) => onChange(),
+        )
+        .subscribe();
+
+    return () {
+      channel.unsubscribe();
+    };
+  }
 }
 
 /// What [SupabaseFriendsService.sendFriendRequest] should do when the insert fails.

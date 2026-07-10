@@ -30,6 +30,7 @@ class CurrentAreaBar extends StatelessWidget {
               const Icon(
                 Icons.location_on,
                 color: Color.fromARGB(255, 10, 250, 186),
+                size: 30, 
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -38,7 +39,7 @@ class CurrentAreaBar extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

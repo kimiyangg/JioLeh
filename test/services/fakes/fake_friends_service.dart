@@ -23,6 +23,8 @@ class FakeFriendsService extends FriendsService {
   int rejectFriendRequestCalls = 0;
   int removeFriendCalls = 0;
 
+  void Function()? lastFriendRequestOnChange;
+
   @override
   Future<List<UserFriend>> getUserFriends() async => friends;
 
@@ -56,6 +58,12 @@ class FakeFriendsService extends FriendsService {
     if (throwNotFound) {
       throw FriendNotFound();
     }
+  }
+
+  @override
+  void Function() subscribeToFriendRequests(void Function() onChange) {
+    lastFriendRequestOnChange = onChange;
+    return () {};
   }
 
 }

@@ -17,4 +17,8 @@ abstract class PointsService {
   /// descending (ties broken by display name). Users with no transactions
   /// yet are included with 0 points.
   Future<List<LeaderboardEntry>> getLeaderboard(List<String> userIds);
+
+  /// Subscribes to any change in awarded points and calls [onChange] for each.
+  /// Returns a function that cancels the subscription.
+  void Function() subscribeToLeaderboard(void Function() onChange);
 }

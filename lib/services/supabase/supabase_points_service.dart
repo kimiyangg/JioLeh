@@ -61,4 +61,22 @@ class SupabasePointsService extends PointsService {
       pointsById,
     );
   }
+
+  @override
+  void Function() subscribeToLeaderboard(void Function() onChange) {
+    final userId = auth.getCurrentUserId();
+    final channel = _supabase
+        .channel('leaderboard_points_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'point_transactions',
+          callback: (_) => onChange(),
+        )
+        .subscribe();
+
+    return () {
+      channel.unsubscribe();
+    };
+  }
 }

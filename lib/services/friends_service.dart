@@ -35,6 +35,10 @@ abstract class FriendsService {
   /// Throws a [FriendNotFound] exception if there is no existing friendship
   /// with the specified user.
   Future<void> removeFriend(UserProfile friend);
+
+  /// Subscribes to incoming friend requests for the current user and calls
+  /// [onChange] for each. Returns a function that cancels the subscription.
+  void Function() subscribeToFriendRequests(void Function() onChange);
 }
 
 /// Base class for all friends-related exceptions
