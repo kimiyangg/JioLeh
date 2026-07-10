@@ -25,9 +25,12 @@ class AppSelectionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Each segment is its own standalone bubble; no shared track behind them.
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(items.length, _segment),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(items.length, _segment),
+      ),
     );
   }
 
