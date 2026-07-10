@@ -9,7 +9,7 @@ import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 
 /// Pushes the combined place-details page for a [place] pinned by more than
-/// one friend. Mirrors the free-function style of [showLocationCustomizePage].
+/// one friend. Mirrors the free-function style of [showLocationFormPage].
 Future<void> showSharedPlaceDetailsPage(BuildContext context, Place place) {
   return Navigator.of(context).push<void>(
     MaterialPageRoute(builder: (_) => SharedPlaceDetailsPage(place: place)),

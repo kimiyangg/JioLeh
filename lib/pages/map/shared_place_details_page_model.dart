@@ -1,27 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:jio_leh/models/place.dart';
-import 'package:jio_leh/models/user_pin.dart';
-import 'package:jio_leh/models/user_profile.dart';
+import 'package:jio_leh/pages/map/models/friend_pin_entry.dart';
 import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
-
-/// One friend's pin on a shared [Place], combined with their resolved
-/// profile and display-ready photo URLs, for [SharedPlaceDetailsPage].
-class FriendPinEntry {
-  const FriendPinEntry({
-    required this.pin,
-    required this.profile,
-    required this.photoUrls,
-    required this.isCurrentUser,
-  });
-
-  final UserPin pin;
-  final UserProfile? profile;
-  final List<String> photoUrls;
-  final bool isCurrentUser;
-}
 
 /// Presentation state and logic for [SharedPlaceDetailsPage].
 ///
