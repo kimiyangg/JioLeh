@@ -147,6 +147,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (context) {
         if (_model.nearbyPlaces.isEmpty) {
           return const SafeArea(
@@ -220,6 +221,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (context) {
         if (_model.existingPlaces.isEmpty) {
           return const SafeArea(
@@ -287,6 +289,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
 
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
+      showDragHandle: true,
       builder: (context) {
         return SafeArea(
           child: Wrap(
