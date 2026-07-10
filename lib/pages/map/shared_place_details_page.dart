@@ -9,7 +9,7 @@ import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 
 /// Pushes the combined place-details page for a [place] pinned by more than
-/// one friend. Mirrors the free-function style of [showLocationCustomizePage].
+/// one friend. Mirrors the free-function style of [showLocationFormPage].
 Future<void> showSharedPlaceDetailsPage(BuildContext context, Place place) {
   return Navigator.of(context).push<void>(
     MaterialPageRoute(builder: (_) => SharedPlaceDetailsPage(place: place)),
@@ -88,7 +88,9 @@ class _SharedPlaceDetailsPageState extends State<SharedPlaceDetailsPage> {
           AppPageHeader(title: widget.place.name),
           const SizedBox(height: 4),
           Text(
-            '$pinCount friends have pinned this place',
+            widget.place.category == null
+                ? '$pinCount friends have pinned this place'
+                : '${widget.place.category} · $pinCount friends have pinned this place',
             style: TextStyle(
               fontSize: context.scaledFont(AppTextSizes.label),
               color: AppColors.lightSubtitle,

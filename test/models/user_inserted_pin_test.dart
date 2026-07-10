@@ -51,6 +51,20 @@ void main() {
 
       expect(map['name'], 'Marina Bay');
     });
+
+    test('includes the pin emoji as the new place category', () {
+      const pin = UserInsertedPin(
+        latitude: 1.3521,
+        longitude: 103.8198,
+        formalName: 'Marina Bay',
+        emoji: '☕',
+        isPrivate: false,
+      );
+
+      final map = pin.placeToMap('user-123');
+
+      expect(map['category'], '☕');
+    });
   });
 
   group('UserInsertedPin.pinToMap', () {

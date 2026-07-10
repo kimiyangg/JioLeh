@@ -1,68 +1,40 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+// Avoid clash with ImagePicker image source
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide ImageSource;
 
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/config/map_env.dart';
 import 'package:jio_leh/models/nearby_place.dart';
 import 'package:jio_leh/models/place.dart';
+import 'package:jio_leh/pages/map/location_form_page_model.dart';
+import 'package:jio_leh/pages/map/models/location_form_result.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_secondary_button.dart';
+import 'package:jio_leh/widgets/app_section_heading.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
 import 'package:jio_leh/widgets/app_selection_bar.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
 
 import 'package:jio_leh/theme.dart';
 
-class LocationCustomization {
-  final PinType pinType;
-  // The official/formal name of the place (maps to places.name later).
-  final String formalName;
-  // The user's own preference name for the pin (maps to user_pins.custom_name).
-  final String name;
-  final int rating;
-  final String review;
-  final bool? isPrivate;
-  final List<XFile> selectedPhotos;
-  final List<String> photoUrls;
-  // Set when the user links to an already-existing place instead of
-  // creating a new one; null means "create a new place from formalName".
-  final String? existingPlaceId;
-  // Set when formalName came from a "Find nearby" (Google) pick, so the
-  // new place can be deduped against an existing provider place.
-  final String? provider;
-  final String? providerPlaceId;
-
-  const LocationCustomization({
-    this.pinType = PinType.restaurant,
-    this.formalName = '',
-    required this.name,
-    required this.rating,
-    required this.review,
-    this.isPrivate,
-    this.selectedPhotos = const [],
-    this.photoUrls = const [],
-    this.existingPlaceId,
-    this.provider,
-    this.providerPlaceId,
-  });
-}
-
-Future<LocationCustomization?> showLocationCustomizePage(
+Future<LocationFormResult?> showLocationFormPage(
   BuildContext context,
   PinType selectedType, {
-  LocationCustomization? initialCustomization,
+  LocationFormResult? initialValue,
   bool isReadOnly = false,
   double? latitude,
   double? longitude,
-  Future<void> Function(LocationCustomization customization)? onSave,
+  Future<void> Function(LocationFormResult result)? onSave,
 }) {
-  return Navigator.of(context).push<LocationCustomization>(
+  return Navigator.of(context).push<LocationFormResult>(
     MaterialPageRoute(
-      builder: (_) => LocationCustomizePage(
+      builder: (_) => LocationFormPage(
         selectedType: selectedType,
-        initialCustomization: initialCustomization,
+        initialValue: initialValue,
         isReadOnly: isReadOnly,
         latitude: latitude,
         longitude: longitude,
@@ -72,18 +44,18 @@ Future<LocationCustomization?> showLocationCustomizePage(
   );
 }
 
-class LocationCustomizePage extends StatefulWidget {
+class LocationFormPage extends StatefulWidget {
   final PinType selectedType;
-  final LocationCustomization? initialCustomization;
+  final LocationFormResult? initialValue;
   final bool isReadOnly;
   final double? latitude;
   final double? longitude;
-  final Future<void> Function(LocationCustomization customization)? onSave;
+  final Future<void> Function(LocationFormResult result)? onSave;
 
-  const LocationCustomizePage({
+  const LocationFormPage({
     super.key,
     required this.selectedType,
-    this.initialCustomization,
+    this.initialValue,
     this.isReadOnly = false,
     this.latitude,
     this.longitude,
@@ -91,74 +63,81 @@ class LocationCustomizePage extends StatefulWidget {
   });
 
   @override
-  State<LocationCustomizePage> createState() => _LocationCustomizePageState();
+  State<LocationFormPage> createState() => _LocationFormPageState();
 }
 
-class _LocationCustomizePageState extends State<LocationCustomizePage> {
+class _LocationFormPageState extends State<LocationFormPage> {
+  late final LocationFormPageModel _model;
+  bool _didInit = false;
+
   late final TextEditingController _formalNameController;
   late final TextEditingController _nameController;
   late final TextEditingController _reviewController;
-  late PinType _currentType;
-  late int _rating;
-  late bool? _isPrivate;
-  var _isSaving = false;
-  bool _suggestionsFetched = false;
-  bool _loadingSuggestions = false;
-  List<NearbyPlace> _nearbyPlaces = const [];
-  bool _existingPlacesFetched = false;
-  bool _loadingExistingPlaces = false;
-  List<Place> _existingPlaces = const [];
-  String? _selectedExistingPlaceId;
-  NearbyPlace? _selectedNearbyPlace;
 
   final _imagePicker = ImagePicker();
   final _selectedPhotos = <XFile>[];
 
   List<String> get _existingPhotoUrls =>
-      widget.initialCustomization?.photoUrls ?? const <String>[];
+      widget.initialValue?.photoUrls ?? const <String>[];
 
-  bool get _canSearchPlaces =>
-      !widget.isReadOnly && widget.latitude != null && widget.longitude != null;
+  bool get _canSearchPlaces => !widget.isReadOnly && _model.canSearchPlaces;
 
   @override
   void initState() {
     super.initState();
-    final initial = widget.initialCustomization;
+    final initial = widget.initialValue;
     _formalNameController = TextEditingController(
       text: initial?.formalName ?? '',
     );
     _nameController = TextEditingController(text: initial?.name ?? '');
     _reviewController = TextEditingController(text: initial?.review ?? '');
-    _currentType = widget.selectedType;
-    _rating = initial?.rating ?? 0;
-    _isPrivate = initial?.isPrivate;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Services come from the provider, which can't be read in initState. Do the
+    // one-time setup here (didChangeDependencies can fire more than once).
+    if (_didInit) return;
+    _didInit = true;
+
+    final services = ServiceProvider.of(context)!;
+    _model = LocationFormPageModel(
+      place: services.places,
+      pins: services.pins,
+      selectedType: widget.selectedType,
+      initialValue: widget.initialValue,
+      latitude: widget.latitude,
+      longitude: widget.longitude,
+    )..addListener(_onModelChanged);
+
+    _model.start();
+  }
+
+  void _onModelChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    if (_didInit) {
+      _model.removeListener(_onModelChanged);
+      _model.dispose();
+    }
+    _formalNameController.dispose();
+    _nameController.dispose();
+    _reviewController.dispose();
+    super.dispose();
   }
 
   Future<void> _onFindNearbyPressed() async {
-    if (_suggestionsFetched) {
+    if (_model.suggestionsFetched) {
       _showNearbySheet();
       return;
     }
 
-    final latitude = widget.latitude;
-    final longitude = widget.longitude;
-    if (latitude == null || longitude == null) return;
-
-    setState(() {
-      _loadingSuggestions = true;
-    });
-
-    final places = await ServiceProvider.of(
-      context,
-    )!.places.getNearbyPlaces(latitude: latitude, longitude: longitude);
-
+    await _model.onFindNearbyPressed();
     if (!mounted) return;
-
-    setState(() {
-      _nearbyPlaces = places;
-      _suggestionsFetched = true;
-      _loadingSuggestions = false;
-    });
 
     _showNearbySheet();
   }
@@ -168,17 +147,14 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        if (_nearbyPlaces.isEmpty) {
+        if (_model.nearbyPlaces.isEmpty) {
           return const SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Nearby places',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  AppSectionHeading(text: 'Nearby places'),
                   SizedBox(height: 16),
                   Center(child: Text('No nearby places found.')),
                 ],
@@ -197,16 +173,13 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    'Nearby places',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  child: AppSectionHeading(text: 'Nearby places'),
                 ),
                 Flexible(
                   child: ListView(
                     shrinkWrap: true,
                     children: [
-                      for (final place in _nearbyPlaces)
+                      for (final place in _model.nearbyPlaces)
                         ListTile(
                           title: Text(place.name),
                           onTap: () {
@@ -226,41 +199,18 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
   }
 
   void _selectSuggestion(NearbyPlace place) {
-    setState(() {
-      _formalNameController.text = place.name;
-      _selectedNearbyPlace = place;
-      _selectedExistingPlaceId = null;
-    });
+    _formalNameController.text = place.name;
+    _model.selectSuggestion(place);
   }
 
   Future<void> _onLinkExistingPressed() async {
-    if (_existingPlacesFetched) {
+    if (_model.existingPlacesFetched) {
       _showExistingPlacesSheet();
       return;
     }
 
-    final latitude = widget.latitude;
-    final longitude = widget.longitude;
-    if (latitude == null || longitude == null) return;
-
-    setState(() {
-      _loadingExistingPlaces = true;
-    });
-
-    final places = await ServiceProvider.of(context)!.pins
-        .loadPlacesNearLocation(
-          latitude: latitude,
-          longitude: longitude,
-          radiusKm: 0.5,
-        );
-
+    await _model.onLinkExistingPressed();
     if (!mounted) return;
-
-    setState(() {
-      _existingPlaces = places;
-      _existingPlacesFetched = true;
-      _loadingExistingPlaces = false;
-    });
 
     _showExistingPlacesSheet();
   }
@@ -270,17 +220,14 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        if (_existingPlaces.isEmpty) {
+        if (_model.existingPlaces.isEmpty) {
           return const SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Existing places',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  AppSectionHeading(text: 'Existing places'),
                   SizedBox(height: 16),
                   Center(child: Text('No existing places found nearby.')),
                 ],
@@ -299,16 +246,13 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    'Existing places',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  child: AppSectionHeading(text: 'Existing places'),
                 ),
                 Flexible(
                   child: ListView(
                     shrinkWrap: true,
                     children: [
-                      for (final place in _existingPlaces)
+                      for (final place in _model.existingPlaces)
                         ListTile(
                           title: Text(place.name),
                           onTap: () {
@@ -328,19 +272,13 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
   }
 
   void _selectExistingPlace(Place place) {
-    setState(() {
-      _formalNameController.text = place.name;
-      _selectedExistingPlaceId = place.id;
-      _selectedNearbyPlace = null;
-    });
+    _formalNameController.text = place.name;
+    _model.selectExistingPlace(place);
   }
 
-  @override
-  void dispose() {
-    _formalNameController.dispose();
-    _nameController.dispose();
-    _reviewController.dispose();
-    super.dispose();
+  void _resetPlaceSelection() {
+    _formalNameController.clear();
+    _model.resetPlaceSelection();
   }
 
   Future<void> _pickPhoto() async {
@@ -404,57 +342,136 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
       return;
     }
 
-    if (_isPrivate == null) {
+    LocationFormResult? result;
+    try {
+      result = await _model.save(
+        formalName: _formalNameController.text.trim(),
+        name: _nameController.text.trim(),
+        review: _reviewController.text.trim(),
+        selectedPhotos: _selectedPhotos,
+        onSave: widget.onSave,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save location: $error')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    if (result == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Choose Friends or Private.')),
       );
       return;
     }
 
-    final customization = LocationCustomization(
-      pinType: _currentType,
-      formalName: _formalNameController.text.trim(),
-      name: _nameController.text.trim(),
-      review: _reviewController.text.trim(),
-      rating: _rating,
-      isPrivate: _isPrivate,
-      selectedPhotos: List.unmodifiable(_selectedPhotos),
-      existingPlaceId: _selectedExistingPlaceId,
-      provider: _selectedNearbyPlace == null ? null : 'google',
-      providerPlaceId: _selectedNearbyPlace?.placeId,
+    Navigator.pop(context, result);
+  }
+
+  Future<void> _onSnippetMapCreated(MapboxMap map) async {
+    await map.gestures.updateSettings(
+      GesturesSettings(
+        rotateEnabled: false,
+        pinchToZoomEnabled: false,
+        scrollEnabled: false,
+        pitchEnabled: false,
+        doubleTapToZoomInEnabled: false,
+        doubleTouchToZoomOutEnabled: false,
+        quickZoomEnabled: false,
+      ),
     );
+    await map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    await map.compass.updateSettings(CompassSettings(enabled: false));
+  }
 
-    final onSave = widget.onSave;
-    if (onSave == null) {
-      Navigator.pop(context, customization);
-      return;
-    }
+  Widget _buildMapSnippet() {
+    final lat = _model.markerLatitude!;
+    final lng = _model.markerLongitude!;
 
-    setState(() {
-      _isSaving = true;
-    });
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadii.elements),
+      child: SizedBox(
+        height: 150,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            MapWidget(
+              styleUri: MapEnv.mapboxStyleUri,
+              viewport: CameraViewportState(
+                center: Point(coordinates: Position(lng, lat)),
+                zoom: 16,
+              ),
+              onMapCreated: _onSnippetMapCreated,
+            ),
+            Center(
+              child: Text(
+                _model.currentType.emoji,
+                style: const TextStyle(fontSize: 32),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    try {
-      await onSave(customization);
+  Widget _buildChosenPlaceCard() {
+    final sourceLabel = _model.placeSourceLabel;
 
-      if (!mounted) return;
-
-      Navigator.pop(context, customization);
-    } catch (error) {
-      if (!mounted) return;
-
-      setState(() {
-        _isSaving = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not save location: $error')),
-      );
-    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.lightSection,
+        borderRadius: BorderRadius.circular(AppRadii.elements),
+        boxShadow: AppShadows.field,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _formalNameController.text,
+                  style: const TextStyle(
+                    fontSize: AppTextSizes.textFieldHint,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (sourceLabel != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    sourceLabel,
+                    style: const TextStyle(
+                      fontSize: AppTextSizes.caption,
+                      color: AppColors.lightSubtitle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.lightSubtitle,
+            ),
+            onPressed: _model.isSaving ? null : _resetPlaceSelection,
+            child: const Text('Change'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final hasChosenPlace = _model.hasChosenPlace(_formalNameController.text);
+
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: GestureDetector(
@@ -467,17 +484,83 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                AppPageHeader(
-                  title: widget.isReadOnly
-                      ? 'Location details'
-                      : 'Customise location',
-                ),
+                AppPageHeader(title: "Customize Location"),
                 const SizedBox(height: 16),
-                if (!widget.isReadOnly) ...[
-                  const Text(
-                    'Location type',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                if (_model.markerLatitude != null &&
+                    _model.markerLongitude != null) ...[
+                  _buildMapSnippet(),
+                  const SizedBox(height: 16),
+                ],
+                const AppSectionHeading(text: 'Location'),
+                const SizedBox(height: 10),
+                if (widget.isReadOnly || !_canSearchPlaces) ...[
+                  AppTextField(
+                    controller: _formalNameController,
+                    hintText: 'Example: National University of Singapore',
+                    readOnly: widget.isReadOnly,
                   ),
+                ] else if (hasChosenPlace) ...[
+                  _buildChosenPlaceCard(),
+                ] else if (_model.isEnteringManually) ...[
+                  AppTextField(
+                    controller: _formalNameController,
+                    hintText: 'Example: National University of Singapore',
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.lightSubtitle,
+                    ),
+                    onPressed: _model.isSaving ? null : _resetPlaceSelection,
+                    child: const Text('Search instead'),
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppSecondaryButton(
+                          label: _model.loadingSuggestions
+                              ? 'Finding nearbyâ€¦'
+                              : 'Find nearby',
+                          icon: Icons.near_me,
+                          onPressed: _model.loadingSuggestions
+                              ? null
+                              : _onFindNearbyPressed,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: AppSecondaryButton(
+                          label: _model.loadingExistingPlaces
+                              ? 'Linkingâ€¦'
+                              : 'Popular around',
+                          icon: Icons.link,
+                          backgroundColor: Colors.black,
+                          onPressed: _model.loadingExistingPlaces
+                              ? null
+                              : _onLinkExistingPressed,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Center(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.lightSubtitle,
+                      ),
+                      onPressed: _model.enterManually,
+                      child: const Text(
+                        "Can't find the place you want? Add it manually",
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                if (!widget.isReadOnly) ...[
+                  const AppSectionHeading(text: 'Location type'),
                   const SizedBox(height: 8),
                   AppSelectionBar(
                     items: [
@@ -486,57 +569,14 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
                           label: '${option.emoji} ${option.label}',
                         ),
                     ],
-                    selectedIndex: PinType.values.indexOf(_currentType),
+                    selectedIndex: PinType.values.indexOf(_model.currentType),
                     onChanged: (index) {
-                      if (_isSaving) return;
-                      setState(() {
-                        _currentType = PinType.values[index];
-                      });
+                      if (_model.isSaving) return;
+                      _model.setCurrentType(PinType.values[index]);
                     },
                   ),
                   const SizedBox(height: 20),
                 ],
-
-                const AppSectionLabel(text: 'Formal location name'),
-                const SizedBox(height: 8),
-                AppTextField(
-                  controller: _formalNameController,
-                  hintText: 'Example: Springleaf Prata Place',
-                  readOnly: widget.isReadOnly,
-                ),
-
-                if (_canSearchPlaces) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppSecondaryButton(
-                          label: _loadingSuggestions
-                              ? 'Finding nearby…'
-                              : 'Find nearby',
-                          icon: Icons.near_me,
-                          onPressed: _loadingSuggestions
-                              ? null
-                              : _onFindNearbyPressed,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppSecondaryButton(
-                          label: _loadingExistingPlaces
-                              ? 'Linking…'
-                              : 'Link existing',
-                          icon: Icons.link,
-                          onPressed: _loadingExistingPlaces
-                              ? null
-                              : _onLinkExistingPressed,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: 12),
 
                 const AppSectionLabel(text: 'Your name for it'),
                 const SizedBox(height: 8),
@@ -548,10 +588,7 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
 
                 const SizedBox(height: 20),
 
-                const Text(
-                  'Rate this location',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                const AppSectionHeading(text: 'Rate this location'),
 
                 const SizedBox(height: 8),
 
@@ -562,13 +599,11 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
                       IconButton(
                         onPressed: widget.isReadOnly
                             ? null
-                            : () {
-                                setState(() {
-                                  _rating = star;
-                                });
-                              },
+                            : () => _model.setRating(star),
                         icon: Icon(
-                          star <= _rating ? Icons.star : Icons.star_border,
+                          star <= _model.rating
+                              ? Icons.star
+                              : Icons.star_border,
                           color: Colors.amber,
                           size: 36,
                         ),
@@ -578,10 +613,7 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
 
                 const SizedBox(height: 20),
 
-                const Text(
-                  'Visibility',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                const AppSectionHeading(text: 'Visibility'),
 
                 const SizedBox(height: 8),
 
@@ -590,14 +622,12 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
                     AppSelectionItem(label: 'Friends'),
                     AppSelectionItem(label: 'Private'),
                   ],
-                  selectedIndex: _isPrivate == null
+                  selectedIndex: _model.isPrivate == null
                       ? -1
-                      : (_isPrivate! ? 1 : 0),
+                      : (_model.isPrivate! ? 1 : 0),
                   onChanged: (index) {
-                    if (widget.isReadOnly || _isSaving) return;
-                    setState(() {
-                      _isPrivate = index == 1;
-                    });
+                    if (widget.isReadOnly || _model.isSaving) return;
+                    _model.setIsPrivate(index == 1);
                   },
                 ),
 
@@ -615,10 +645,7 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
 
                 const SizedBox(height: 20),
 
-                const Text(
-                  'Photos',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                const AppSectionHeading(text: 'Photos'),
                 const SizedBox(height: 8),
 
                 if (widget.isReadOnly && _existingPhotoUrls.isEmpty)
@@ -680,7 +707,7 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
                                         top: 4,
                                         right: 4,
                                         child: IconButton.filled(
-                                          onPressed: _isSaving
+                                          onPressed: _model.isSaving
                                               ? null
                                               : () {
                                                   setState(() {
@@ -698,7 +725,9 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
                                     ],
                                   )
                                 : OutlinedButton(
-                                    onPressed: _isSaving ? null : _pickPhoto,
+                                    onPressed: _model.isSaving
+                                        ? null
+                                        : _pickPhoto,
                                     child: const Icon(Icons.add_a_photo),
                                   ),
                           ),
@@ -712,8 +741,8 @@ class _LocationCustomizePageState extends State<LocationCustomizePage> {
 
                 AppPrimaryButton(
                   label: widget.isReadOnly ? 'Close' : 'Save',
-                  onPressed: _isSaving ? null : _onSavePressed,
-                  isLoading: _isSaving,
+                  onPressed: _model.isSaving ? null : _onSavePressed,
+                  isLoading: _model.isSaving,
                 ),
               ],
             ),

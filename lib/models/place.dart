@@ -7,6 +7,7 @@ class Place {
   final double longitude;
   final int pinCount;
   final List<UserPin> pins;
+  final String? category;
 
   const Place({
     this.id,
@@ -15,6 +16,7 @@ class Place {
     required this.longitude,
     this.pinCount = 0,
     this.pins = const [],
+    this.category,
   });
 
   factory Place.fromMap(Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class Place {
               ?.map((pin) => UserPin.fromMap(pin as Map<String, dynamic>))
               .toList() ??
           const [],
+      category: map['category'] as String?,
     );
   }
 }

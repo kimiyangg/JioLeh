@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:jio_leh/models/place.dart';
-import 'package:jio_leh/models/user_pin.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
@@ -165,7 +164,7 @@ class MapPins {
             },
             'properties': {
               'place_id': place.id,
-              'icon': _primaryPinFor(place)?.emoji ?? '\u{1F4CD}',
+              'icon': place.category ?? '\u{1F4CD}',
             },
           },
     ];
@@ -175,7 +174,7 @@ class MapPins {
 
   Future<void> _ensureIconsRegistered(List<Place> places) async {
     for (final place in places) {
-      final emoji = _primaryPinFor(place)?.emoji ?? '\u{1F4CD}';
+      final emoji = place.category ?? '\u{1F4CD}';
       if (_registeredIcons.contains(emoji)) continue;
 
       final bytes = await _emojiImageFor(emoji);
@@ -190,10 +189,6 @@ class MapPins {
       );
       _registeredIcons.add(emoji);
     }
-  }
-
-  UserPin? _primaryPinFor(Place place) {
-    return place.pins.isEmpty ? null : place.pins.first;
   }
 
   Future<Uint8List> _emojiImageFor(String emoji) async {

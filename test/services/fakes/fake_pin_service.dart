@@ -11,16 +11,21 @@ class FakePinService extends PinService {
     this.places = const [],
     this.photoUrls = const [],
     this.throwOnSave = false,
+    this.findPlaceByProviderResult,
+    this.throwOnFindPlaceByProvider = false,
   });
 
   List<Place> places;
   List<String> photoUrls;
   bool throwOnSave;
+  Place? findPlaceByProviderResult;
+  bool throwOnFindPlaceByProvider;
 
   int saveUserInsertedPinCalls = 0;
   int loadPlacesNearLocationCalls = 0;
   int loadPlacesInBoundsCalls = 0;
   int createPhotoUrlsCalls = 0;
+  int findPlaceByProviderCalls = 0;
 
   UserInsertedPin? lastSavedPin;
   List<XFile> lastSavedPhotos = const [];
@@ -33,6 +38,8 @@ class FakePinService extends PinService {
   double? lastEast;
   double? lastNorth;
   List<String> lastPhotoPaths = const [];
+  String? lastProvider;
+  String? lastProviderPlaceId;
 
   @override
   Future<void> saveUserInsertedPin(
@@ -83,5 +90,21 @@ class FakePinService extends PinService {
     createPhotoUrlsCalls++;
     lastPhotoPaths = List.unmodifiable(photoPaths);
     return photoUrls;
+  }
+
+  @override
+  Future<Place?> findPlaceByProvider({
+    required String provider,
+    required String providerPlaceId,
+  }) async {
+    findPlaceByProviderCalls++;
+    lastProvider = provider;
+    lastProviderPlaceId = providerPlaceId;
+
+    if (throwOnFindPlaceByProvider) {
+      throw StateError('FakePinService findPlaceByProvider failed');
+    }
+
+    return findPlaceByProviderResult;
   }
 }

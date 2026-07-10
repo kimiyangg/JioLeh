@@ -32,4 +32,11 @@ abstract class PinService {
 
   /// Creates temporary display URLs for stored pin photo paths.
   Future<List<String>> createPhotoUrls(List<String> photoPaths);
+
+  /// Looks up an existing place by its external provider id (e.g. a Google
+  /// Places id). Returns null if no place has been created for it yet.
+  Future<Place?> findPlaceByProvider({
+    required String provider,
+    required String providerPlaceId,
+  });
 }

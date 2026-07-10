@@ -46,7 +46,7 @@ class FriendPinCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '${pin.emoji}  ${profile?.displayName ?? 'Unknown friend'}',
+                    profile?.displayName ?? 'Unknown friend',
                     style: TextStyle(
                       fontSize: context.scaledFont(AppTextSizes.body),
                       fontWeight: FontWeight.bold,

@@ -55,6 +55,7 @@ class UserInsertedPin {
       'created_by': userId,
       'source': provider == null ? 'user' : 'provider',
       'status': provider == null ? 'pending' : 'approved',
+      'category': emoji,
       if (provider != null) 'provider': provider,
       if (providerPlaceId != null) 'provider_place_id': providerPlaceId,
     };

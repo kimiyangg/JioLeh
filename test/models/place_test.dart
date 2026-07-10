@@ -55,5 +55,21 @@ void main() {
 
       expect(place.id, isNull);
     });
+
+    test('category is parsed when present', () {
+      final place = Place.fromMap({
+        'latitude': 1.0,
+        'longitude': 103.0,
+        'category': '☕',
+      });
+
+      expect(place.category, '☕');
+    });
+
+    test('category is null when missing', () {
+      final place = Place.fromMap({'latitude': 1.0, 'longitude': 103.0});
+
+      expect(place.category, isNull);
+    });
   });
 }
