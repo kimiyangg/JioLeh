@@ -146,6 +146,35 @@ Point values: pinning a place +2, uploading a photo +1 (per photo), a friend acc
 Pin and photo points are awarded client-side (Supabase insert)right after the underlying action succeeds; failures to award are swallowed so they never block the action itself. Jio points are awarded by the `award_jio_points_on_accept()` trigger on `open_jio_invite_statuses`, since crediting the event's sender needs to bypass the "insert only your own
 point_transactions" RLS policy.
 
+### `suggested_place_impressions`
+
+`suggested_place_impressions` logs every "Suggested for You" place shown to a
+user, snapshotting the ranking signals at that moment plus whether the user
+engaged. It doubles as the training set for the offline logistic-regression
+ranker described in `get_friend_recommended_places`.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | Who the suggestion was shown to (cascade delete) |
+| `place_id` | uuid | Linked row in `places` (cascade delete) |
+| `avg_friend_rating` | numeric | Friends' average rating at the time shown |
+| `friend_count` | integer | Distinct friends who'd pinned the place |
+| `recency_days` | integer | Days since the most recent friend pin |
+| `pin_count` | integer | Global pin count at the time shown |
+| `category_match` | boolean | Whether it matched the user's top category |
+| `rank_position` | integer | Position in the suggested list (1 = top) |
+| `shown_at` | timestamp | When the suggestion was shown |
+| `clicked_at` | timestamp | When the user opened it, if ever |
+| `saved_at` | timestamp | When the user pinned it, if ever |
+
+`get_friend_recommended_places(p_user_id)` is the Postgres function that
+computes these signals per candidate place: friends' average rating, how many
+friends pinned it, days since the most recent friend visit, and whether the
+place matches the user's most-pinned category. It excludes places the user
+already pinned themselves.
+
+
 ## Storage
 
 | Bucket | Visibility | Used by |
