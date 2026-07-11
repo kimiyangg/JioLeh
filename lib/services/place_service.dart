@@ -12,4 +12,7 @@ abstract class PlaceService {
     required double longitude,
     double radiusKm = 0.5,
   });
+
+  /// Searches places by a free-text query (e.g. a name the user typed). Returns matches as [NearbyPlace]s, or an empty list if the search fails.
+  Future<List<NearbyPlace>> searchPlaces({required String query});
 }
