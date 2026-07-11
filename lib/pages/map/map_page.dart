@@ -12,7 +12,8 @@ import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 import 'package:jio_leh/pages/map/shared_place_details_page.dart';
-
+import 'package:jio_leh/models/suggested_place.dart';
+import 'package:jio_leh/pages/map/widgets/suggested_places_section.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
@@ -136,14 +137,12 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Future<void> _moveCameraToPos(geo.Position position) async {
+  Future<void> _moveCameraTo(double latitude, double longitude) async {
     if (_map == null) return; // prevent crash if method called too early
     await _map!.easeTo(
       // easeTo means the camera moves smoothly to current pos
       CameraOptions(
-        center: Point(
-          coordinates: Position(position.longitude, position.latitude),
-        ),
+        center: Point(coordinates: Position(longitude, latitude)),
         zoom: 15,
         bearing: 0,
         pitch: 60,
@@ -154,6 +153,10 @@ class _MapPageState extends State<MapPage> {
         startDelay: 0,
       ), // animate movement over 1000 millisec
     );
+  }
+
+  Future<void> _moveCameraToPos(geo.Position position) async {
+    await _moveCameraTo(position.latitude, position.longitude);
   }
 
   Future<void> _recenterMap() async {
@@ -210,6 +213,23 @@ class _MapPageState extends State<MapPage> {
     return;
   }
 
+  void _showSuggestionsSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: SuggestedPlacesSection(
+            onPlaceSelected: (SuggestedPlace place) {
+              Navigator.pop(sheetContext);
+              _moveCameraTo(place.latitude, place.longitude);
+            },
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_model.isLoadingLocation) {
@@ -259,6 +279,7 @@ class _MapPageState extends State<MapPage> {
           // Bottom right: recenter button
           MapToolbar(
             onRecenter: _recenterMap,
+            onSuggestions: _showSuggestionsSheet,
           ),
         ],
       ),

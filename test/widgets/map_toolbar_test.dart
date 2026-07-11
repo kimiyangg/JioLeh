@@ -12,12 +12,24 @@ void main() {
     testWidgets('tapping the recenter button fires onRecenter', (tester) async {
       var recenters = 0;
       await tester.pumpWidget(wrap(
-        MapToolbar(onRecenter: () => recenters++),
+        MapToolbar(onRecenter: () => recenters++, onSuggestions: () {}),
       ));
 
       await tester.tap(find.byIcon(Icons.my_location));
 
       expect(recenters, 1);
+    });
+
+    testWidgets('tapping the suggestions button fires onSuggestions',
+        (tester) async {
+      var opens = 0;
+      await tester.pumpWidget(wrap(
+        MapToolbar(onRecenter: () {}, onSuggestions: () => opens++),
+      ));
+
+      await tester.tap(find.byIcon(Icons.thumb_up));
+
+      expect(opens, 1);
     });
   });
 }

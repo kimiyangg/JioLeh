@@ -7,7 +7,9 @@ import 'package:jio_leh/services/suggested_places_service.dart';
 import 'package:jio_leh/theme.dart';
 
 class SuggestedPlacesSection extends StatefulWidget {
-  const SuggestedPlacesSection({super.key});
+  const SuggestedPlacesSection({super.key, required this.onPlaceSelected});
+
+  final ValueChanged<SuggestedPlace> onPlaceSelected;
 
   @override
   State<SuggestedPlacesSection> createState() =>
@@ -30,34 +32,70 @@ class _SuggestedPlacesSectionState extends State<SuggestedPlacesSection> {
     _future = _suggestedPlaces.getSuggestedPlaces();
   }
 
+  Widget _title(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Text(
+        'Suggested for You',
+        style: TextStyle(
+          fontSize: context.scaledFont(AppTextSizes.subtitle),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _message(BuildContext context, String text) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _title(context),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: context.scaledFont(AppTextSizes.body),
+              color: AppColors.lightSubtitle,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<SuggestedPlace>>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: BrandLoadingAnimation.compact());
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 48),
+            child: Center(child: BrandLoadingAnimation.compact()),
+          );
         }
-        // Suggestions are a nice-to-have; hide the section instead of
-        // surfacing an error for something the user didn't explicitly ask for.
-        if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
-          return const SizedBox.shrink();
+        if (snapshot.hasError) {
+          return _message(
+            context,
+            "Couldn't load suggestions. Try again later.",
+          );
         }
 
-        final places = snapshot.data!;
+        final places = snapshot.data ?? [];
+        if (places.isEmpty) {
+          return _message(
+            context,
+            'No suggestions yet. Add friends and start pinning places!',
+          );
+        }
+
         return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Suggested for You',
-                style: TextStyle(
-                  fontSize: context.scaledFont(AppTextSizes.subtitle),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            _title(context),
             SizedBox(
               height: 150,
               child: ListView.builder(
@@ -67,12 +105,16 @@ class _SuggestedPlacesSectionState extends State<SuggestedPlacesSection> {
                 itemBuilder: (context, index) {
                   return _SuggestedPlaceCard(
                     place: places[index],
-                    onTap: () =>
-                        _suggestedPlaces.recordSuggestionClicked(places[index].placeId),
+                    onTap: () {
+                      _suggestedPlaces
+                          .recordSuggestionClicked(places[index].placeId);
+                      widget.onPlaceSelected(places[index]);
+                    },
                   );
                 },
               ),
             ),
+            const SizedBox(height: 16),
           ],
         );
       },

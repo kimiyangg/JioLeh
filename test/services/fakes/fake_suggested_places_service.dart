@@ -5,6 +5,7 @@ class FakeSuggestedPlacesService extends SuggestedPlacesService {
   FakeSuggestedPlacesService({this.suggestions = const []});
 
   List<SuggestedPlace> suggestions;
+  Object? getError;
 
   int getSuggestedPlacesCalls = 0;
   String? lastClickedPlaceId;
@@ -13,6 +14,8 @@ class FakeSuggestedPlacesService extends SuggestedPlacesService {
   @override
   Future<List<SuggestedPlace>> getSuggestedPlaces({int limit = 10}) async {
     getSuggestedPlacesCalls++;
+    final error = getError;
+    if (error != null) throw error;
     return suggestions.take(limit).toList();
   }
 

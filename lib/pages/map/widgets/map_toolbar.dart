@@ -4,9 +4,11 @@ class MapToolbar extends StatelessWidget {
   const MapToolbar({
     super.key,
     required this.onRecenter,
+    required this.onSuggestions,
   });
 
   final VoidCallback onRecenter;
+  final VoidCallback onSuggestions;
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +18,12 @@ class MapToolbar extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          FloatingActionButton.small(
+            heroTag: 'suggestions',
+            onPressed: onSuggestions,
+            backgroundColor: Colors.white,
+            child: const Icon(Icons.thumb_up),
+          ),
           const SizedBox(height: 12),
           FloatingActionButton.small(
             heroTag: 'recenter',
