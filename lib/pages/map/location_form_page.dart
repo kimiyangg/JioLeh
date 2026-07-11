@@ -585,6 +585,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
                     child: IgnorePointer(
                       ignoring: _model.isTypeLocked,
                       child: AppSelectionBar(
+                        rows: 2,
                         items: [
                           for (final option in PinType.values)
                             AppSelectionItem(

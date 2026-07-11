@@ -137,11 +137,7 @@ class LocationFormPageModel extends ChangeNotifier {
 
     _lockedCategory = category;
 
-    final matchingType = PinType.values.firstWhere(
-      (type) => type.emoji == category,
-      orElse: () => _currentType,
-    );
-    setCurrentType(matchingType);
+    setCurrentType(PinType.fromEmoji(category) ?? _currentType);
   }
 
   void selectExistingPlace(Place existingPlace) {
@@ -150,12 +146,7 @@ class LocationFormPageModel extends ChangeNotifier {
 
     final category = existingPlace.category;
     _lockedCategory = category;
-    if (category != null) {
-      _currentType = PinType.values.firstWhere(
-        (type) => type.emoji == category,
-        orElse: () => _currentType,
-      );
-    }
+    _currentType = PinType.fromEmoji(category) ?? _currentType;
 
     notifyListeners();
   }

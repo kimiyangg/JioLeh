@@ -14,22 +14,38 @@ class AppSelectionBar extends StatelessWidget {
   final List<AppSelectionItem> items;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
+  final int rows;
 
   const AppSelectionBar({
     super.key,
     required this.items,
     required this.selectedIndex,
     required this.onChanged,
+    this.rows = 1,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Each segment is its own standalone bubble; no shared track behind them.
+    // Each segment is its own standalone bubble; no shared track behind them. Items are dealt round-robin across [rows], so they read column by column.
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: List.generate(items.length, _segment),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var row = 0; row < rows; row++)
+            Padding(
+              padding: EdgeInsets.only(
+                top: row == 0 ? 0 : AppSelBar.segmentGap,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = row; i < items.length; i += rows) _segment(i),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

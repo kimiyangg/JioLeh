@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
+import 'package:jio_leh/pages/map/models/pin_type.dart';
 import 'package:jio_leh/pages/map/shared_place_details_page_model.dart';
 import 'package:jio_leh/pages/map/widgets/friend_pin_card.dart';
 import 'package:jio_leh/theme.dart';
@@ -78,6 +79,7 @@ class _SharedPlaceDetailsPageState extends State<SharedPlaceDetailsPage> {
     }
 
     final pinCount = widget.place.pins.length;
+    final categoryLabel = PinType.fromEmoji(widget.place.category)?.label;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -88,9 +90,9 @@ class _SharedPlaceDetailsPageState extends State<SharedPlaceDetailsPage> {
           AppPageHeader(title: widget.place.name),
           const SizedBox(height: 4),
           Text(
-            widget.place.category == null
+            categoryLabel == null
                 ? '$pinCount friends have pinned this place'
-                : '${widget.place.category} · $pinCount friends have pinned this place',
+                : '$categoryLabel · $pinCount friends have pinned this place',
             style: TextStyle(
               fontSize: context.scaledFont(AppTextSizes.label),
               color: AppColors.lightSubtitle,
