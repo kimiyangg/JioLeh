@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:jio_leh/services/suggested_places_service.dart';
 import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/friends_service.dart';
@@ -31,6 +32,7 @@ class ServiceProvider extends InheritedWidget {
     OpenJioService? openJio,
     JioChatService? jioChat,
     PointsService? points,
+    SuggestedPlacesService? suggestedPlaces,
     
     required super.child,
   }) : _auth = auth,
@@ -42,7 +44,8 @@ class ServiceProvider extends InheritedWidget {
        _friends = friends,
        _openJio = openJio,
        _jioChat = jioChat,
-       _points = points;
+       _points = points,
+       _suggestedPlaces = suggestedPlaces;
 
   final AuthService? _auth;
   final AccountService? _account;
@@ -54,11 +57,13 @@ class ServiceProvider extends InheritedWidget {
   final OpenJioService? _openJio;
   final JioChatService? _jioChat;
   final PointsService? _points;
-
+  final SuggestedPlacesService? _suggestedPlaces;
+  
   AuthService get auth => _auth ?? Services.auth;
   AccountService get account => _account ?? Services.account;
   PinService get pins => _pins ?? Services.pins;
   PointsService get points => _points ?? Services.points;
+  SuggestedPlacesService get suggestedPlaces => _suggestedPlaces ?? Services.suggestedPlaces;
   LocationService get location => _location ?? Services.location;
   GeocodingService get geocoding => _geocoding ?? Services.geocoding;
   PlaceService get places => _places ?? Services.places;

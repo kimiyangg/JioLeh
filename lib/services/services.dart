@@ -12,6 +12,8 @@ import 'friends_service.dart';
 import 'supabase/supabase_friends_service.dart';
 import 'place_service.dart';
 import 'google_place_service.dart';
+import 'package:jio_leh/services/suggested_places_service.dart';
+import 'package:jio_leh/services/supabase/supabase_suggested_places_service.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
@@ -68,5 +70,5 @@ class Services {
 
   static final PlaceService places = GooglePlaceService();
 
-
+  static final SuggestedPlacesService suggestedPlaces = SupabaseSuggestedPlacesService(client: _client, auth: auth);
 }
