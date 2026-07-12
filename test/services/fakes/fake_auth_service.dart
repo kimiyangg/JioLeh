@@ -25,7 +25,11 @@ class FakeAuthService extends AuthService {
 
   // Counters so tests can check "did sign in / sign out get called?".
   int signInCalls = 0;
+  int appleSignInCalls = 0;
   int signOutCalls = 0;
+
+  // Set from a test to make the next Apple sign-in attempt throw.
+  Object? appleSignInError;
 
   @override
   User? getCurrentUser() => _user;
@@ -41,6 +45,12 @@ class FakeAuthService extends AuthService {
 
   @override
   Future<void> signInWithGoogle() async => signInCalls++;
+
+  @override
+  Future<void> signInWithApple() async {
+    appleSignInCalls++;
+    if (appleSignInError != null) throw appleSignInError!;
+  }
 
   @override
   Future<void> signOut() async {

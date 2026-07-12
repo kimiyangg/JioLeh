@@ -19,6 +19,9 @@ abstract class AuthService {
   /// Starts the Google sign-in flow.
   Future<void> signInWithGoogle();
 
+  /// Starts the Apple sign-in flow.
+  Future<void> signInWithApple();
+
   /// Signs the current user out.
   Future<void> signOut();
 
@@ -54,4 +57,9 @@ class AuthServiceException implements Exception {
 /// Exception thrown when an operation requires a signed-in user.
 class NotSignedInException extends AuthServiceException {
   const NotSignedInException() : super('User must be signed in.');
+}
+
+/// Exception thrown when the user cancels a sign-in flow themselves.
+class SignInCancelledException extends AuthServiceException {
+  const SignInCancelledException() : super('Sign-in was cancelled.');
 }

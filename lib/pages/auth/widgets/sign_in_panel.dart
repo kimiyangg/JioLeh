@@ -10,10 +10,12 @@ class SignInPanel extends StatelessWidget {
     super.key,
     required this.isSigningIn,
     required this.onGooglePressed,
+    this.onApplePressed,
   });
 
   final bool isSigningIn;
   final VoidCallback? onGooglePressed;
+  final VoidCallback? onApplePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +60,16 @@ class SignInPanel extends StatelessWidget {
             backgroundColor: AppColors.darkButton,
             liftColor: Colors.black,
           ),
+          if (onApplePressed != null) ...[
+            const SizedBox(height: 16),
+            AppPrimaryButton(
+              label: 'Continue with Apple',
+              onPressed: isSigningIn ? null : onApplePressed,
+              icon: Icons.apple,
+              backgroundColor: Colors.black,
+              liftColor: Colors.black,
+            ),
+          ],
           const SizedBox(height: 16),
           const _TermsText(),
         ],
