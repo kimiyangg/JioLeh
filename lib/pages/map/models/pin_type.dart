@@ -9,9 +9,29 @@ enum PinType {
   food("Food", "🍚"),
   cafe("Cafe", "☕"),
   drinks("Drinks", "🍹"),
-  outdoors("Outdoors", "🌳");
+  outdoors("Outdoors", "🌳"),
+  toilet("Toilet", "🚽"),
+  shopping("Shopping", "🛍️"),
+  dessert("Dessert", "🍦"),
+  bar("Bar", "🍺"),
+  karaoke("Karaoke", "🎤"),
+  studySpot("Study Spot", "📚"),
+  sports("Sports", "⚽"),
+  beach("Beach", "🏖️"),
+  attraction("Attraction", "🎡"),
+  cinema("Cinema", "🎬"),
+  games("Games", "🎮"),
+  station("Station", "🚇");
 
   const PinType(this.label, this.emoji);
   final String label;
   final String emoji;
+
+  static PinType? fromEmoji(String? emoji) {
+    if (emoji == null) return null;
+    for (final type in values) {
+      if (type.emoji == emoji) return type;
+    }
+    return null;
+  }
 }

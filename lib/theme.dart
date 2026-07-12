@@ -116,6 +116,25 @@ class AppTextSizes {
   static const caption = 12.0;
 }
 
+// The static mini-map preview used to show a chosen location.
+class AppMapSnip {
+  static const height = 150.0;
+  static const zoom = 16.0;
+  static const cityZoom = 10.0; // zoomed-out view for the unselected placeholder state
+  static const emojiSize = 32.0;
+}
+
+// The friend avatar chips used in the OpenJio friend selector.
+class AppFriendChip {
+  static const avatarRadius = 24.0;
+  static const badgeSize = 18.0;
+  static const badgeIconSize = 12.0;
+  static const chipWidth = 56.0;
+  static const spacing = 12.0;
+  static const nameGap = 4.0;
+}
+
+
 // Extension on BuildContext to provide responsive text scaling based on screen width.
 extension ResponsiveText on BuildContext {
   double scaledFont(double base) {

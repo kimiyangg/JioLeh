@@ -36,6 +36,29 @@ void main() {
       expect(event.senderId, 'user-1');
     });
 
+    test('parses place_id when present', () {
+      final event = OpenJioEvent.fromMap({
+        'id': 'event-1',
+        'date_time': '2026-07-05T18:00:00.000Z',
+        'caption': 'Dinner',
+        'location_name': 'Somewhere',
+        'place_id': 'place-1',
+      });
+
+      expect(event.placeId, 'place-1');
+    });
+
+    test('placeId is null when the map has no place_id', () {
+      final event = OpenJioEvent.fromMap({
+        'id': 'event-1',
+        'date_time': '2026-07-05T18:00:00.000Z',
+        'caption': 'Dinner',
+        'location_name': 'Somewhere',
+      });
+
+      expect(event.placeId, isNull);
+    });
+
     test('senderId is null when the map has no user_id', () {
       final event = OpenJioEvent.fromMap({
         'id': 'event-1',
@@ -131,6 +154,23 @@ void main() {
         'date_time': DateTime(2026, 7, 5, 18, 0).toIso8601String(),
         'caption': 'Dinner',
         'location_name': 'Somewhere',
+      });
+    });
+
+    test('includes place_id when placeId is set', () {
+      final event = OpenJioEvent(
+        invitedFriends: [_friend('Alex')],
+        dateTime: DateTime(2026, 7, 5, 18, 0),
+        caption: 'Dinner',
+        locationName: 'Somewhere',
+        placeId: 'place-1',
+      );
+
+      expect(event.toMap(), {
+        'date_time': DateTime(2026, 7, 5, 18, 0).toIso8601String(),
+        'caption': 'Dinner',
+        'location_name': 'Somewhere',
+        'place_id': 'place-1',
       });
     });
   });

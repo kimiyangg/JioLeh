@@ -1,5 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 
+import 'package:jio_leh/models/nearby_place.dart';
 import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/models/user_inserted_pin.dart';
 
@@ -38,6 +39,12 @@ abstract class PinService {
   Future<Place?> findPlaceByProvider({
     required String provider,
     required String providerPlaceId,
+  });
+
+  /// Returns the id of the places row for a provider-sourced [place], registering it first if it does not exist yet (find-or-create).
+  Future<String> getOrCreateProviderPlaceId(
+    NearbyPlace place, {
+    String provider = 'google',
   });
 }
 

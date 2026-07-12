@@ -1,5 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 
+import 'package:jio_leh/models/nearby_place.dart';
 import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/models/user_inserted_pin.dart';
 import 'package:jio_leh/services/pin_service.dart';
@@ -13,6 +14,8 @@ class FakePinService extends PinService {
     this.throwOnSave = false,
     this.findPlaceByProviderResult,
     this.throwOnFindPlaceByProvider = false,
+    this.providerPlaceIdResult = 'fake-place-id',
+    this.throwOnGetOrCreateProviderPlaceId = false,
   });
 
   List<Place> places;
@@ -20,6 +23,8 @@ class FakePinService extends PinService {
   bool throwOnSave;
   Place? findPlaceByProviderResult;
   bool throwOnFindPlaceByProvider;
+  String providerPlaceIdResult;
+  bool throwOnGetOrCreateProviderPlaceId;
 
   int saveUserInsertedPinCalls = 0;
   int loadPlacesNearLocationCalls = 0;
@@ -106,5 +111,24 @@ class FakePinService extends PinService {
     }
 
     return findPlaceByProviderResult;
+  }
+
+  int getOrCreateProviderPlaceIdCalls = 0;
+  NearbyPlace? lastGetOrCreatePlace;
+
+  @override
+  Future<String> getOrCreateProviderPlaceId(
+    NearbyPlace place, {
+    String provider = 'google',
+  }) async {
+    getOrCreateProviderPlaceIdCalls++;
+    lastGetOrCreatePlace = place;
+    lastProvider = provider;
+
+    if (throwOnGetOrCreateProviderPlaceId) {
+      throw StateError('FakePinService getOrCreateProviderPlaceId failed');
+    }
+
+    return providerPlaceIdResult;
   }
 }

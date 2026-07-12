@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
+import 'package:jio_leh/models/nearby_place.dart';
 import 'package:jio_leh/models/open_jio_event.dart';
+import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/models/user_friend.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
+import 'package:jio_leh/services/location_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
-import 'package:jio_leh/pages/invitations/widgets/friend_selection_list.dart';
+import 'package:jio_leh/pages/invitations/open_jio_form_page_model.dart';
+import 'package:jio_leh/pages/invitations/widgets/friend_avatar_wrap.dart';
 import 'package:jio_leh/util/datetime_format.dart';
 
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_dialog.dart';
 import 'package:jio_leh/widgets/app_field_box.dart';
+import 'package:jio_leh/widgets/app_map_snippet.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
+import 'package:jio_leh/widgets/app_secondary_button.dart';
+import 'package:jio_leh/widgets/app_section_heading.dart';
 import 'package:jio_leh/widgets/app_section_label.dart';
+import 'package:jio_leh/widgets/app_snack_bar.dart';
 import 'package:jio_leh/widgets/app_text_field.dart';
 
 class OpenJioFormPage extends StatefulWidget {
@@ -34,17 +42,31 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   bool _isLeaving = false;
   bool _didInit = false;
 
+  late final OpenJioFormPageModel _model;
+
   late final OpenJioService _openJio;
   late Future<List<UserFriend>> _future;
+
+  // Fallback map centre before a place is chosen: Singapore.
+  static const _defaultLatitude = 1.3521;
+  static const _defaultLongitude = 103.8198;
 
   bool get _isViewMode => widget.event != null;
   bool get _isReceivedEvent => widget.event?.senderName != null;
 
   @override
   void dispose() {
+    if (_didInit) {
+      _model.removeListener(_onModelChanged);
+      _model.dispose();
+    }
     _captionController.dispose();
     _locationController.dispose();
     super.dispose();
+  }
+
+  void _onModelChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -57,6 +79,106 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
       _locationController.text = e.locationName;
       _selectedFriendIds.addAll(e.invitedFriends.map((f) => f.userProfile.id));
     }
+    _locationController.addListener(_clearStaleSelection);
+  }
+
+  // A picked place is only valid while the text still matches it; editing the text reverts to free-text mode.
+  void _clearStaleSelection() {
+    final selected = _model.selectedPlace;
+    if (selected == null) return;
+    if (_locationController.text == selected.name) return;
+    _model.clearSelectedPlace();
+  }
+
+  Future<void> _searchLocation(String query) async {
+    if (query.trim().isEmpty || _model.isSearching) return;
+
+    await _model.searchPlaces(query);
+    if (!mounted) return;
+
+    if (_model.searchResults.isEmpty) {
+      context.showAppSnackBar('No places found. Try a different name.');
+      return;
+    }
+
+    final chosen = await showModalBottomSheet<NearbyPlace>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: _model.searchResults.length,
+          itemBuilder: (context, index) {
+            final place = _model.searchResults[index];
+            return ListTile(
+              title: Text(place.name),
+              subtitle: place.address == null ? null : Text(place.address!),
+              onTap: () => Navigator.pop(context, place),
+            );
+          },
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+
+    _model.selectPlace(chosen);
+    _locationController.text = chosen.name;
+  }
+
+  Future<void> _popularAround() async {
+    if (_model.loadingNearby) return;
+
+    try {
+      await _model.loadPopularNearby();
+    } on LocationException catch (error) {
+      if (!mounted) return;
+      context.showAppSnackBar(error.message, kind: SnackBarKind.error);
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      context.showAppSnackBar(
+        'Failed to load nearby places. Please try again.',
+        kind: SnackBarKind.error,
+      );
+      return;
+    }
+    if (!mounted) return;
+
+    if (_model.nearbyPopularPlaces.isEmpty) {
+      context.showAppSnackBar('No popular places nearby.');
+      return;
+    }
+
+    final chosen = await showModalBottomSheet<Place>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: _model.nearbyPopularPlaces.length,
+          itemBuilder: (context, index) {
+            final place = _model.nearbyPopularPlaces[index];
+            return ListTile(
+              title: Text(
+                place.category == null
+                    ? place.name
+                    : '${place.category} ${place.name}',
+              ),
+              subtitle: Text(
+                place.pinCount == 1
+                    ? 'Pinned by 1 friend'
+                    : 'Pinned by ${place.pinCount} friends',
+              ),
+              onTap: () => Navigator.pop(context, place),
+            );
+          },
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+
+    _model.selectExistingPlace(chosen);
+    _locationController.text = chosen.name;
   }
 
   @override
@@ -70,6 +192,11 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
     _future = widget.event != null
         ? Future.value(widget.event!.invitedFriends)
         : services.friends.getUserFriends();
+    _model = OpenJioFormPageModel(
+      place: services.places,
+      pins: services.pins,
+      location: services.location,
+    )..addListener(_onModelChanged);
   }
 
   Future<void> _pickDateTime() async {
@@ -134,10 +261,13 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
     }
   }
 
-  void _submit(List<UserFriend> friends) {
+  Future<void> _submit(List<UserFriend> friends) async {
     final selectedFriends = friends
         .where((friend) => _selectedFriendIds.contains(friend.userProfile.id))
         .toList();
+
+    final placeId = await _model.resolvePlaceId();
+    if (!mounted) return;
 
     Navigator.pop(
       context,
@@ -146,6 +276,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
         dateTime: _selectedDateTime!,
         caption: _captionController.text.trim(),
         locationName: _locationController.text.trim(),
+        placeId: placeId,
       ),
     );
   }
@@ -220,7 +351,55 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                             ),
                             const SizedBox(height: 16),
                           ],
-                          const AppSectionLabel(text: 'Date & Time'),
+                          if (!_isViewMode ||
+                              _model.selectedPlace != null) ...[
+                            AppMapSnippet(
+                              latitude: _model.selectedPlace?.latitude ??
+                                  _defaultLatitude,
+                              longitude: _model.selectedPlace?.longitude ??
+                                  _defaultLongitude,
+                              emoji:
+                                  _model.selectedPlace == null ? '' : '📍',
+                              zoom: _model.selectedPlace == null
+                                  ? AppMapSnip.cityZoom
+                                  : AppMapSnip.zoom,
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          const AppSectionHeading(text: 'Location'),
+                          const SizedBox(height: 8),
+                          AppTextField(
+                            controller: _locationController,
+                            hintText: 'Type a place name to search…',
+                            readOnly: _isViewMode,
+                            onSubmitted: _isViewMode ? null : _searchLocation,
+                            suffixIcon: _isViewMode ? null : Icons.search,
+                            onSuffixTap: _isViewMode || _model.isSearching
+                                ? null
+                                : () =>
+                                    _searchLocation(_locationController.text),
+                          ),
+                          if (!_isViewMode) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: AppSecondaryButton(
+                                    label: _model.loadingNearby
+                                        ? 'Loading'
+                                        : 'Popular around',
+                                    icon: Icons.link,
+                                    backgroundColor: AppColors.lightWidgetBackground,
+                                    onPressed: _model.loadingNearby
+                                        ? null
+                                        : _popularAround,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          const AppSectionHeading(text: 'Date & Time'),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: _isViewMode ? null : _pickDateTime,
@@ -249,7 +428,7 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          const AppSectionLabel(text: 'Caption'),
+                          const AppSectionHeading(text: 'Caption'),
                           const SizedBox(height: 8),
                           AppTextField(
                             controller: _captionController,
@@ -257,27 +436,21 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                             readOnly: _isViewMode,
                           ),
                           const SizedBox(height: 16),
-                          const AppSectionLabel(text: 'Location'),
-                          const SizedBox(height: 8),
-                          AppTextField(
-                            controller: _locationController,
-                            hintText: 'Enter a location name…',
-                            readOnly: _isViewMode,
-                          ),
-                          const SizedBox(height: 16),
                           if (hasFriends) ...[
-                            AppSectionLabel(
+                            AppSectionHeading(
                               text: _isReceivedEvent
                                   ? 'Also invited'
                                   : 'Invited Friends',
                             ),
                             const SizedBox(height: 8),
                             Expanded(
-                              child: FriendSelectionList(
-                                friends: friends,
-                                selectedFriendIds: _selectedFriendIds,
-                                onToggle: _toggleFriend,
-                                readOnly: _isViewMode,
+                              child: SingleChildScrollView(
+                                child: FriendAvatarWrap(
+                                  friends: friends,
+                                  selectedFriendIds: _selectedFriendIds,
+                                  onToggle: _toggleFriend,
+                                  readOnly: _isViewMode,
+                                ),
                               ),
                             ),
                           ],

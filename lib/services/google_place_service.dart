@@ -53,4 +53,35 @@ class GooglePlaceService extends PlaceService {
       return const [];
     }
   }
+
+  @override
+  Future<List<NearbyPlace>> searchPlaces({required String query}) async {
+    try {
+      final uri = Uri.https('places.googleapis.com', '/v1/places:searchText');
+
+      final response = await _httpClient.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': PlaceEnv.googlePlacesApiKey,
+          'X-Goog-FieldMask':
+              'places.id,places.displayName,places.location,places.formattedAddress',
+        },
+        body: jsonEncode({'textQuery': query}),
+      );
+
+      if (response.statusCode != 200) {
+        return const [];
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final places = data['places'] as List<dynamic>? ?? const [];
+
+      return places
+          .map((place) => NearbyPlace.fromMap(place as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
 }

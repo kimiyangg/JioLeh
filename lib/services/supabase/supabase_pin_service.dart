@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:jio_leh/models/nearby_place.dart';
 import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/models/user_inserted_pin.dart';
 import 'package:jio_leh/services/auth_service.dart';
@@ -201,6 +202,37 @@ class SupabasePinService extends PinService {
         .maybeSingle();
 
     return row == null ? null : Place.fromMap(row);
+  }
+
+  @override
+  Future<String> getOrCreateProviderPlaceId(
+    NearbyPlace place, {
+    String provider = 'google',
+  }) async {
+    // A lean lookup on purpose: _placeColumns inner-joins user_pins, which would hide provider places that have no pins yet.
+    final existing = await _supabase
+        .from(_placesTable)
+        .select('id')
+        .eq('provider', provider)
+        .eq('provider_place_id', place.placeId)
+        .maybeSingle();
+    if (existing != null) return existing['id'] as String;
+
+    final inserted = await _supabase
+        .from(_placesTable)
+        .insert({
+          'name': place.name,
+          'latitude': place.latitude,
+          'longitude': place.longitude,
+          'created_by': auth.getCurrentUserId(),
+          'source': 'provider',
+          'status': 'approved',
+          'provider': provider,
+          'provider_place_id': place.placeId,
+        })
+        .select('id')
+        .single();
+    return inserted['id'] as String;
   }
 
   @override

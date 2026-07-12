@@ -22,14 +22,20 @@ class MapToolbar extends StatelessWidget {
             heroTag: 'suggestions',
             onPressed: onSuggestions,
             backgroundColor: Colors.white,
-            child: const Icon(Icons.thumb_up),
+            child: const Icon(
+              Icons.thumb_up,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 12),
           FloatingActionButton.small(
             heroTag: 'recenter',
             onPressed: onRecenter,
             backgroundColor: Colors.white,
-            child: const Icon(Icons.my_location),
+            child: const Icon(
+              Icons.my_location,
+              color: Colors.black,
+            ),
           ),
         ],
       ),

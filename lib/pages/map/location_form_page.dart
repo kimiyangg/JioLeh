@@ -1,11 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// Avoid clash with ImagePicker image source
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide ImageSource;
+import 'package:jio_leh/widgets/app_map_snippet.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
-import 'package:jio_leh/config/map_env.dart';
 import 'package:jio_leh/models/nearby_place.dart';
 import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/pages/map/location_form_page_model.dart';
@@ -185,6 +183,9 @@ class _LocationFormPageState extends State<LocationFormPage> {
                       for (final place in _model.nearbyPlaces)
                         ListTile(
                           title: Text(place.name),
+                          subtitle: place.address == null
+                              ? null
+                              : Text(place.address!),
                           onTap: () {
                             _selectSuggestion(place);
                             Navigator.pop(context);
@@ -258,7 +259,16 @@ class _LocationFormPageState extends State<LocationFormPage> {
                     children: [
                       for (final place in _model.existingPlaces)
                         ListTile(
-                          title: Text(place.name),
+                          title: Text(
+                            place.category == null
+                                ? place.name
+                                : '${place.category} ${place.name}',
+                          ),
+                          subtitle: Text(
+                            place.pinCount == 1
+                                ? 'Pinned by 1 friend'
+                                : 'Pinned by ${place.pinCount} friends',
+                          ),
                           onTap: () {
                             _selectExistingPlace(place);
                             Navigator.pop(context);
@@ -380,53 +390,6 @@ class _LocationFormPageState extends State<LocationFormPage> {
     Navigator.pop(context, result);
   }
 
-  Future<void> _onSnippetMapCreated(MapboxMap map) async {
-    await map.gestures.updateSettings(
-      GesturesSettings(
-        rotateEnabled: false,
-        pinchToZoomEnabled: false,
-        scrollEnabled: false,
-        pitchEnabled: false,
-        doubleTapToZoomInEnabled: false,
-        doubleTouchToZoomOutEnabled: false,
-        quickZoomEnabled: false,
-      ),
-    );
-    await map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    await map.compass.updateSettings(CompassSettings(enabled: false));
-  }
-
-  Widget _buildMapSnippet() {
-    final lat = _model.markerLatitude!;
-    final lng = _model.markerLongitude!;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadii.elements),
-      child: SizedBox(
-        height: 150,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            MapWidget(
-              styleUri: MapEnv.mapboxStyleUri,
-              viewport: CameraViewportState(
-                center: Point(coordinates: Position(lng, lat)),
-                zoom: 16,
-              ),
-              onMapCreated: _onSnippetMapCreated,
-            ),
-            Center(
-              child: Text(
-                _model.currentType.emoji,
-                style: const TextStyle(fontSize: 32),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildChosenPlaceCard() {
     final sourceLabel = _model.placeSourceLabel;
 
@@ -479,7 +442,8 @@ class _LocationFormPageState extends State<LocationFormPage> {
   @override
   Widget build(BuildContext context) {
     final hasChosenPlace = _model.hasChosenPlace(_formalNameController.text);
-
+    final lat = _model.markerLatitude;
+    final lng = _model.markerLongitude;
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: GestureDetector(
@@ -494,9 +458,12 @@ class _LocationFormPageState extends State<LocationFormPage> {
               children: [
                 AppPageHeader(title: "Customize Location"),
                 const SizedBox(height: 16),
-                if (_model.markerLatitude != null &&
-                    _model.markerLongitude != null) ...[
-                  _buildMapSnippet(),
+                if (lat != null && lng != null) ...[
+                  AppMapSnippet(
+                    latitude: lat, 
+                    longitude: lng, 
+                    emoji: _model.currentType.emoji
+                  ),
                   const SizedBox(height: 16),
                 ],
                 const AppSectionHeading(text: 'Location'),
@@ -512,7 +479,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
                 ] else if (_model.isEnteringManually) ...[
                   AppTextField(
                     controller: _formalNameController,
-                    hintText: 'Example: National University of Singapore',
+                    hintText: 'Pin on your current location',
                   ),
                   const SizedBox(height: 8),
                   TextButton(
@@ -533,7 +500,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
                       Expanded(
                         child: AppSecondaryButton(
                           label: _model.loadingSuggestions
-                              ? 'Finding nearbyâ€¦'
+                              ? 'Finding nearby'
                               : 'Find nearby',
                           icon: Icons.near_me,
                           onPressed: _model.loadingSuggestions
@@ -545,7 +512,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
                       Expanded(
                         child: AppSecondaryButton(
                           label: _model.loadingExistingPlaces
-                              ? 'Linkingâ€¦'
+                              ? 'Linking'
                               : 'Popular around',
                           icon: Icons.link,
                           backgroundColor: Colors.black,
@@ -585,6 +552,7 @@ class _LocationFormPageState extends State<LocationFormPage> {
                     child: IgnorePointer(
                       ignoring: _model.isTypeLocked,
                       child: AppSelectionBar(
+                        rows: 2,
                         items: [
                           for (final option in PinType.values)
                             AppSelectionItem(

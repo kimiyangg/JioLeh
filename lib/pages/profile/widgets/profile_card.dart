@@ -22,6 +22,7 @@ class ProfileCard extends StatelessWidget {
     required this.requestSent,
     required this.isAlreadyFriend,
     required this.onAddFriend,
+    this.onLogout,
   });
 
   final UserProfile? profile;
@@ -32,6 +33,7 @@ class ProfileCard extends StatelessWidget {
   final bool requestSent;
   final bool isAlreadyFriend;
   final VoidCallback? onAddFriend;
+  final VoidCallback? onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +79,12 @@ class ProfileCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (isOwnProfile && onLogout != null)
+                  IconButton(
+                    tooltip: 'Log out',
+                    onPressed: onLogout,
+                    icon: const Icon(Icons.logout, color: AppColors.danger),
+                  ),
               ],
             ),
             SizedBox(height: 5),

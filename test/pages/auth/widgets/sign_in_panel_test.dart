@@ -44,15 +44,23 @@ void main() {
     expect(calls, 1);
   });
 
-  testWidgets('while signing in, the Apple button stays visible but is disabled', (tester) async {
+  testWidgets('while signing in, the Apple button shows a spinner and ignores taps', (tester) async {
     var calls = 0;
     await tester.pumpWidget(
       buildPanel(isSigningIn: true, onApplePressed: () => calls++),
     );
 
-    expect(appleButton(), findsOneWidget);
+    // The label is replaced by the loading spinner, so find the button by position (Google first, Apple second).
+    final appleLoadingButton = find.byType(AppPrimaryButton).at(1);
+    expect(
+      find.descendant(
+        of: appleLoadingButton,
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsOneWidget,
+    );
 
-    await tester.tap(appleButton(), warnIfMissed: false);
+    await tester.tap(appleLoadingButton, warnIfMissed: false);
     await tester.pump();
 
     expect(calls, 0);

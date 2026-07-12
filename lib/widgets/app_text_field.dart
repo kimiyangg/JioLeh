@@ -13,6 +13,7 @@ import 'package:jio_leh/widgets/app_field_box.dart';
 /// * [inputFormatters]: Optional input formatters to restrict or format the text.
 /// * [maxLines]: The maximum number of lines to show at one time, defaults to 1.
 /// * [onSubmitted]: Called when the user submits the field from the keyboard.
+/// * [suffixIcon]: Optional icon shown at the end of the field; tapping it calls [onSuffixTap].
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
@@ -24,6 +25,8 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.onSubmitted,
+    this.suffixIcon,
+    this.onSuffixTap,
   });
 
   final TextEditingController controller;
@@ -34,6 +37,8 @@ class AppTextField extends StatelessWidget {
   final int? maxLines;
   final bool readOnly;
   final ValueChanged<String>? onSubmitted;
+  final IconData? suffixIcon;
+  final VoidCallback? onSuffixTap;
   
   @override
   Widget build(BuildContext context) {
@@ -58,6 +63,12 @@ class AppTextField extends StatelessWidget {
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          suffixIcon: suffixIcon == null
+              ? null
+              : IconButton(
+                  icon: Icon(suffixIcon, color: Colors.grey),
+                  onPressed: onSuffixTap,
+                ),
         ),
       ),
     );
