@@ -23,6 +23,9 @@ class MapPageModel extends ChangeNotifier {
   final PinService pins;
   final LocationService location;
   final GeocodingService geocoding;
+  double? _pendingLatitude;
+  double? _pendingLongitude;
+
 
   geo.Position? _currentPosition;
   bool _isLoadingLocation = true;
@@ -34,6 +37,8 @@ class MapPageModel extends ChangeNotifier {
   bool get isLoadingLocation => _isLoadingLocation;
   String get locationName => _locationName;
   List<Place> get places => _places;
+  double? get pendingLatitude => _pendingLatitude;
+  double? get pendingLongitude => _pendingLongitude;
 
   Future<void> start() async {
     try {
@@ -124,5 +129,19 @@ class MapPageModel extends ChangeNotifier {
     _disposed = true;
     location.dispose();
     super.dispose();
+  }
+
+  /// Asks the map to move its camera to the given location the next time
+  /// it is visible.
+  void requestCameraMove(double latitude, double longitude) {
+    _pendingLatitude = latitude;
+    _pendingLongitude = longitude;
+    notifyListeners();
+  }
+
+  /// Called by MapPage once it has handled the pending camera move.
+  void clearPendingCameraMove() {
+    _pendingLatitude = null;
+    _pendingLongitude = null;
   }
 }
