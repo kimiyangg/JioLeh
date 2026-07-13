@@ -12,8 +12,6 @@ import 'package:jio_leh/pages/map/widgets/location_permission_dialog.dart';
 import 'package:jio_leh/pages/map/widgets/current_area_bar.dart';
 import 'package:jio_leh/pages/map/widgets/map_toolbar.dart';
 import 'package:jio_leh/pages/map/shared_place_details_page.dart';
-import 'package:jio_leh/models/suggested_place.dart';
-import 'package:jio_leh/pages/map/widgets/suggested_places_section.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
 
@@ -83,6 +81,15 @@ class _MapPageState extends State<MapPage> {
     if (_styleLoaded && !identical(_renderedPlaces, _model.places)) {
       _renderedPlaces = _model.places;
       _pins?.render(_model.places);
+    }
+
+    // Another page (like Profile) may have asked the map to fly to a
+    // suggested place. Handle it once the map is ready, then clear it.
+    final pendingLatitude = _model.pendingLatitude;
+    final pendingLongitude = _model.pendingLongitude;
+    if (pendingLatitude != null && pendingLongitude != null && _map != null) {
+      _model.clearPendingCameraMove();
+      _moveCameraTo(pendingLatitude, pendingLongitude);
     }
 
     setState(() {});
@@ -213,23 +220,6 @@ class _MapPageState extends State<MapPage> {
     return;
   }
 
-  void _showSuggestionsSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: SuggestedPlacesSection(
-            onPlaceSelected: (SuggestedPlace place) {
-              Navigator.pop(sheetContext);
-              _moveCameraTo(place.latitude, place.longitude);
-            },
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_model.isLoadingLocation) {
@@ -279,7 +269,6 @@ class _MapPageState extends State<MapPage> {
           // Bottom right: recenter button
           MapToolbar(
             onRecenter: _recenterMap,
-            onSuggestions: _showSuggestionsSheet,
           ),
         ],
       ),
