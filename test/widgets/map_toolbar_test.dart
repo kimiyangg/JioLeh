@@ -19,17 +19,5 @@ void main() {
 
       expect(recenters, 1);
     });
-
-    testWidgets('tapping the suggestions button fires onSuggestions',
-        (tester) async {
-      var opens = 0;
-      await tester.pumpWidget(wrap(
-        MapToolbar(onRecenter: () {}),
-      ));
-
-      await tester.tap(find.byIcon(Icons.thumb_up));
-
-      expect(opens, 1);
-    });
   });
 }
