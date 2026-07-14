@@ -245,6 +245,18 @@ class SupabasePinService extends PinService {
     );
   }
 
+  @override
+  Future<List<Place>> loadPlacesPinnedByUser(String userId) async {
+    final rows = await _supabase
+      .from(_placesTable)
+      .select(_placeColumns)
+      .eq('user_pins.user_id', userId)
+      .order('created_at', referencedTable: 'user_pins', ascending: false);
+
+    return rows.map(Place.fromMap).toList();
+  }
+
+
     // Points are a bonus, not a critical path — award best-effort so a
   // points-write hiccup never fails an otherwise-successful pin save.
   Future<void> _awardPinPoints(String pinId, int photoCount) async {

@@ -34,6 +34,11 @@ abstract class PinService {
   /// Creates temporary display URLs for stored pin photo paths.
   Future<List<String>> createPhotoUrls(List<String> photoPaths);
 
+  /// Loads every place [userId] has personally pinned, most recently pinned
+  /// first. Each returned place's pins list only has that user's own pin.
+  Future<List<Place>> loadPlacesPinnedByUser(String userId);
+
+
   /// Looks up an existing place by its external provider id (e.g. a Google
   /// Places id). Returns null if no place has been created for it yet.
   Future<Place?> findPlaceByProvider({
