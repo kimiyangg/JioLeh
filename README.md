@@ -108,6 +108,7 @@ The app requires these `--dart-define` values:
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Supabase client anon key |
 | `GOOGLE_PLACES_API_KEY` | Google Places API (nearby place suggestions) |
+| `GOOGLE_VISION_API_KEY` | Google Cloud Vision API (AI photo tagging) |
 
 Run the app:
 
@@ -117,7 +118,8 @@ flutter run \
   --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" \
   --dart-define=SUPABASE_URL="your-supabase-url" \
   --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key" \
-  --dart-define=GOOGLE_PLACES_API_KEY="your-google-places-api-key"
+  --dart-define=GOOGLE_PLACES_API_KEY="your-google-places-api-key" \
+  --dart-define=GOOGLE_VISION_API_KEY="your-google-vision-api-key"
 ```
 
 PowerShell:
