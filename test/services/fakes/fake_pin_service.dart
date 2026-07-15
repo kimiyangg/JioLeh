@@ -31,6 +31,9 @@ class FakePinService extends PinService {
   int loadPlacesInBoundsCalls = 0;
   int createPhotoUrlsCalls = 0;
   int findPlaceByProviderCalls = 0;
+  List<Place> pinnedPlaces = const [];
+  int loadPlacesPinnedByUserCalls = 0;
+  String? lastPinnedUserId;
 
   UserInsertedPin? lastSavedPin;
   List<XFile> lastSavedPhotos = const [];
@@ -60,6 +63,13 @@ class FakePinService extends PinService {
     if (throwOnSave) {
       throw StateError('FakePinService save failed');
     }
+  }
+
+  @override
+  Future<List<Place>> loadPlacesPinnedByUser(String userId) async {
+    loadPlacesPinnedByUserCalls++;
+    lastPinnedUserId = userId;
+    return pinnedPlaces;
   }
 
   @override

@@ -9,6 +9,7 @@ import 'package:jio_leh/routing/app_routing.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_snack_bar.dart';
+import 'package:jio_leh/pages/profile/widgets/pinned_spots_section.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, this.userId});
@@ -147,7 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return const Center(child: Text('Profile not found.'));
     }
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,6 +167,10 @@ class _ProfilePageState extends State<ProfilePage> {
             onAddFriend: _sendFriendRequest,
             onLogout: _model.signOut,
           ),
+          if (_model.isOwnProfile) ...[
+            const SizedBox(height: 16),
+            const PinnedSpotsSection(),
+          ],
         ],
       ),
     );
