@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/pages/map/models/pin_type.dart';
 import 'package:jio_leh/pages/profile/models/pinned_spot_entry.dart';
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/tag_chip_row.dart';
 
 /// A single card in the "My Pinned Spots" grid. Shows the pin's photo (or a
 /// plain color block if it has none), the user's own star rating, the place
@@ -95,6 +96,10 @@ class PinnedSpotCard extends StatelessWidget {
                 color: AppColors.lightSubtitle,
               ),
             ),
+          if (entry.tags.isNotEmpty) ...[               // ADD
+            const SizedBox(height: 4),
+            TagChipRow(tags: entry.tags),
+          ],
         ],
       ),
     );

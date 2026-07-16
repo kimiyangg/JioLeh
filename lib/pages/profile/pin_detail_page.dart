@@ -8,6 +8,7 @@ import 'package:jio_leh/pages/map/models/pin_type.dart';
 import 'package:jio_leh/pages/profile/pin_detail_page_model.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
+import 'package:jio_leh/widgets/tag_chip_row.dart';
 
 /// Pushes a page showing one of the current user's own pins: their rating,
 /// review, and photos for that place.
@@ -92,6 +93,11 @@ class _PinDetailPageState extends State<PinDetailPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          if (widget.pin.aiTags.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            TagChipRow(tags: widget.pin.aiTags),
+          ],
+          const SizedBox(height: 12),
           const SizedBox(height: 12),
           Row(
             children: [
