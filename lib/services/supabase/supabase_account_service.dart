@@ -106,16 +106,14 @@ class SupabaseAccountService extends AccountService {
         .uploadBinary(
           path,
           bytes,
-          fileOptions: FileOptions(
-            upsert: true,
-            contentType: photo.mimeType,
-          ),
+          fileOptions: FileOptions(upsert: true, contentType: photo.mimeType),
         );
 
     // Re-uploads reuse this path, so the public URL is unchanged and image
     // caches keep serving the old photo. A changing query param busts them.
-    final publicUrl =
-        _supabase.storage.from('profile-photos').getPublicUrl(path);
+    final publicUrl = _supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(path);
     return '$publicUrl?v=${DateTime.now().millisecondsSinceEpoch}';
   }
 

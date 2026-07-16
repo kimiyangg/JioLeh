@@ -85,7 +85,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
     // Authoritative client-side rule lives in UsernameRule.
     final username = _usernameController.text.trim().toLowerCase();
     if (!UsernameRule.isValid(username)) {
-      context.showAppSnackBar(UsernameRule.errorMessage, kind: SnackBarKind.error);
+      context.showAppSnackBar(
+        UsernameRule.errorMessage,
+        kind: SnackBarKind.error,
+      );
       return;
     }
 
@@ -178,7 +181,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                         WelcomeHeader(),
                         // Profile photo picker
-                        SizedBox( 
+                        SizedBox(
                           width: double.infinity,
                           child: Center(
                             child: AppAvatar(
@@ -199,9 +202,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           onMonthChanged: (value) =>
                               setState(() => _selectedMonth = value),
                           joinDemoCommunity: _joinDemoCommunity,
-                          onJoinDemoCommunityChanged: (value) => setState(
-                            () => _joinDemoCommunity = value,
-                          ),
+                          onJoinDemoCommunityChanged: (value) =>
+                              setState(() => _joinDemoCommunity = value),
                         ),
 
                         Spacer(),
