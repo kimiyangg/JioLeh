@@ -15,29 +15,43 @@ class MapFog {
   static const _layerId = 'fog_layer';
 
   GeoJsonSource? _source;
+  // Guards the one-time source/layer creation so overlapping renders (a GPS
+  // fix landing mid-await) share a single addSource instead of double-adding.
+  Future<void>? _setup;
 
   Future<void> render(Set<FogTile> tiles) async {
     final data = fogFeatureCollection(tiles);
 
-    if (_source == null) {
-      final source = GeoJsonSource(id: _sourceId, data: data);
-      await _map.style.addSource(source);
-      _source = source;
-
-      await _map.style.addLayer(
-        FillLayer(
-          id: _layerId,
-          sourceId: _sourceId,
-          fillColor: AppColors.fogFill.toARGB32(),
-          fillOpacity: 0.55,
-        ),
-      );
-    } else {
-      await _source!.updateGeoJSON(data);
+    try {
+      await (_setup ??= _addLayers(data));
+    } catch (_) {
+      _setup = null; // Let a later render retry the one-time setup.
+      return;
     }
+
+    await _source!.updateGeoJSON(data);
+  }
+
+  Future<void> _addLayers(String initialData) async {
+    final source = GeoJsonSource(id: _sourceId, data: initialData);
+    await _map.style.addSource(source);
+    _source = source;
+
+    await _map.style.addLayer(
+      FillLayer(
+        id: _layerId,
+        sourceId: _sourceId,
+        fillColor: AppColors.fogFill.toARGB32(),
+        fillOpacity: 0.55,
+      ),
+    );
   }
 
   Future<void> setVisible(bool visible) async {
+    final setup = _setup;
+    if (setup == null) return; // Nothing rendered yet, no layer to toggle.
+    await setup;
+
     await _map.style.setStyleLayerProperty(
       _layerId,
       'visibility',

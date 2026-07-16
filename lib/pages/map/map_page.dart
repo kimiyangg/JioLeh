@@ -46,6 +46,10 @@ class _MapPageState extends State<MapPage> {
   bool _didBoot = false;
   bool _styleLoaded = false;
 
+  // Below this zoom a single viewport can span a user's entire exploration
+  // history, so skip the fog query and keep the polygon bounded.
+  static const double _fogMinZoom = 13;
+
   MapPageModel get _model => widget.model;
 
   @override
@@ -214,6 +218,8 @@ class _MapPageState extends State<MapPage> {
       north: northeast.lat.toDouble(),
     );
 
+    if (camera.zoom < _fogMinZoom) return;
+
     await _model.reloadFogInBounds(
       west: southwest.lng.toDouble(),
       south: southwest.lat.toDouble(),
@@ -271,9 +277,9 @@ class _MapPageState extends State<MapPage> {
             onMapIdleListener: _onMapIdle,
             onStyleLoadedListener: (_) async {
               _styleLoaded = true;
-              // Seed dirty-trackers before awaiting, or a location update
-              // mid-await re-enters render() and double-adds the source, or
-              // toggles visibility on a layer that does not exist yet.
+              // Seed dirty-trackers before awaiting so a location update
+              // mid-load does not trigger a redundant pins re-render (MapPins
+              // is not reentrancy-safe); MapFog guards its own setup.
               _renderedFogTiles = _model.exploredTiles;
               _renderedFogEnabled = _model.fogEnabled;
               _renderedPlaces = _model.places;
