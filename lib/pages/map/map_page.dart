@@ -271,9 +271,13 @@ class _MapPageState extends State<MapPage> {
             onMapIdleListener: _onMapIdle,
             onStyleLoadedListener: (_) async {
               _styleLoaded = true;
+              // Seed dirty-trackers before awaiting, or a location update
+              // mid-await re-enters render() and double-adds the source, or
+              // toggles visibility on a layer that does not exist yet.
               _renderedFogTiles = _model.exploredTiles;
-              await _fog?.render(_model.exploredTiles);
+              _renderedFogEnabled = _model.fogEnabled;
               _renderedPlaces = _model.places;
+              await _fog?.render(_model.exploredTiles);
               await _pins?.render(_model.places);
             },
             onMapCreated: (controller) async {
