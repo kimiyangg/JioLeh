@@ -24,6 +24,8 @@ class ProfileForm extends StatelessWidget {
     required this.yearController,
     required this.selectedMonth,
     required this.onMonthChanged,
+    required this.joinDemoCommunity,
+    required this.onJoinDemoCommunityChanged,
   });
 
   final TextEditingController usernameController;
@@ -32,6 +34,8 @@ class ProfileForm extends StatelessWidget {
   final TextEditingController yearController;
   final String? selectedMonth;
   final ValueChanged<String?> onMonthChanged;
+  final bool joinDemoCommunity;
+  final ValueChanged<bool> onJoinDemoCommunityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +68,17 @@ class ProfileForm extends StatelessWidget {
               yearController: yearController,
               selectedMonth: selectedMonth,
               onMonthChanged: onMonthChanged,
+            ),
+            const SizedBox(height: 24),
+            CheckboxListTile(
+              value: joinDemoCommunity,
+              onChanged: (value) => onJoinDemoCommunityChanged(value ?? false),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text('Join the demo community'),
+              subtitle: const Text(
+                'Start with demo friends, place recommendations, an OpenJio invite, and chat messages.',
+              ),
             ),
           ],
         ),

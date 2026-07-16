@@ -30,6 +30,8 @@ void main() {
             yearController: TextEditingController(),
             selectedMonth: 'September',
             onMonthChanged: (_) {},
+            joinDemoCommunity: false,
+            onJoinDemoCommunityChanged: (_) {},
           ),
         ),
       );

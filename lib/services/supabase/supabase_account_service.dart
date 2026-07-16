@@ -89,6 +89,11 @@ class SupabaseAccountService extends AccountService {
     //
   }
 
+  @override
+  Future<void> joinDemoCommunity() async {
+    await _supabase.rpc('join_demo_community');
+  }
+
   /// Uploads [photo] to the profile-photos bucket under the user's own folder
   /// and returns its public URL.
   Future<String> _uploadAvatar(XFile photo, String userId) async {

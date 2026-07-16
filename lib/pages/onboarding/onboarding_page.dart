@@ -53,6 +53,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final _yearController = TextEditingController();
   String? _selectedMonth;
   bool _submitting = false;
+  bool _joinDemoCommunity = false;
 
   @override
   void didChangeDependencies() {
@@ -108,6 +109,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
         birthday: birthday,
         avatarFile: _avatarFile,
       );
+      if (_joinDemoCommunity) {
+        try {
+          await _account.joinDemoCommunity();
+        } catch (error) {
+          if (mounted) {
+            context.showAppSnackBar(
+              'Your account was created, but demo content could not be added: $error',
+              kind: SnackBarKind.error,
+            );
+          }
+        }
+      }
       // Tell AuthGate to re-check; it will route on to the MapPage.
       await widget.onComplete?.call();
     } on UsernameTaken {
@@ -185,6 +198,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           selectedMonth: _selectedMonth,
                           onMonthChanged: (value) =>
                               setState(() => _selectedMonth = value),
+                          joinDemoCommunity: _joinDemoCommunity,
+                          onJoinDemoCommunityChanged: (value) => setState(
+                            () => _joinDemoCommunity = value,
+                          ),
                         ),
 
                         Spacer(),
