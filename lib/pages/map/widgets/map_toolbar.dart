@@ -5,10 +5,14 @@ class MapToolbar extends StatelessWidget {
     super.key,
     required this.onRecenter,
     required this.onSuggestions,
+    required this.onToggleFog,
+    required this.fogEnabled,
   });
 
   final VoidCallback onRecenter;
   final VoidCallback onSuggestions;
+  final VoidCallback onToggleFog;
+  final bool fogEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +22,16 @@ class MapToolbar extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          FloatingActionButton.small(
+            heroTag: 'fog',
+            onPressed: onToggleFog,
+            backgroundColor: Colors.white,
+            child: Icon(
+              fogEnabled ? Icons.cloud : Icons.cloud_off,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
           FloatingActionButton.small(
             heroTag: 'suggestions',
             onPressed: onSuggestions,

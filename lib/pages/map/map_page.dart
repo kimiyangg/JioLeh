@@ -16,6 +16,8 @@ import 'package:jio_leh/models/suggested_place.dart';
 import 'package:jio_leh/pages/map/widgets/suggested_places_section.dart';
 
 import 'package:jio_leh/pages/map/renders/map_pins.dart';
+import 'package:jio_leh/pages/map/renders/map_fog.dart';
+import 'package:jio_leh/pages/map/models/fog_tile.dart';
 
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
@@ -35,9 +37,12 @@ class _MapPageState extends State<MapPage> {
   // Map view state. The data (location, places) lives in the model.
   MapboxMap? _map;
   MapPins? _pins;
+  MapFog? _fog;
   Timer? _viewportReload;
   ViewportState? _initialViewport;
   List<Place>? _renderedPlaces;
+  Set<FogTile>? _renderedFogTiles;
+  bool? _renderedFogEnabled;
   bool _didBoot = false;
   bool _styleLoaded = false;
 
@@ -83,6 +88,17 @@ class _MapPageState extends State<MapPage> {
     if (_styleLoaded && !identical(_renderedPlaces, _model.places)) {
       _renderedPlaces = _model.places;
       _pins?.render(_model.places);
+    }
+
+    // Re-render fog only when the explored set changed (a new set object).
+    if (_styleLoaded && !identical(_renderedFogTiles, _model.exploredTiles)) {
+      _renderedFogTiles = _model.exploredTiles;
+      _fog?.render(_model.exploredTiles);
+    }
+
+    if (_styleLoaded && _renderedFogEnabled != _model.fogEnabled) {
+      _renderedFogEnabled = _model.fogEnabled;
+      _fog?.setVisible(_model.fogEnabled);
     }
 
     setState(() {});
@@ -197,6 +213,13 @@ class _MapPageState extends State<MapPage> {
       east: northeast.lng.toDouble(),
       north: northeast.lat.toDouble(),
     );
+
+    await _model.reloadFogInBounds(
+      west: southwest.lng.toDouble(),
+      south: southwest.lat.toDouble(),
+      east: northeast.lng.toDouble(),
+      north: northeast.lat.toDouble(),
+    );
   }
 
   Future<void> _showLocationErrorDialog(Object error) async {
@@ -248,6 +271,8 @@ class _MapPageState extends State<MapPage> {
             onMapIdleListener: _onMapIdle,
             onStyleLoadedListener: (_) async {
               _styleLoaded = true;
+              _renderedFogTiles = _model.exploredTiles;
+              await _fog?.render(_model.exploredTiles);
               _renderedPlaces = _model.places;
               await _pins?.render(_model.places);
             },
@@ -259,6 +284,7 @@ class _MapPageState extends State<MapPage> {
                   _showPlace(place);
                 },
               );
+              _fog = MapFog(controller);
 
               await _initMapStyleSettings();
               await _enableMapboxLocationComponent();
@@ -280,6 +306,8 @@ class _MapPageState extends State<MapPage> {
           MapToolbar(
             onRecenter: _recenterMap,
             onSuggestions: _showSuggestionsSheet,
+            onToggleFog: _model.toggleFog,
+            fogEnabled: _model.fogEnabled,
           ),
         ],
       ),
