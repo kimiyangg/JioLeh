@@ -8,6 +8,7 @@ import 'package:jio_leh/models/place.dart';
 import 'package:jio_leh/models/user_inserted_pin.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
+import 'package:jio_leh/services/photo_tagging_service.dart';
 
 import 'package:jio_leh/models/point_transaction.dart';
 import 'package:jio_leh/services/points_service.dart';
@@ -15,11 +16,12 @@ import 'package:jio_leh/services/points_service.dart';
 /// The real [PinService] used in production, backed by Supabase.
 class SupabasePinService extends PinService {
   // `required this.auth` stores the injected AuthService in the auth field.
-  SupabasePinService({required SupabaseClient client, required this.auth, required this.points})
+  SupabasePinService({required SupabaseClient client, required this.auth, required this.points, required this.photoTagging})
     : _supabase = client;
 
   final AuthService auth;
   final PointsService points;
+  final PhotoTaggingService photoTagging;
   final SupabaseClient _supabase;
 
   static const _placesTable = 'places';
@@ -78,6 +80,8 @@ class SupabasePinService extends PinService {
 
       pinId = insertedPin['id'] as String;
 
+      final allTags = <String>{};
+
       for (var index = 0; index < photos.length; index++) {
         final photo = photos[index];
         final bytes = await photo.readAsBytes();
@@ -96,6 +100,7 @@ class SupabasePinService extends PinService {
             );
 
         uploadedPaths.add(path);
+        allTags.addAll(await photoTagging.tagPhoto(bytes));
       }
 
       if (uploadedPaths.isNotEmpty) {
@@ -103,6 +108,17 @@ class SupabasePinService extends PinService {
             .from(_userPinsTable)
             .update({'photo_paths': uploadedPaths})
             .eq('id', pinId);
+      }
+
+      if (allTags.isNotEmpty) {   // ADD this whole block
+        try {
+          await _supabase
+              .from(_userPinsTable)
+              .update({'ai_tags': allTags.toList()})
+              .eq('id', pinId);
+        } catch (_) {
+          // Tags are enrichment, not critical — the pin itself already saved.
+        }
       }
 
       await _awardPinPoints(pinId, uploadedPaths.length);
