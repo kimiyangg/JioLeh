@@ -26,6 +26,7 @@ class FakeAccountService extends AccountService {
   // Counters so tests can check "did create / update get called?".
   int createProfileCalls = 0;
   int updateProfileCalls = 0;
+  int joinDemoCommunityCalls = 0;
 
   @override
   Future<bool> profileExists() async {
@@ -56,6 +57,11 @@ class FakeAccountService extends AccountService {
     createProfileCalls++;
     if (throwUsernameTaken) throw const UsernameTaken();
     hasProfile = true; // a profile now exists
+  }
+
+  @override
+  Future<void> joinDemoCommunity() async {
+    joinDemoCommunityCalls++;
   }
 
   @override

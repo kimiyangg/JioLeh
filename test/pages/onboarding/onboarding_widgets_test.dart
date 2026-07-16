@@ -30,6 +30,8 @@ void main() {
             yearController: TextEditingController(),
             selectedMonth: 'September',
             onMonthChanged: (_) {},
+            joinDemoCommunity: false,
+            onJoinDemoCommunityChanged: (_) {},
           ),
         ),
       );
@@ -54,11 +56,7 @@ void main() {
 
   group('WelcomeHeader', () {
     Widget buildHeader() {
-      return MaterialApp(
-        home: Scaffold(
-          body: WelcomeHeader(),
-        ),
-      );
+      return MaterialApp(home: Scaffold(body: WelcomeHeader()));
     }
 
     devices.forEach((name, size) {
@@ -80,5 +78,4 @@ void main() {
       });
     });
   });
-
 }

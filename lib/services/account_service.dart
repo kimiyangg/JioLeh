@@ -22,6 +22,10 @@ abstract class AccountService {
     XFile? avatarFile,
   });
 
+  /// Adds the current user to the reusable demo community used in user tests.
+  /// The backend owns the demo profiles and sample data; clients only opt in.
+  Future<void> joinDemoCommunity();
+
   /// Looks up a profile by its username. Returns null if no user has it.
   Future<UserProfile?> findByUsername(String username);
 
