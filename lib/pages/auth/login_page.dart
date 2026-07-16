@@ -97,10 +97,7 @@ class _AuthPageState extends State<AuthPage> {
                       ),
                       SignInPanel(
                         isSigningIn: _isSigningIn,
-                        onGooglePressed:
-                            defaultTargetPlatform == TargetPlatform.iOS 
-                                ? null 
-                                : _signInWithGoogle,
+                        onGooglePressed: _signInWithGoogle,
                         onApplePressed:
                             defaultTargetPlatform == TargetPlatform.iOS
                                 ? _signInWithApple

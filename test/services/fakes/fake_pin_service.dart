@@ -141,4 +141,15 @@ class FakePinService extends PinService {
 
     return providerPlaceIdResult;
   }
+
+  Place? loadPlaceByIdResult;
+  int loadPlaceByIdCalls = 0;
+  String? lastLoadPlaceById;
+
+  @override
+  Future<Place?> loadPlaceById(String placeId) async {
+    loadPlaceByIdCalls++;
+    lastLoadPlaceById = placeId;
+    return loadPlaceByIdResult;
+  }
 }

@@ -42,7 +42,7 @@ class InvitationsPageModel extends ChangeNotifier {
   }
 
   Future<void> loadEvents() async {
-    
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -91,6 +91,25 @@ class InvitationsPageModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates an edited jio, then reloads so derived fields (place category, going count) stay correct.
+  ///
+  /// Rethrows on failure so the page can surface a snack bar.
+  Future<void> updateEvent(OpenJioEvent event) async {
+    await openJio.updateEvent(event);
+    if (_disposed) return;
+    await loadEvents();
+  }
+
+  /// Deletes one of the current user's own jios and removes it locally.
+  ///
+  /// Rethrows on failure so the page can surface a snack bar.
+  Future<void> deleteEvent(OpenJioEvent event) async {
+    await openJio.deleteEvent(event.id!);
+    if (_disposed) return;
+    _sentEvents = _sentEvents.where((e) => e.id != event.id).toList();
+    notifyListeners();
+  }
+
   /// Accepts or declines [event] and immediately reflects the change locally.
   ///
   /// Rethrows on failure so the page can surface a snack bar.
@@ -111,9 +130,14 @@ class InvitationsPageModel extends ChangeNotifier {
           dateTime: event.dateTime,
           caption: event.caption,
           locationName: event.locationName,
+          placeId: event.placeId,
           senderId: event.senderId,
           senderName: event.senderName,
+          senderAvatarUrl: event.senderAvatarUrl,
           inviteStatus: InviteStatus.accepted,
+          // The server count now includes this user's freshly-accepted invite.
+          goingCount: event.goingCount == null ? null : event.goingCount! + 1,
+          placeCategory: event.placeCategory,
         ),
         ..._acceptedEvents,
       ];

@@ -256,6 +256,20 @@ class SupabasePinService extends PinService {
     return rows.map(Place.fromMap).toList();
   }
 
+  @override
+  Future<Place?> loadPlaceById(String placeId) async {
+    // Left-joins user_pins (unlike _placeColumns' inner join), so a place with no visible pins still resolves.
+    final row = await _supabase
+        .from(_placesTable)
+        .select('id, name, latitude, longitude, pin_count, category, '
+            'user_pins(id, user_id, place_id, custom_name, emoji, ratings, '
+            'reviews, photo_paths, is_private)')
+        .eq('id', placeId)
+        .maybeSingle();
+
+    return row == null ? null : Place.fromMap(row);
+  }
+
 
     // Points are a bonus, not a critical path — award best-effort so a
   // points-write hiccup never fails an otherwise-successful pin save.

@@ -9,6 +9,14 @@ abstract class OpenJioService {
   /// row for each invitee, and returns the generated event ID.
   Future<String> saveEvent(OpenJioEvent event);
 
+  /// Updates the current user's own [event] (matched by its id) and syncs the
+  /// invitee list: newly added friends get a pending status row, removed
+  /// friends have their status row deleted.
+  Future<void> updateEvent(OpenJioEvent event);
+
+  /// Deletes the current user's own event; cascades clear its invite statuses.
+  Future<void> deleteEvent(String eventId);
+
   /// Fetches the events the current user has sent, resolving invitees against
   /// [allFriends].
   Future<List<OpenJioEvent>> getSentEvents(List<UserFriend> allFriends);

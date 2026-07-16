@@ -10,9 +10,11 @@ import 'package:jio_leh/pages/invitations/widgets/received_event_card.dart';
 import 'package:jio_leh/pages/invitations/widgets/your_jio_card.dart';
 
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_dialog.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
 import 'package:jio_leh/widgets/app_primary_button.dart';
 import 'package:jio_leh/widgets/app_selection_bar.dart';
+import 'package:jio_leh/widgets/app_snack_bar.dart';
 
 class InvitationsPage extends StatefulWidget {
   const InvitationsPage({super.key});
@@ -78,6 +80,57 @@ class _InvitationsPageState extends State<InvitationsPage> {
         const SnackBar(content: Text('Failed to respond. Please try again.')),
       );
     }
+  }
+
+  Future<void> _editJio(OpenJioEvent event) async {
+    final updated = await Navigator.push<OpenJioEvent>(
+      context,
+      MaterialPageRoute(builder: (_) => OpenJioFormPage(event: event)),
+    );
+    if (updated == null || !mounted) return;
+
+    try {
+      await _model.updateEvent(updated);
+    } catch (_) {
+      if (!mounted) return;
+      context.showAppSnackBar(
+        'Failed to save changes. Please try again.',
+        kind: SnackBarKind.error,
+      );
+    }
+  }
+
+  Future<void> _deleteJio(OpenJioEvent event) async {
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Delete this jio?',
+      message: 'This removes the jio for everyone invited.',
+      confirmLabel: 'Delete',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await _model.deleteEvent(event);
+    } catch (_) {
+      if (!mounted) return;
+      context.showAppSnackBar(
+        'Failed to delete. Please try again.',
+        kind: SnackBarKind.error,
+      );
+    }
+  }
+
+  Future<void> _leaveJio(OpenJioEvent event) async {
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Leave this jio?',
+      message: 'You will leave this jio.',
+      confirmLabel: 'Leave',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    await _respond(event, InviteStatus.declined);
   }
 
   @override
@@ -150,9 +203,19 @@ class _InvitationsPageState extends State<InvitationsPage> {
       }
       return ListView(
         children: [
-          ..._model.sentEvents.map((e) => YourJioCard(event: e)),
+          ..._model.sentEvents.map(
+            (e) => YourJioCard(
+              event: e,
+              onEdit: () => _editJio(e),
+              onDelete: () => _deleteJio(e),
+            ),
+          ),
           ..._model.acceptedEvents.map(
-            (e) => YourJioCard(event: e, onChanged: _model.loadEvents),
+            (e) => YourJioCard(
+              event: e,
+              onChanged: _model.loadEvents,
+              onLeave: () => _leaveJio(e),
+            ),
           ),
         ],
       );

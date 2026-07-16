@@ -51,27 +51,57 @@ class SignInPanel extends StatelessWidget {
               ),
             ),
           ),
-          if (onGooglePressed != null) ...[
+          if (onGooglePressed != null && onApplePressed != null) ...[
             const SizedBox(height: 16),
-            AppPrimaryButton(
-              label: 'Continue with Google',
-              onPressed: onGooglePressed,
-              leading: const _GoogleLogoDisc(),
-              isLoading: isSigningIn,
-              backgroundColor: AppColors.darkButton,
-              liftColor: Colors.black,
+            // Side by side, so the labels drop the "Continue with" prefix to fit.
+            Row(
+              children: [
+                Expanded(
+                  child: AppPrimaryButton(
+                    label: 'Google',
+                    onPressed: onGooglePressed,
+                    leading: const _GoogleLogoDisc(),
+                    isLoading: isSigningIn,
+                    backgroundColor: AppColors.darkButton,
+                    liftColor: Colors.black,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AppPrimaryButton(
+                    label: 'Apple',
+                    onPressed: onApplePressed,
+                    icon: Icons.apple,
+                    isLoading: isSigningIn,
+                    backgroundColor: AppColors.darkButton,
+                    liftColor: Colors.black,
+                  ),
+                ),
+              ],
             ),
-          ],
-          if (onApplePressed != null) ...[
-            const SizedBox(height: 16),
-            AppPrimaryButton(
-              label: 'Continue with Apple',
-              onPressed: onApplePressed,
-              icon: Icons.apple,
-              isLoading: isSigningIn,
-              backgroundColor: AppColors.darkButton,
-              liftColor: Colors.black,
-            ),
+          ] else ...[
+            if (onGooglePressed != null) ...[
+              const SizedBox(height: 16),
+              AppPrimaryButton(
+                label: 'Continue with Google',
+                onPressed: onGooglePressed,
+                leading: const _GoogleLogoDisc(),
+                isLoading: isSigningIn,
+                backgroundColor: AppColors.darkButton,
+                liftColor: Colors.black,
+              ),
+            ],
+            if (onApplePressed != null) ...[
+              const SizedBox(height: 16),
+              AppPrimaryButton(
+                label: 'Continue with Apple',
+                onPressed: onApplePressed,
+                icon: Icons.apple,
+                isLoading: isSigningIn,
+                backgroundColor: AppColors.darkButton,
+                liftColor: Colors.black,
+              ),
+            ],
           ],
           const SizedBox(height: 16),
           const _TermsText(),

@@ -30,7 +30,8 @@ void main() {
     );
   }
 
-  Finder appleButton() => find.widgetWithText(AppPrimaryButton, 'Continue with Apple');
+  // iOS shows both providers side by side, so its labels are the short ones.
+  Finder appleButton() => find.widgetWithText(AppPrimaryButton, 'Apple');
 
   testWidgets('shows the Apple button when the platform is iOS', (tester) async {
     usePhoneSizedScreen(tester);
@@ -39,11 +40,22 @@ void main() {
     expect(appleButton(), findsOneWidget);
   }, variant: onIos);
 
+  testWidgets('shows the Google button on iOS too', (tester) async {
+    usePhoneSizedScreen(tester);
+    await tester.pumpWidget(buildPage(FakeAuthService()));
+
+    expect(find.widgetWithText(AppPrimaryButton, 'Google'), findsOneWidget);
+  }, variant: onIos);
+
   testWidgets('hides the Apple button when the platform is Android', (tester) async {
     usePhoneSizedScreen(tester);
     await tester.pumpWidget(buildPage(FakeAuthService()));
 
     expect(appleButton(), findsNothing);
+    expect(
+      find.widgetWithText(AppPrimaryButton, 'Continue with Apple'),
+      findsNothing,
+    );
   }, variant: onAndroid);
 
   testWidgets('tapping the Apple button calls signInWithApple exactly once', (tester) async {

@@ -53,4 +53,65 @@ void main() {
       );
     });
   });
+
+  group('formatRelativeDateTime', () {
+    final now = DateTime(2024, 1, 15, 12, 0);
+
+    test('same day, morning, formats as Today', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 15, 8, 30), now: now),
+        'Today · 8:30 AM',
+      );
+    });
+
+    test('same day, exactly 5 PM, formats as Tonight', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 15, 17, 0), now: now),
+        'Tonight · 5:00 PM',
+      );
+    });
+
+    test('same day, one minute before 5 PM, still formats as Today', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 15, 16, 59), now: now),
+        'Today · 4:59 PM',
+      );
+    });
+
+    test('next calendar day formats as Tomorrow', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 16, 9, 0), now: now),
+        'Tomorrow · 9:00 AM',
+      );
+    });
+
+    test('two days ahead falls back to the full weekday format', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 17, 9, 0), now: now),
+        'Wed, 17 Jan · 9:00 AM',
+      );
+    });
+
+    test('a day in the past falls back to the full weekday format', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 14, 9, 0), now: now),
+        'Sun, 14 Jan · 9:00 AM',
+      );
+    });
+
+    test('midnight on the same day formats as Today · 12:00 AM', () {
+      expect(
+        formatRelativeDateTime(DateTime(2024, 1, 15, 0, 0), now: now),
+        'Today · 12:00 AM',
+      );
+    });
+
+    test('tomorrow across a month boundary still formats as Tomorrow', () {
+      final monthEnd = DateTime(2024, 1, 31, 23, 0);
+      expect(
+        formatRelativeDateTime(DateTime(2024, 2, 1, 0, 30), now: monthEnd),
+        'Tomorrow · 12:30 AM',
+      );
+    });
+  });
 }

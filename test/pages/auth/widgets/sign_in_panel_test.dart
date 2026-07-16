@@ -20,18 +20,31 @@ void main() {
     );
   }
 
-  Finder appleButton() => find.widgetWithText(AppPrimaryButton, 'Continue with Apple');
+  // With both callbacks present the panel uses compact side-by-side labels.
+  Finder appleButton() => find.widgetWithText(AppPrimaryButton, 'Apple');
 
-  testWidgets('hides the Apple button when onApplePressed is null', (tester) async {
+  testWidgets('hides the Apple button and keeps the full-width Google label when onApplePressed is null', (tester) async {
     await tester.pumpWidget(buildPanel());
 
     expect(appleButton(), findsNothing);
+    expect(find.widgetWithText(AppPrimaryButton, 'Continue with Apple'), findsNothing);
+    expect(find.widgetWithText(AppPrimaryButton, 'Continue with Google'), findsOneWidget);
   });
 
-  testWidgets('shows the Apple button when onApplePressed is provided', (tester) async {
+  testWidgets('shows the short-label Apple button when onApplePressed is provided', (tester) async {
     await tester.pumpWidget(buildPanel(onApplePressed: () {}));
 
     expect(appleButton(), findsOneWidget);
+    expect(find.widgetWithText(AppPrimaryButton, 'Google'), findsOneWidget);
+  });
+
+  testWidgets('with both callbacks the buttons sit on the same horizontal row', (tester) async {
+    await tester.pumpWidget(buildPanel(onApplePressed: () {}));
+
+    final googleTop = tester.getTopLeft(find.widgetWithText(AppPrimaryButton, 'Google'));
+    final appleTop = tester.getTopLeft(appleButton());
+    expect(googleTop.dy, appleTop.dy);
+    expect(googleTop.dx, lessThan(appleTop.dx));
   });
 
   testWidgets('tapping the Apple button fires onApplePressed', (tester) async {

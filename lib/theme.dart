@@ -36,6 +36,9 @@ class AppColors {
 
   // Fog-of-map overlay fill for unexplored area.
   static const fogFill = Color(0xFF2A2A35);
+
+  // Tinted mint surface for the place preview box on jio cards.
+  static const mintSection = Color(0xFFD9EDDC);
 }
 
 class LogoColors {
