@@ -4,7 +4,6 @@ import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/profile/models/pinned_spot_entry.dart';
 import 'package:jio_leh/pages/profile/my_pinned_spots_page.dart';
-import 'package:jio_leh/pages/profile/pin_detail_page.dart';
 import 'package:jio_leh/pages/profile/widgets/pinned_spot_card.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
@@ -132,11 +131,7 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
               childAspectRatio: 0.85,
               children: [
                 for (final entry in preview)
-                  PinnedSpotCard(
-                    entry: entry,
-                    onTap: () =>
-                        showPinDetailPage(context, place: entry.place, pin: entry.pin),
-                  ),
+                  PinnedSpotCard(entry: entry),
               ],
             ),
           ],
