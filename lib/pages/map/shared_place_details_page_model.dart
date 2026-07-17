@@ -33,6 +33,30 @@ class SharedPlaceDetailsPageModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  List<String> get allPhotoUrls =>
+      [for (final entry in _entries) ...entry.photoUrls];
+
+  List<String> get allTags {
+    final seen = <String>{};
+    return [
+      for (final entry in _entries)
+        for (final tag in entry.pin.aiTags)
+          if (seen.add(tag)) tag,
+    ];
+  }
+
+  int get ratingCount =>
+      _entries.where((entry) => entry.pin.rating != null).length;
+
+  double? get averageRating {
+    final ratings = [
+      for (final entry in _entries)
+        if (entry.pin.rating != null) entry.pin.rating!,
+    ];
+    if (ratings.isEmpty) return null;
+    return ratings.reduce((a, b) => a + b) / ratings.length;
+  }
+
   Future<void> load() async {
     _isLoading = true;
     _error = null;
