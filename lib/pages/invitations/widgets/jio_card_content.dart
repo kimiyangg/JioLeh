@@ -130,7 +130,7 @@ class _PlacePreview extends StatelessWidget {
     try {
       final place = await pins.loadPlaceById(event.placeId!);
       if (place == null || !context.mounted) return;
-      showSharedPlaceDetailsPage(context, place);
+      showSharedPlaceDetailsSheet(context, place);
     } catch (_) {
       if (!context.mounted) return;
       context.showAppSnackBar(

@@ -2,7 +2,7 @@ import 'package:jio_leh/models/user_pin.dart';
 import 'package:jio_leh/models/user_profile.dart';
 
 /// One friend's pin on a shared [Place], combined with their resolved
-/// profile and display-ready photo URLs, for [SharedPlaceDetailsPage].
+/// profile and display-ready photo URLs, for [SharedPlaceDetailsSheet].
 class FriendPinEntry {
   const FriendPinEntry({
     required this.pin,

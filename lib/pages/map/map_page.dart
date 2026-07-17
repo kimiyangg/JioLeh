@@ -238,7 +238,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _showPlace(Place place) async {
-    await showSharedPlaceDetailsPage(context, place);
+    await showSharedPlaceDetailsSheet(context, place);
     return;
   }
 

@@ -170,6 +170,9 @@ class _ProfilePageState extends State<ProfilePage> {
           if (_model.isOwnProfile) ...[
             const SizedBox(height: 16),
             const PinnedSpotsSection(),
+          ] else if (_model.isAlreadyFriend) ...[
+            const SizedBox(height: 16),
+            PinnedSpotsSection(userId: profile.id),
           ],
         ],
       ),

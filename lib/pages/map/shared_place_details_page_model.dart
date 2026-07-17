@@ -6,7 +6,7 @@ import 'package:jio_leh/services/account_service.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 
-/// Presentation state and logic for [SharedPlaceDetailsPage].
+/// Presentation state and logic for [SharedPlaceDetailsSheet].
 ///
 /// Resolves every friend's [UserPin] on [place] into a [FriendPinEntry] by
 /// fetching their profile and signed photo URLs. Call [load] once after
@@ -32,6 +32,30 @@ class SharedPlaceDetailsPageModel extends ChangeNotifier {
   List<FriendPinEntry> get entries => _entries;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  List<String> get allPhotoUrls =>
+      [for (final entry in _entries) ...entry.photoUrls];
+
+  List<String> get allTags {
+    final seen = <String>{};
+    return [
+      for (final entry in _entries)
+        for (final tag in entry.pin.aiTags)
+          if (seen.add(tag)) tag,
+    ];
+  }
+
+  int get ratingCount =>
+      _entries.where((entry) => entry.pin.rating != null).length;
+
+  double? get averageRating {
+    final ratings = [
+      for (final entry in _entries)
+        if (entry.pin.rating != null) entry.pin.rating!,
+    ];
+    if (ratings.isEmpty) return null;
+    return ratings.reduce((a, b) => a + b) / ratings.length;
+  }
 
   Future<void> load() async {
     _isLoading = true;

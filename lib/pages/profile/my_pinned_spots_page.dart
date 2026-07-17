@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/profile/my_pinned_spots_page_model.dart';
-import 'package:jio_leh/pages/profile/pin_detail_page.dart';
 import 'package:jio_leh/pages/profile/widgets/pinned_spot_card.dart';
 import 'package:jio_leh/theme.dart';
 import 'package:jio_leh/widgets/app_page_header.dart';
@@ -80,11 +79,7 @@ class _MyPinnedSpotsPageState extends State<MyPinnedSpotsPage> {
       itemCount: _model.entries.length,
       itemBuilder: (context, index) {
         final entry = _model.entries[index];
-        return PinnedSpotCard(
-          entry: entry,
-          onTap: () =>
-              showPinDetailPage(context, place: entry.place, pin: entry.pin),
-        );
+        return PinnedSpotCard(entry: entry);
       },
     );
   }

@@ -140,6 +140,20 @@ class AppFriendChip {
   static const nameGap = 4.0;
 }
 
+// The shared place details bottom sheet.
+class AppPlaceSheet {
+  static const initialExtent = 0.6;
+  static const minExtent = 0.4;
+  static const maxExtent = 0.95;
+  static const handleWidth = 40.0;
+  static const handleHeight = 4.0;
+  static const photoStripHeight = 180.0;
+  static const leadPhotoWidth = 240.0;
+  static const photoWidth = 140.0;
+  static const photoGap = 8.0;
+  static const reviewThumb = 90.0;
+}
+
 
 // Extension on BuildContext to provide responsive text scaling based on screen width.
 extension ResponsiveText on BuildContext {

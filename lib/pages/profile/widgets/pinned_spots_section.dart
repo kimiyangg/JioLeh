@@ -4,18 +4,20 @@ import 'package:jio_leh/app/service_provider.dart';
 import 'package:jio_leh/pages/auth/widgets/brand_loading_animation.dart';
 import 'package:jio_leh/pages/profile/models/pinned_spot_entry.dart';
 import 'package:jio_leh/pages/profile/my_pinned_spots_page.dart';
-import 'package:jio_leh/pages/profile/pin_detail_page.dart';
 import 'package:jio_leh/pages/profile/widgets/pinned_spot_card.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_section_heading.dart';
 
 const _previewCount = 4;
 
 /// Shows a small preview grid of places the current user has pinned, with
 /// a "See all" link to the full list. Only makes sense on your own profile.
 class PinnedSpotsSection extends StatefulWidget {
-  const PinnedSpotsSection({super.key});
+  const PinnedSpotsSection({super.key, this.userId});
+
+  final String? userId;
 
   @override
   State<PinnedSpotsSection> createState() => _PinnedSpotsSectionState();
@@ -25,6 +27,8 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
   late PinService _pins;
   late AuthService _auth;
   Future<List<PinnedSpotEntry>>? _future;
+
+  bool get _isOwnProfile => widget.userId == null;
 
   @override
   void didChangeDependencies() {
@@ -36,7 +40,7 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
   }
 
   Future<List<PinnedSpotEntry>> _loadEntries() async {
-    final userId = _auth.getCurrentUserId();
+    final userId = widget.userId ?? _auth.getCurrentUserId();
     final places = await _pins.loadPlacesPinnedByUser(userId);
 
     final paths = <String>[];
@@ -82,13 +86,19 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
         }
 
         if (snapshot.hasError) {
-          return const Text("Couldn't load your pinned spots.");
+          return Text(
+            _isOwnProfile
+                ? "Couldn't load your pinned spots."
+                : "Couldn't load pinned spots.",
+          );
         }
 
         final entries = snapshot.data ?? [];
         if (entries.isEmpty) {
-          return const Text(
-            'No pinned spots yet. Start pinning places you visit!',
+          return Text(
+            _isOwnProfile
+                ? 'No pinned spots yet. Start pinning places you visit!'
+                : 'No pinned spots yet.',
           );
         }
 
@@ -101,25 +111,22 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
           children: [
             Row(
               children: [
-                const Expanded(
-                  child: Text(
-                    'MY PINNED SPOTS',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
+                Expanded(
+                  child: AppSectionHeading(
+                    text: _isOwnProfile ? 'My Pins' : 'Pins',
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => showMyPinnedSpotsPage(context),
-                  child: const Text(
-                    'See all',
-                    style: TextStyle(
-                      color: AppColors.lightWidgetBackground,
-                      fontWeight: FontWeight.bold,
+                if (_isOwnProfile)
+                  GestureDetector(
+                    onTap: () => showMyPinnedSpotsPage(context),
+                    child: const Text(
+                      'See all',
+                      style: TextStyle(
+                        color: AppColors.lightWidgetBackground,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -127,16 +134,12 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 16,
+              mainAxisSpacing: 8,
               crossAxisSpacing: 16,
-              childAspectRatio: 0.85,
+              childAspectRatio: 1.1,
               children: [
                 for (final entry in preview)
-                  PinnedSpotCard(
-                    entry: entry,
-                    onTap: () =>
-                        showPinDetailPage(context, place: entry.place, pin: entry.pin),
-                  ),
+                  PinnedSpotCard(entry: entry),
               ],
             ),
           ],
