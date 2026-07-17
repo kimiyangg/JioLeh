@@ -8,6 +8,7 @@ import 'package:jio_leh/pages/profile/widgets/pinned_spot_card.dart';
 import 'package:jio_leh/services/auth_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
 import 'package:jio_leh/theme.dart';
+import 'package:jio_leh/widgets/app_section_heading.dart';
 
 const _previewCount = 4;
 
@@ -100,15 +101,7 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
           children: [
             Row(
               children: [
-                const Expanded(
-                  child: Text(
-                    'MY PINNED SPOTS',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
+                Expanded(child: const AppSectionHeading(text: 'My Pins')),
                 GestureDetector(
                   onTap: () => showMyPinnedSpotsPage(context),
                   child: const Text(
@@ -126,9 +119,9 @@ class _PinnedSpotsSectionState extends State<PinnedSpotsSection> {
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 16,
+              mainAxisSpacing: 8,
               crossAxisSpacing: 16,
-              childAspectRatio: 0.85,
+              childAspectRatio: 1.1,
               children: [
                 for (final entry in preview)
                   PinnedSpotCard(entry: entry),
