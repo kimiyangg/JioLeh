@@ -175,7 +175,7 @@ class _SharedPlaceDetailsSheetState extends State<SharedPlaceDetailsSheet> {
       _buildHeader(),
       if (_model.allTags.isNotEmpty) ...[
         const SizedBox(height: 8),
-        TagChipRow(tags: _model.allTags),
+        TagChipRow(tags: _model.allTags, scrollable: true),
       ],
       if (average != null) ...[
         const SizedBox(height: 8),
