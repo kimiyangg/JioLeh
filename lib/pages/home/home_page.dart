@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage> {
       pins: services.pins,
       location: services.location,
       geocoding: services.geocoding,
+      fog: services.fog,
     );
     _pages = [
       MapPage(model: _mapModel),

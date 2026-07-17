@@ -33,6 +33,12 @@ class AppColors {
   // Muted greys for secondary text on the auth screens.
   static const taglineText = Color(0xFF776F65);
   static const authBodyText = Color(0xFF7A736A);
+
+  // Fog-of-map overlay fill for unexplored area.
+  static const fogFill = Color(0xFF2A2A35);
+
+  // Tinted mint surface for the place preview box on jio cards.
+  static const mintSection = Color(0xFFD9EDDC);
 }
 
 class LogoColors {

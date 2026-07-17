@@ -17,7 +17,11 @@ class FakeOpenJioService extends OpenJioService {
   bool throwInviteNotFound;
 
   int saveEventCalls = 0;
+  int updateEventCalls = 0;
+  int deleteEventCalls = 0;
   int respondToInviteCalls = 0;
+  OpenJioEvent? lastUpdatedEvent;
+  String? lastDeletedEventId;
   InviteStatus? lastResponse;
   void Function()? lastOnNew;
 
@@ -25,6 +29,18 @@ class FakeOpenJioService extends OpenJioService {
   Future<String> saveEvent(OpenJioEvent event) async {
     saveEventCalls++;
     return savedEventId;
+  }
+
+  @override
+  Future<void> updateEvent(OpenJioEvent event) async {
+    updateEventCalls++;
+    lastUpdatedEvent = event;
+  }
+
+  @override
+  Future<void> deleteEvent(String eventId) async {
+    deleteEventCalls++;
+    lastDeletedEventId = eventId;
   }
 
   @override

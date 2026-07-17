@@ -10,6 +10,7 @@ import 'package:jio_leh/services/location_service.dart';
 import 'package:jio_leh/services/open_jio_service.dart';
 import 'package:jio_leh/services/points_service.dart';
 import 'package:jio_leh/services/pin_service.dart';
+import 'package:jio_leh/services/fog_service.dart';
 import 'package:jio_leh/services/place_service.dart';
 import 'package:jio_leh/services/services.dart';
 import 'package:jio_leh/services/photo_tagging_service.dart';   // ADD near other imports
@@ -27,6 +28,7 @@ class ServiceProvider extends InheritedWidget {
     AccountService? account,
     PinService? pins,
     PhotoTaggingService? photoTagging,
+    FogService? fog,
     LocationService? location,
     GeocodingService? geocoding,
     PlaceService? places,
@@ -41,6 +43,7 @@ class ServiceProvider extends InheritedWidget {
        _account = account,
        _pins = pins,
        _photoTagging = photoTagging,
+       _fog = fog,
        _location = location,
        _geocoding = geocoding,
        _places = places,
@@ -53,6 +56,7 @@ class ServiceProvider extends InheritedWidget {
   final AuthService? _auth;
   final AccountService? _account;
   final PinService? _pins;
+  final FogService? _fog;
   final LocationService? _location;
   final GeocodingService? _geocoding;
   final PlaceService? _places;
@@ -67,6 +71,7 @@ class ServiceProvider extends InheritedWidget {
   AccountService get account => _account ?? Services.account;
   PinService get pins => _pins ?? Services.pins;
   PhotoTaggingService get photoTagging => _photoTagging ?? Services.photoTagging;
+  FogService get fog => _fog ?? Services.fog;
   PointsService get points => _points ?? Services.points;
   SuggestedPlacesService get suggestedPlaces => _suggestedPlaces ?? Services.suggestedPlaces;
   LocationService get location => _location ?? Services.location;

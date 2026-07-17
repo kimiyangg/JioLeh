@@ -18,14 +18,14 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  bool _isSigningIn = false;
+  _SignInProvider? _signingInProvider;
 
   Future<void> _signInWithGoogle() async {
     // Read the service from the provider before the first await (context is
     // valid here because this runs after the widget is built).
     final auth = ServiceProvider.of(context)!.auth;
 
-    setState(() => _isSigningIn = true);
+    setState(() => _signingInProvider = _SignInProvider.google);
 
     try {
       await auth.signInWithGoogle();
@@ -41,7 +41,7 @@ class _AuthPageState extends State<AuthPage> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isSigningIn = false);
+        setState(() => _signingInProvider = null);
       }
     }
   }
@@ -49,7 +49,7 @@ class _AuthPageState extends State<AuthPage> {
   Future<void> _signInWithApple() async {
     final auth = ServiceProvider.of(context)!.auth;
 
-    setState(() => _isSigningIn = true);
+    setState(() => _signingInProvider = _SignInProvider.apple);
 
     try {
       await auth.signInWithApple();
@@ -65,7 +65,7 @@ class _AuthPageState extends State<AuthPage> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isSigningIn = false);
+        setState(() => _signingInProvider = null);
       }
     }
   }
@@ -77,7 +77,6 @@ class _AuthPageState extends State<AuthPage> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 430),
@@ -88,23 +87,21 @@ class _AuthPageState extends State<AuthPage> {
                       Expanded(
                         child: Center(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: BrandLockup(),
                           ),
                         ),
                       ),
                       SignInPanel(
-                        isSigningIn: _isSigningIn,
-                        onGooglePressed:
-                            defaultTargetPlatform == TargetPlatform.iOS 
-                                ? null 
-                                : _signInWithGoogle,
+                        isGoogleSigningIn:
+                            _signingInProvider == _SignInProvider.google,
+                        isAppleSigningIn:
+                            _signingInProvider == _SignInProvider.apple,
+                        onGooglePressed: _signInWithGoogle,
                         onApplePressed:
                             defaultTargetPlatform == TargetPlatform.iOS
-                                ? _signInWithApple
-                                : null,
+                            ? _signInWithApple
+                            : null,
                       ),
                     ],
                   ),
@@ -118,4 +115,4 @@ class _AuthPageState extends State<AuthPage> {
   }
 }
 
-
+enum _SignInProvider { google, apple }

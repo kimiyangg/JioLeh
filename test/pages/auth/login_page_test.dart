@@ -23,30 +23,44 @@ void main() {
 
   Widget buildPage(FakeAuthService auth) {
     return MaterialApp(
-      home: ServiceProvider(
-        auth: auth,
-        child: const AuthPage(),
-      ),
+      home: ServiceProvider(auth: auth, child: const AuthPage()),
     );
   }
 
-  Finder appleButton() => find.widgetWithText(AppPrimaryButton, 'Continue with Apple');
+  Finder appleButton() =>
+      find.widgetWithText(AppPrimaryButton, 'Continue with Apple');
 
-  testWidgets('shows the Apple button when the platform is iOS', (tester) async {
+  testWidgets('shows the Apple button when the platform is iOS', (
+    tester,
+  ) async {
     usePhoneSizedScreen(tester);
     await tester.pumpWidget(buildPage(FakeAuthService()));
 
     expect(appleButton(), findsOneWidget);
   }, variant: onIos);
 
-  testWidgets('hides the Apple button when the platform is Android', (tester) async {
+  testWidgets('shows the Google button on iOS too', (tester) async {
+    usePhoneSizedScreen(tester);
+    await tester.pumpWidget(buildPage(FakeAuthService()));
+
+    expect(
+      find.widgetWithText(AppPrimaryButton, 'Continue with Google'),
+      findsOneWidget,
+    );
+  }, variant: onIos);
+
+  testWidgets('hides the Apple button when the platform is Android', (
+    tester,
+  ) async {
     usePhoneSizedScreen(tester);
     await tester.pumpWidget(buildPage(FakeAuthService()));
 
     expect(appleButton(), findsNothing);
   }, variant: onAndroid);
 
-  testWidgets('tapping the Apple button calls signInWithApple exactly once', (tester) async {
+  testWidgets('tapping the Apple button calls signInWithApple exactly once', (
+    tester,
+  ) async {
     usePhoneSizedScreen(tester);
     final auth = FakeAuthService();
     await tester.pumpWidget(buildPage(auth));
@@ -58,7 +72,9 @@ void main() {
     expect(auth.signInCalls, 0);
   }, variant: onIos);
 
-  testWidgets('a cancelled Apple sign-in shows no error snackbar', (tester) async {
+  testWidgets('a cancelled Apple sign-in shows no error snackbar', (
+    tester,
+  ) async {
     usePhoneSizedScreen(tester);
     final auth = FakeAuthService()
       ..appleSignInError = const SignInCancelledException();
@@ -70,9 +86,12 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   }, variant: onIos);
 
-  testWidgets('a failed Apple sign-in shows the error snackbar', (tester) async {
+  testWidgets('a failed Apple sign-in shows the error snackbar', (
+    tester,
+  ) async {
     usePhoneSizedScreen(tester);
-    final auth = FakeAuthService()..appleSignInError = Exception('network down');
+    final auth = FakeAuthService()
+      ..appleSignInError = Exception('network down');
     await tester.pumpWidget(buildPage(auth));
 
     await tester.tap(appleButton());

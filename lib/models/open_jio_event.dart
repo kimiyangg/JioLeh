@@ -11,7 +11,10 @@ class OpenJioEvent {
   final String? placeId; // The linked places row; null for free-text locations
   final String? senderId; // The user ID of the person who sent the invite
   final String? senderName; // The display name of the person who sent the invite
+  final String? senderAvatarUrl; // The avatar of the person who sent the invite
   final InviteStatus? inviteStatus; // The current user's response to the invite
+  final int? goingCount; // How many invitees have accepted; null if not resolved
+  final String? placeCategory; // The linked place's category emoji, if any
 
   const OpenJioEvent({
     this.id,
@@ -22,14 +25,19 @@ class OpenJioEvent {
     this.placeId,
     this.senderId,
     this.senderName,
-    this.inviteStatus
+    this.senderAvatarUrl,
+    this.inviteStatus,
+    this.goingCount,
+    this.placeCategory,
   });
 
   factory OpenJioEvent.fromMap(
     Map<String, dynamic> map, {
     List<UserFriend> invitedFriends = const [],
     String? senderName,
+    String? senderAvatarUrl,
     InviteStatus? status,
+    int? goingCount,
   }) {
     return OpenJioEvent(
       id: map['id'] as String,
@@ -40,7 +48,11 @@ class OpenJioEvent {
       placeId: map['place_id'] as String?,
       senderId: map['user_id'] as String?,
       senderName: senderName,
+      senderAvatarUrl: senderAvatarUrl,
       inviteStatus: status,
+      goingCount: goingCount,
+      placeCategory:
+          (map['places'] as Map<String, dynamic>?)?['category'] as String?,
     );
   }
 

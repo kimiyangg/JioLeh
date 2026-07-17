@@ -27,7 +27,7 @@ import 'package:jio_leh/widgets/app_text_field.dart';
 class OpenJioFormPage extends StatefulWidget {
   const OpenJioFormPage({super.key, this.event});
 
-  // If event is provided, the form will be in view mode and will display the event details.
+  // If event is provided: the host gets an editable form that pops the updated event; an invitee gets a read-only view with a Leave button.
   final OpenJioEvent? event;
 
   @override
@@ -51,8 +51,8 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
   static const _defaultLatitude = 1.3521;
   static const _defaultLongitude = 103.8198;
 
-  bool get _isViewMode => widget.event != null;
   bool get _isReceivedEvent => widget.event?.senderName != null;
+  bool get _isOwnEvent => widget.event != null && !_isReceivedEvent;
 
   @override
   void dispose() {
@@ -189,7 +189,8 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
 
     final services = ServiceProvider.of(context)!;
     _openJio = services.openJio;
-    _future = widget.event != null
+    // Invitees only see who was invited; the host (and create mode) gets the full friends list so invitees can be changed.
+    _future = _isReceivedEvent
         ? Future.value(widget.event!.invitedFriends)
         : services.friends.getUserFriends();
     _model = OpenJioFormPageModel(
@@ -266,17 +267,25 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
         .where((friend) => _selectedFriendIds.contains(friend.userProfile.id))
         .toList();
 
-    final placeId = await _model.resolvePlaceId();
+    final resolvedPlaceId = await _model.resolvePlaceId();
     if (!mounted) return;
+
+    // On edit, an untouched location keeps its original place link; changed text without a new pick becomes free-text.
+    final original = widget.event;
+    final locationUnchanged =
+        original != null &&
+        _locationController.text.trim() == original.locationName;
 
     Navigator.pop(
       context,
       OpenJioEvent(
+        id: original?.id,
         invitedFriends: selectedFriends,
         dateTime: _selectedDateTime!,
         caption: _captionController.text.trim(),
         locationName: _locationController.text.trim(),
-        placeId: placeId,
+        placeId:
+            resolvedPlaceId ?? (locationUnchanged ? original.placeId : null),
       ),
     );
   }
@@ -286,7 +295,8 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
     final canSubmit =
         _selectedFriendIds.isNotEmpty && _selectedDateTime != null;
 
-    final hasFriends = !_isViewMode || widget.event!.invitedFriends.isNotEmpty;
+    final hasFriends =
+        !_isReceivedEvent || widget.event!.invitedFriends.isNotEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -300,7 +310,9 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppPageHeader(
-                  title: _isViewMode ? 'Jio Details' : 'Open a Jio',
+                  title: _isReceivedEvent
+                      ? 'Jio Details'
+                      : (_isOwnEvent ? 'Edit Jio' : 'Open a Jio'),
                 ),
                 const SizedBox(height: 20),
                 Expanded(
@@ -308,14 +320,16 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                     future: _future,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
-                        return const Center(child: BrandLoadingAnimation.compact());
+                        return const Center(
+                          child: BrandLoadingAnimation.compact(),
+                        );
                       }
 
                       if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       }
 
-                      final friends = _isViewMode
+                      final friends = _isReceivedEvent
                           ? (snapshot.data ?? [])
                           : (snapshot.data ?? [])
                                 .where(
@@ -325,156 +339,164 @@ class _OpenJioFormPageState extends State<OpenJioFormPage> {
                                 )
                                 .toList();
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_isReceivedEvent) ...[
-                            const AppSectionLabel(text: 'Sent by'),
-                            const SizedBox(height: 8),
-                            AppFieldBox(
-                              height: AppFieldHeights.single,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
+                      return SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_isReceivedEvent) ...[
+                              const AppSectionLabel(text: 'Sent by'),
+                              const SizedBox(height: 8),
+                              AppFieldBox(
+                                height: AppFieldHeights.single,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      widget.event!.senderName!,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    widget.event!.senderName!,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            if (!_isReceivedEvent ||
+                                _model.selectedPlace != null) ...[
+                              AppMapSnippet(
+                                latitude:
+                                    _model.selectedPlace?.latitude ??
+                                    _defaultLatitude,
+                                longitude:
+                                    _model.selectedPlace?.longitude ??
+                                    _defaultLongitude,
+                                emoji: _model.selectedPlace == null ? '' : '📍',
+                                zoom: _model.selectedPlace == null
+                                    ? AppMapSnip.cityZoom
+                                    : AppMapSnip.zoom,
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            const AppSectionHeading(text: 'Location'),
+                            const SizedBox(height: 8),
+                            AppTextField(
+                              controller: _locationController,
+                              hintText: 'Type a place name to search…',
+                              readOnly: _isReceivedEvent,
+                              onSubmitted: _isReceivedEvent
+                                  ? null
+                                  : _searchLocation,
+                              suffixIcon: _isReceivedEvent
+                                  ? null
+                                  : Icons.search,
+                              onSuffixTap:
+                                  _isReceivedEvent || _model.isSearching
+                                  ? null
+                                  : () => _searchLocation(
+                                      _locationController.text,
+                                    ),
+                            ),
+                            if (!_isReceivedEvent) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AppSecondaryButton(
+                                      label: _model.loadingNearby
+                                          ? 'Loading'
+                                          : 'Popular around',
+                                      icon: Icons.link,
+                                      backgroundColor:
+                                          AppColors.lightWidgetBackground,
+                                      onPressed: _model.loadingNearby
+                                          ? null
+                                          : _popularAround,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            const AppSectionHeading(text: 'Date & Time'),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: _isReceivedEvent ? null : _pickDateTime,
+                              child: AppFieldBox(
+                                height: AppFieldHeights.single,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      _selectedDateTime != null
+                                          ? formatDateTime(_selectedDateTime!)
+                                          : 'Pick a date and time',
+                                      style: TextStyle(
+                                        fontSize: AppTextSizes.textFieldHint,
+                                        color: _selectedDateTime != null
+                                            ? Colors.black
+                                            : Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 16),
-                          ],
-                          if (!_isViewMode ||
-                              _model.selectedPlace != null) ...[
-                            AppMapSnippet(
-                              latitude: _model.selectedPlace?.latitude ??
-                                  _defaultLatitude,
-                              longitude: _model.selectedPlace?.longitude ??
-                                  _defaultLongitude,
-                              emoji:
-                                  _model.selectedPlace == null ? '' : '📍',
-                              zoom: _model.selectedPlace == null
-                                  ? AppMapSnip.cityZoom
-                                  : AppMapSnip.zoom,
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                          const AppSectionHeading(text: 'Location'),
-                          const SizedBox(height: 8),
-                          AppTextField(
-                            controller: _locationController,
-                            hintText: 'Type a place name to search…',
-                            readOnly: _isViewMode,
-                            onSubmitted: _isViewMode ? null : _searchLocation,
-                            suffixIcon: _isViewMode ? null : Icons.search,
-                            onSuffixTap: _isViewMode || _model.isSearching
-                                ? null
-                                : () =>
-                                    _searchLocation(_locationController.text),
-                          ),
-                          if (!_isViewMode) ...[
+                            const AppSectionHeading(text: 'Caption'),
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: AppSecondaryButton(
-                                    label: _model.loadingNearby
-                                        ? 'Loading'
-                                        : 'Popular around',
-                                    icon: Icons.link,
-                                    backgroundColor: AppColors.lightWidgetBackground,
-                                    onPressed: _model.loadingNearby
-                                        ? null
-                                        : _popularAround,
-                                  ),
-                                ),
-                              ],
+                            AppTextField(
+                              controller: _captionController,
+                              hintText: 'Add a short caption…',
+                              readOnly: _isReceivedEvent,
                             ),
-                          ],
-                          const SizedBox(height: 16),
-                          const AppSectionHeading(text: 'Date & Time'),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: _isViewMode ? null : _pickDateTime,
-                            child: AppFieldBox(
-                              height: AppFieldHeights.single,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    _selectedDateTime != null
-                                        ? formatDateTime(_selectedDateTime!)
-                                        : 'Pick a date and time',
-                                    style: TextStyle(
-                                      fontSize: AppTextSizes.textFieldHint,
-                                      color: _selectedDateTime != null
-                                          ? Colors.black
-                                          : Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const AppSectionHeading(text: 'Caption'),
-                          const SizedBox(height: 8),
-                          AppTextField(
-                            controller: _captionController,
-                            hintText: 'Add a short caption…',
-                            readOnly: _isViewMode,
-                          ),
-                          const SizedBox(height: 16),
-                          if (hasFriends) ...[
-                            AppSectionHeading(
-                              text: _isReceivedEvent
-                                  ? 'Also invited'
-                                  : 'Invited Friends',
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: FriendAvatarWrap(
-                                  friends: friends,
-                                  selectedFriendIds: _selectedFriendIds,
-                                  onToggle: _toggleFriend,
-                                  readOnly: _isViewMode,
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (!hasFriends) const Spacer(),
-                          if (!_isViewMode) ...[
                             const SizedBox(height: 16),
-                            AppPrimaryButton(
-                              label: 'OpenJio',
-                              onPressed: canSubmit
-                                  ? () => _submit(friends)
-                                  : null,
-                            ),
+                            if (hasFriends) ...[
+                              AppSectionHeading(
+                                text: _isReceivedEvent
+                                    ? 'Also invited'
+                                    : 'Invited Friends',
+                              ),
+                              const SizedBox(height: 8),
+                              FriendAvatarWrap(
+                                friends: friends,
+                                selectedFriendIds: _selectedFriendIds,
+                                onToggle: _toggleFriend,
+                                readOnly: _isReceivedEvent,
+                              ),
+                            ],
+                            if (!hasFriends) const SizedBox(height: 16),
+                            if (!_isReceivedEvent) ...[
+                              const SizedBox(height: 16),
+                              AppPrimaryButton(
+                                label: _isOwnEvent ? 'Save' : 'OpenJio',
+                                onPressed: canSubmit
+                                    ? () => _submit(friends)
+                                    : null,
+                              ),
+                            ],
+                            if (_isReceivedEvent) ...[
+                              const SizedBox(height: 16),
+                              AppPrimaryButton(
+                                label: 'Leave',
+                                onPressed: _isLeaving ? null : _leave,
+                                isLoading: _isLeaving,
+                                backgroundColor: AppColors.danger,
+                                liftColor: AppColors.dangerShadow,
+                              ),
+                            ],
                           ],
-                          if (_isReceivedEvent) ...[
-                            const SizedBox(height: 16),
-                            AppPrimaryButton(
-                              label: 'Leave',
-                              onPressed: _isLeaving ? null : _leave,
-                              isLoading: _isLeaving,
-                              backgroundColor: AppColors.danger,
-                              liftColor: AppColors.dangerShadow,
-                            ),
-                          ],
-                        ],
+                        ),
                       );
                     },
                   ),

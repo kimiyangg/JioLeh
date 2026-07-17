@@ -38,6 +38,10 @@ abstract class PinService {
   /// first. Each returned place's pins list only has that user's own pin.
   Future<List<Place>> loadPlacesPinnedByUser(String userId);
 
+  /// Loads one place by its row id, with whatever pins are visible to the
+  /// current user. Returns null if the place does not exist.
+  Future<Place?> loadPlaceById(String placeId);
+
 
   /// Looks up an existing place by its external provider id (e.g. a Google
   /// Places id). Returns null if no place has been created for it yet.

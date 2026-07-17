@@ -4,6 +4,8 @@ import 'package:jio_leh/services/points_service.dart';
 import 'package:jio_leh/services/supabase/supabase_points_service.dart';
 import 'pin_service.dart';
 import 'supabase/supabase_pin_service.dart';
+import 'fog_service.dart';
+import 'supabase/supabase_fog_service.dart';
 import 'location_service.dart';
 import 'geocoding_service.dart';
 import 'account_service.dart';
@@ -48,6 +50,8 @@ class Services {
     points: points,
     photoTagging: photoTagging,
   );
+
+  static final FogService fog = SupabaseFogService(client: _client, auth: auth);
 
   static final location = LocationService();
 
