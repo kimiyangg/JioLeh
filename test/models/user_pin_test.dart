@@ -96,16 +96,16 @@ void main() {
       expect(pinWith(score: 0.9).sentiment, isNull);
     });
 
-    test('positive when score is exactly the 0.75 threshold', () {
+    test('positive when score is exactly the 0.8 threshold', () {
       expect(
-        pinWith(label: 'POSITIVE', score: 0.75).sentiment,
+        pinWith(label: 'POSITIVE', score: 0.8).sentiment,
         PinSentiment.positive,
       );
     });
 
-    test('mixed when score is just under the 0.75 threshold', () {
+    test('mixed when score is just under the 0.8 threshold', () {
       expect(
-        pinWith(label: 'POSITIVE', score: 0.7499).sentiment,
+        pinWith(label: 'POSITIVE', score: 0.7999).sentiment,
         PinSentiment.mixed,
       );
     });

@@ -51,7 +51,7 @@ class UserPin {
     );
   }
 
-  static const double sentimentConfidenceThreshold = 0.75;
+  static const double sentimentConfidenceThreshold = 0.8;
 
   PinSentiment? get sentiment {
     if (sentimentLabel == null || sentimentScore == null) return null;
