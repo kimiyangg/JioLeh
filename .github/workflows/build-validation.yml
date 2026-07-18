@@ -39,6 +39,7 @@ jobs:
             --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}" \
             --dart-define=GOOGLE_PLACES_API_KEY="${{ secrets.GOOGLE_PLACES_API_KEY }}" \
             --dart-define=GOOGLE_VISION_API_KEY="${{ secrets.GOOGLE_VISION_API_KEY }}" \
+            --dart-define=SENTIMENT_API_KEY="${{ secrets.SENTIMENT_API_KEY }}"
 
   ios:
     name: Build iOS
@@ -69,4 +70,5 @@ jobs:
             --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
             --dart-define=MAPBOX_STYLE_URI="${{ secrets.MAPBOX_STYLE_URI }}" \
             --dart-define=GOOGLE_PLACES_API_KEY="${{ secrets.GOOGLE_PLACES_API_KEY }}" \
-            --dart-define=GOOGLE_VISION_API_KEY="${{ secrets.GOOGLE_VISION_API_KEY }}"
+            --dart-define=GOOGLE_VISION_API_KEY="${{ secrets.GOOGLE_VISION_API_KEY }}" \
+            --dart-define=SENTIMENT_API_KEY="${{ secrets.SENTIMENT_API_KEY }}"
