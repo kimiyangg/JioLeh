@@ -18,7 +18,7 @@ Useful paths:
 | `lib/config/` | Dart define based environment configuration |
 | `lib/pages/` | App pages (auth, onboarding, home, map, profile, friends, invitations) |
 | `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
-| `lib/services/` | Auth, account, friends, location, geocoding, pin, OpenJio, and JioChat services |
+| `lib/services/` | Auth, account, friends, location, geocoding, pin, place, points, suggested-places, fog, photo-tagging, OpenJio, and JioChat services |
 | `lib/models/` | App data models |
 | `lib/routing/` | Centralized route definitions (`AppRoutes`) |
 | `test/` | Flutter tests |
@@ -33,6 +33,7 @@ Useful paths:
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | App layers, the service contract/impl/fake pattern, frontend (Atomic Design + MVVM), and folder structure, with diagrams |
 | [`docs/CODE_STYLE.md`](docs/CODE_STYLE.md) | Dart, Flutter, naming, structure, testing, and documentation style |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | Supabase schema, Row-Level Security, storage, and migration workflow |
+| [`docs/DEMO_COMMUNITY.md`](docs/DEMO_COMMUNITY.md) | The opt-in demo community: seeded bots, enrolment, and maintenance |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | Version tags, Android release, iOS release, and release secrets |
 | [`docs/SWE_principles_and_practices.md`](docs/SWE_principles_and_practices.md) | Software engineering study/reference notes |
 | [`docs/UI_UX_PRINCIPLES.md`](docs/UI_UX_PRINCIPLES.md) | Usability, accessibility, and review principles for user interface changes |
@@ -55,9 +56,9 @@ environment:
   sdk: ^3.11.5
 ```
 
-The app also needs Mapbox, Supabase, and Google Places `--dart-define` values
-when running or building. See [`README.md`](README.md) for the run command and
-environment keys.
+The app also needs Mapbox, Supabase, Google Places, and Google Vision
+`--dart-define` values when running or building. See [`README.md`](README.md)
+for the run command and environment keys.
 
 ## Development Checks
 

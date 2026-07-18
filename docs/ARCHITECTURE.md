@@ -115,15 +115,21 @@ sees only the abstract type.
 |---------|---------|-------|
 | auth | abstract + impl + fake | reference implementation |
 | account | abstract + impl + fake | modernized |
-| friends | abstract + impl + fake | modernized: `FriendsService` + `SupabaseFriendsService` + `FakeFriendsService` |
-| open_jio | abstract + impl + fake | modernized: `OpenJioService` + `SupabaseOpenJioService` + `FakeOpenJioService` |
-| pin | abstract + impl + fake | modernized: `PinService` + `SupabasePinService` + `FakePinService` |
-| jio_chat | abstract + impl (no fake yet) | newest: `JioChatService` + `SupabaseJioChatService`; fake and tests still pending |
+| friends | abstract + impl + fake | `FriendsService` + `SupabaseFriendsService` + `FakeFriendsService` |
+| open_jio | abstract + impl + fake | `OpenJioService` + `SupabaseOpenJioService` + `FakeOpenJioService` |
+| pin | abstract + impl + fake | `PinService` + `SupabasePinService` + `FakePinService` |
+| place | abstract + impl + fake | `PlaceService` + `GooglePlaceService` (Google Places, not Supabase) + `FakePlaceService` |
+| points | abstract + impl + fake | `PointsService` + `SupabasePointsService` + `FakePointsService` |
+| suggested_places | abstract + impl + fake | `SuggestedPlacesService` + `SupabaseSuggestedPlacesService` + `FakeSuggestedPlacesService` |
+| fog | abstract + impl + fake | `FogService` + `SupabaseFogService` + `FakeFogService` |
+| photo_tagging | abstract + impl + fake | `PhotoTaggingService` + `GoogleVisionPhotoTaggingService` (Google Cloud Vision) + `FakePhotoTaggingService` |
+| jio_chat | abstract + impl (no fake yet) | `JioChatService` + `SupabaseJioChatService`; fake and tests still pending |
 | location, geocoding | concrete only | thin wrappers; a contract is not justified yet |
 
 Production implementations live under `lib/services/supabase/` (one
-`supabase_*_service.dart` per contract); the abstract contracts sit directly in
-`lib/services/`.
+`supabase_*_service.dart` per contract), except the Google-backed
+`GooglePlaceService` and `GoogleVisionPhotoTaggingService`, which sit directly
+in `lib/services/` alongside the abstract contracts.
 
 > An abstraction must **earn its keep**: a real second implementation or a test
 > fake justifies an interface; speculative flexibility does not.

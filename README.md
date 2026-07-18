@@ -19,25 +19,38 @@ The app currently includes:
   (Map, Jios, Friends, You) and a center button to add a location.
 - Current location detection and live location updates.
 - Reverse geocoding to show the user's current area.
-- Google sign-in through Supabase Auth.
+- Google and Apple sign-in through Supabase Auth.
 - An auth gate that routes users between sign-in, onboarding, and the home shell.
 - First-time onboarding to set up a user profile (username, display name,
   birthday, and an optional profile photo).
 - Profile viewing, profile editing, avatar photos, and share-code access via QR
   code and deep links.
+- Pinned spots on profiles: a My Pinned Spots page, pin detail pages, and a
+  pinned-spots preview when viewing a friend's profile.
 - Friend search by username, friend requests, accept/reject flows, and friend
-  removal.
+  removal, with live friend-request updates via Supabase Realtime.
+- Social points and a friend leaderboard that updates in real time.
 - OpenJio gathering invitations: create an invite to selected friends with a
-  date and time, caption, and location, and recipients can accept, decline, or
-  leave.
+  date and time, caption, and a location linked to the shared place system, and
+  recipients can accept, decline, or leave.
+- Jio cards with live details, host edit and delete actions, a Jio detail page,
+  and automatic cleanup of expired Jios.
 - JioChat real-time group chat for each OpenJio gathering, with text and photo
   messages.
 - Persistent places, user pins, user profiles, friendships, OpenJio events,
   invite statuses, and chat messages stored in Supabase.
 - Map pins with custom names, emoji, ratings, reviews, privacy, and up to three
   photos per pin.
+- AI photo tagging of pin photos through Google Cloud Vision, shown as tag
+  chips on pin details and pinned-spot cards.
+- Place-level categories computed from pins, with pre-filled pin types.
+- Pin clustering on the map for dense areas.
+- A shared place details bottom sheet with friends' reviews, photos, and tags.
+- Friend-recommended place suggestions, opened from a map toolbar button.
+- Fog-of-map exploration that reveals areas the user has visited.
 - Nearby place loading around the current map area.
 - A map toolbar for recentering and adding pins, plus a current-area bar.
+- An optional demo community that new users can join during onboarding.
 
 ## Product Direction
 
@@ -56,13 +69,11 @@ The aims of our project include but are not limited to:
 
 Planned features from the proposal include:
 
-- Location categories beyond emoji-based custom pins.
 - Comments and place-specific discussion.
-- Social points and friend leaderboards.
-- Fog-of-map exploration.
 - Group location filters.
-- Profile search and close-friends filtering.
-- AI-assisted content classification and recommendation ideas.
+- Close-friends filtering.
+- Virtual buildings and further map progression.
+- Further AI-assisted recommendation ideas.
 
 ## Tech Stack
 
@@ -72,10 +83,12 @@ Planned features from the proposal include:
 | Maps | Mapbox Maps SDK for Flutter |
 | Location | Geolocator |
 | Backend | Supabase |
-| Auth | Supabase Auth with Google OAuth (`google_sign_in`) |
+| Auth | Supabase Auth with Google OAuth (`google_sign_in`) and Sign in with Apple (`sign_in_with_apple`) |
 | Database | Supabase PostgreSQL |
-| Real-time | Supabase Realtime (OpenJio invites and JioChat messages) |
+| Real-time | Supabase Realtime (OpenJio invites, JioChat messages, friend requests, and leaderboard points) |
 | Photos | `image_picker`, Supabase Storage |
+| Places data | Google Places API (nearby place suggestions) |
+| AI tagging | Google Cloud Vision API (pin photo tagging) |
 | Fonts | `google_fonts` (Gabarito) |
 | Sharing | `qr_flutter`, `app_links` deep links, `share_plus`, `url_launcher` |
 | HTTP | Dart `http` package |
@@ -130,7 +143,8 @@ flutter run `
   --dart-define=MAPBOX_STYLE_URI="your-mapbox-style-uri" `
   --dart-define=SUPABASE_URL="your-supabase-url" `
   --dart-define=SUPABASE_ANON_KEY="your-supabase-anon-key" `
-  --dart-define=GOOGLE_PLACES_API_KEY="your-google-places-api-key"
+  --dart-define=GOOGLE_PLACES_API_KEY="your-google-places-api-key" `
+  --dart-define=GOOGLE_VISION_API_KEY="your-google-vision-api-key"
 ```
 
 Do not commit real secrets.
@@ -143,8 +157,13 @@ current app flow is centered around:
 - `profiles`: user onboarding and profile data.
 - `places`: shared map places with coordinates and provider/user source data.
 - `user_pins`: a user's personal pin for a place, including custom name, emoji,
-  rating, review, privacy, and photo paths.
+  rating, review, privacy, photo paths, and AI tags.
 - `friendships`: friend request and accepted-friend relationships.
+- `point_transactions`: point awards backing the friend leaderboard.
+- `suggested_place_impressions`: engagement logging for suggested places.
+- `explored_tiles`: fog-of-map tiles a user has explored.
+- `demo_community_bots` and `demo_community_enrolments`: the opt-in demo
+  community.
 - `open_jio_events`: OpenJio gathering invitations created by a user.
 - `open_jio_invite_statuses`: per-invitee pending/accepted/declined status for an
   event (the source of truth for who is invited).
@@ -165,7 +184,7 @@ integration, and release workflows.
 | `lib/routing/` | Centralized route definitions (`AppRoutes`) |
 | `lib/pages/` | App pages (auth, onboarding, home, map, profile, friends, invitations) |
 | `lib/pages/**/widgets/` | Page-specific reusable UI widgets |
-| `lib/services/` | Auth, account, friends, location, geocoding, pin, OpenJio, and JioChat services |
+| `lib/services/` | Auth, account, friends, location, geocoding, pin, place, points, suggested-places, fog, photo-tagging, OpenJio, and JioChat services |
 | `lib/services/supabase/` | Supabase implementations of the service contracts |
 | `lib/config/` | Mapbox and Supabase environment config |
 | `lib/models/` | App data models |

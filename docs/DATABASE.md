@@ -5,8 +5,8 @@ and image storage.
 
 ## Current Tables
 
-Sign-in uses Supabase Auth with Google OAuth, so app data is keyed to the
-authenticated user.
+Sign-in uses Supabase Auth with Google OAuth or Sign in with Apple, so app data
+is keyed to the authenticated user.
 
 ### `profiles`
 
@@ -90,7 +90,12 @@ befriend themselves (`requester_id <> addressee_id`).
 | `date_time` | timestamp | When the gathering happens |
 | `caption` | text | Short description |
 | `location_name` | text | Free-text location name |
+| `place_id` | uuid | Optional linked row in `places` (set null on place delete) |
 | `created_at` | timestamp | Row creation time |
+
+Events are deleted automatically 24 hours after `date_time` by an hourly
+`pg_cron` job (`delete-expired-open-jios`); cascade deletes clear the event's
+invite statuses and chat messages with it.
 
 The invitee list is not stored on this table. An earlier
 `invited_friend_ids` array column was dropped; `open_jio_invite_statuses` is now
@@ -175,6 +180,28 @@ friends pinned it, days since the most recent friend visit, and whether the
 place matches the user's most-pinned category. It excludes places the user
 already pinned themselves.
 
+### `explored_tiles`
+
+`explored_tiles` backs fog-of-map exploration: one row per map grid cell a user
+has physically visited. Tile coordinates are computed app-side from a fixed
+fraction of a degree. Visiting a cell is a permanent fact, so rows are inserted
+but never updated or deleted.
+
+| Column | Type | Notes |
+|---|---|---|
+| `user_id` | uuid | Owning user (cascade delete); part of the primary key |
+| `tile_x` | integer | Tile x coordinate; part of the primary key |
+| `tile_y` | integer | Tile y coordinate; part of the primary key |
+| `explored_at` | timestamp | When the tile was first explored |
+
+### `demo_community_bots` and `demo_community_enrolments`
+
+These tables back the opt-in demo community offered during onboarding.
+`demo_community_bots` registers the three pre-created demo profiles, and
+`demo_community_enrolments` records which users joined (one row per user, so
+joining is idempotent). The `join_demo_community()` function seeds friendships,
+pins, an OpenJio event, and chat messages for the caller. See
+`docs/DEMO_COMMUNITY.md` for setup and maintenance.
 
 ## Storage
 
@@ -214,11 +241,16 @@ Current policy direction:
 - Friendship rows are visible to the requester and addressee; only the addressee
   can accept or block.
 - OpenJio events are visible to their creator and to invited users; only the
-  creator can insert or delete them.
-- Invite statuses are visible to the invitee and the event creator; the creator
-  inserts them, and the invitee can update only their own status.
+  creator can insert, update, or delete them.
+- Invite statuses for an event are visible to the event creator and to anyone
+  invited to that event (so the app can show who is going); the creator inserts
+  and deletes them (deleting supports un-inviting during an edit), and the
+  invitee can update only their own status.
 - JioChat messages are readable and writable only by the event creator and
   accepted invitees.
+- Explored fog tiles are readable and insertable only by their owner.
+- Demo community enrolments are visible only to the enrolled user; seeding runs
+  through the `join_demo_community()` security-definer function.
 
 Helper functions used by these policies:
 
@@ -236,6 +268,8 @@ Other database automation:
 - `sync_place_pin_stats()` maintains `places.pin_count` and auto-approves
   user-created places once enough distinct users have pinned them.
 - `award_jio_points_on_accept()` credits an OpenJio event's sender with points when an invitee accepts.
+- The `delete-expired-open-jios` `pg_cron` job deletes OpenJio events 24 hours
+  after their event time, every hour on the hour.
 
 ## Migrations
 
